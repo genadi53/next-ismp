@@ -8,6 +8,18 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
+    // SQL Server connection
+    SQL_SERVER: z.string().min(1),
+    SQL_DATABASE: z.string().min(1),
+    SQL_USER: z.string().min(1),
+    SQL_PASSWORD: z.string().min(1),
+    SQL_PORT: z.coerce.number().default(1433),
+    // MySQL connection
+    MYSQL_HOST: z.string().min(1),
+    MYSQL_DATABASE: z.string().min(1),
+    MYSQL_USER: z.string().min(1),
+    MYSQL_PASSWORD: z.string().min(1),
+    MYSQL_PORT: z.coerce.number().default(3306),
   },
 
   /**
@@ -25,6 +37,18 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+    // SQL Server
+    SQL_SERVER: process.env.SQL_SERVER,
+    SQL_DATABASE: process.env.SQL_DATABASE,
+    SQL_USER: process.env.SQL_USER,
+    SQL_PASSWORD: process.env.SQL_PASSWORD,
+    SQL_PORT: process.env.SQL_PORT,
+    // MySQL
+    MYSQL_HOST: process.env.MYSQL_HOST,
+    MYSQL_DATABASE: process.env.MYSQL_DATABASE,
+    MYSQL_USER: process.env.MYSQL_USER,
+    MYSQL_PASSWORD: process.env.MYSQL_PASSWORD,
+    MYSQL_PORT: process.env.MYSQL_PORT,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
