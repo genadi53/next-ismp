@@ -8,29 +8,10 @@ import {
   updateOperator,
   deleteOperator,
 } from "@/server/repositories";
-import type {
-  CreateOperatorInput,
-  HermesOperator,
-} from "@/types/hermes/types.operator";
-
-// Zod schemas for validation
-const createOperatorSchema = z.object({
-  OperatorId: z.number(),
-  OperatorName: z.string().min(1, "Operator name is required"),
-  Dlazhnost: z.string(),
-  Department: z.string(),
-  Zveno: z.string(),
-}) satisfies z.ZodType<CreateOperatorInput>;
-
-const updateOperatorSchema = z.object({
-  Id: z.number(),
-  OperatorId: z.number(),
-  OperatorName: z.string().min(1, "Operator name is required"),
-  Dlazhnost: z.string(),
-  Department: z.string(),
-  Zveno: z.string(),
-  lrd: z.date().nullable(),
-}) satisfies z.ZodType<HermesOperator>;
+import {
+  createOperatorSchema,
+  updateOperatorSchema,
+} from "@/schemas/hermes.schemas";
 
 export const operatorsRouter = createTRPCRouter({
   /**
