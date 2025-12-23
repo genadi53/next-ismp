@@ -40,7 +40,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "src/global.d.ts"
   ],
   "exclude": ["node_modules", "generated"]
 }
