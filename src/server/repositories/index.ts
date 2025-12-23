@@ -37,3 +37,20 @@ export * from "./prestart/equipment.repository";
 
 // Reports module
 export * from "./reports/registry.repository";
+
+// Geowlan module
+export * from "./geowlan/geowlan.repository";
+
+// Mine Planning module
+export * from "./mine-planning/natural-plan.repository";
+export * from "./mine-planning/operativen-plan.repository";
+export * from "./mine-planning/plan-shovels.repository";
+
+// Admin module
+export * from "./admin/permissions.repository";
+export * from "./admin/mail-group.repository";
+
+// PVR module
+export * from "./pvr/blasting-plan.repository";
+export * from "./pvr/gas.repository";
+export * from "./pvr/raport.repositry";
