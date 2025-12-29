@@ -21,6 +21,5 @@ export type CreateLoadInput = {
   Br: number | null;
   AddMaterial: string | null;
   RemoveMaterial: string | null;
-  userAdded: string | null;
+  userAdded?: string | null;
 };
-

@@ -51,3 +51,12 @@ export const monthNamesBG: Record<number, MonthBG> = {
   11: "Ноември",
   12: "Декември",
 };
+
+export type ShiftNames = "Първа" | "Обяд" | "Втора" | "Нощна";
+
+export const ShiftNumbers: Record<number, ShiftNames> = {
+  1: "Първа",
+  2: "Обяд",
+  3: "Втора",
+  4: "Нощна",
+};

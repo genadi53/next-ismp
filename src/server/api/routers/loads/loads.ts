@@ -15,7 +15,7 @@ const createLoadSchema = z.object({
   Br: z.number().nullable(),
   AddMaterial: z.string().nullable(),
   RemoveMaterial: z.string().nullable(),
-  userAdded: z.string().nullable(),
+  // userAdded: z.string().nullable(),
 });
 
 export const loadsRouter = createTRPCRouter({

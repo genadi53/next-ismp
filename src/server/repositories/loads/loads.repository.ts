@@ -58,7 +58,7 @@ export async function createLoad(input: CreateLoadInput): Promise<void> {
     request.input("Br", input.Br);
     request.input("AddMaterial", input.AddMaterial);
     request.input("RemoveMaterial", input.RemoveMaterial);
-    request.input("userAdded", input.userAdded);
+    request.input("userAdded", "test@testov.com");
 
     await request.query(`
       INSERT INTO [ELLDBAdmins].[dbo].[Kursove] (
@@ -83,4 +83,3 @@ export async function markLoadSent(id: number): Promise<void> {
     `);
   });
 }
-
