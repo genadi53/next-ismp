@@ -1,13 +1,11 @@
-"use client";
 import { cn } from "@/lib/cn";
-import { Loader2, X } from "lucide-react";
-import { Button } from "./button";
+import { Loader2 } from "lucide-react";
 
 export interface LoadingSpinnerProps {
   size?: "sm" | "default" | "lg" | "xl";
-  showCancelButton?: boolean;
-  onCancel?: () => void;
-  cancelButtonText?: string;
+  // showCancelButton?: boolean;
+  // onCancel?: () => void;
+  // cancelButtonText?: string;
   label?: string;
   showLabel?: boolean;
   className?: string;
@@ -22,9 +20,9 @@ const sizeClasses = {
 
 const LoadingSpinner = ({
   size = "default",
-  showCancelButton = false,
-  onCancel,
-  cancelButtonText = "Cancel",
+  // showCancelButton = false,
+  // onCancel,
+  // cancelButtonText = "Cancel",
   label,
   showLabel = false,
   className,
@@ -49,12 +47,12 @@ const LoadingSpinner = ({
             </div> 
       */}
 
-      {showCancelButton && onCancel && (
+      {/* {showCancelButton && onCancel && (
         <Button variant="outline" size="sm" onClick={onCancel} className="ml-2">
           <X className="mr-1 h-3 w-3" />
           {cancelButtonText}
         </Button>
-      )}
+      )} */}
     </div>
   );
 };
