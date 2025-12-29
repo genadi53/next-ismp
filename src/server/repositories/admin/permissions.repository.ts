@@ -143,9 +143,9 @@ export async function updatePermission(
 }
 
 /**
- * Update an existing permission.
+ * Deactivate a user's permission.
  */
-export async function deletePermission(
+export async function deactivatePermission(
   input: UpdatePermissionInput,
 ): Promise<void> {
   await sqlTransaction(async (request) => {

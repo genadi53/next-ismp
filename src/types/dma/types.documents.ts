@@ -113,7 +113,6 @@ export type DmaDocumentAsset = {
 };
 
 export type CreateDmaDocumentAssetInput = {
-  DocId: number;
   CompId: number;
   CompUnits: number | null;
   Price: number | null;
