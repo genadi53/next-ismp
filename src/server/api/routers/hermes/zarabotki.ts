@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { getZarabotki, replaceZarabotki } from "@/server/repositories";
+import { getZarabotki, createZarabotki } from "@/server/repositories";
 import { createZarabotkiSchema } from "@/schemas/hermes.schemas";
 
 export const zarabotkiRouter = createTRPCRouter({
@@ -28,7 +28,7 @@ export const zarabotkiRouter = createTRPCRouter({
   replace: publicProcedure
     .input(z.array(createZarabotkiSchema).min(1, "Data list cannot be empty"))
     .mutation(async ({ input }) => {
-      await replaceZarabotki(input);
+      await createZarabotki(input);
       return { success: true, message: "Zarabotki data replaced successfully" };
     }),
 });
