@@ -31,7 +31,7 @@ export const assetsRouter = createTRPCRouter({
    * Get all DMA assets/components.
    */
   getAll: publicProcedure.query(async () => {
-    throw new Error("test");
+    // throw new Error("test");
     return getAllDmaAssets();
   }),
 

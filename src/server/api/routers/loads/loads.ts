@@ -52,5 +52,19 @@ export const loadsRouter = createTRPCRouter({
       await markLoadSent(input.id);
       return { success: true, message: "Load marked as sent" };
     }),
-});
 
+  /**
+   * Mark all unsent loads as sent.
+   */
+  sendAll: publicProcedure.mutation(async () => {
+    const unsentLoads = await getUnsentLoads();
+    for (const load of unsentLoads) {
+      await markLoadSent(load.id);
+    }
+    return {
+      success: true,
+      message: `${unsentLoads.length} loads marked as sent`,
+      count: unsentLoads.length,
+    };
+  }),
+});
