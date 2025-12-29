@@ -39,7 +39,8 @@ export async function getPermissionsByUser(
     `
     SELECT *
     FROM [ISMP].[dbo].[Permissions]
-    WHERE Username = @username AND main_menu = @mainMenu
+    WHERE Username = @username 
+    --AND main_menu = @mainMenu
     ORDER BY ordermenu
   `,
     { username, mainMenu },
@@ -145,9 +146,12 @@ export async function updatePermission(
 /**
  * Deactivate a user's permission.
  */
-export async function deactivatePermission(
-  input: UpdatePermissionInput,
-): Promise<void> {
+export async function deactivatePermission(input: {
+  Username: string;
+  main_menu: string;
+  submenu: string | null;
+  action: string;
+}): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("Username", input.Username);
     request.input("main_menu", input.main_menu);

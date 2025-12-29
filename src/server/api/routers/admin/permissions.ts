@@ -6,24 +6,8 @@ import {
   getPermissionUsers,
   getPermissions,
   getPermissionsByUser,
-  updatePermission,
 } from "@/server/repositories/admin/permissions.repository";
-
-const createPermissionSchema = z.object({
-  Username: z.string(),
-  main_menu: z.string(),
-  main_menuName: z.string(),
-  submenu: z.string().nullable(),
-  submenuName: z.string().nullable(),
-  action: z.string(),
-  ordermenu: z.number().nullable(),
-  specialPermisions: z.string().nullable(),
-  DMAAdmins: z.string().nullable(),
-  Active: z.number().nullable(),
-  IsDispatcher: z.number().nullable(),
-  Departmant: z.string().nullable(),
-  ro: z.string().nullable(),
-});
+import { permissionFormSchema } from "@/schemas/admin.schemas";
 
 export const permissionsRouter = createTRPCRouter({
   /**
@@ -55,7 +39,7 @@ export const permissionsRouter = createTRPCRouter({
    * Create permissions.
    */
   create: publicProcedure
-    .input(z.array(createPermissionSchema))
+    .input(z.array(permissionFormSchema))
     .mutation(async ({ input }) => {
       await createPermissions(input);
       return { success: true, message: "Permissions created successfully" };
@@ -65,9 +49,16 @@ export const permissionsRouter = createTRPCRouter({
    * Remove/deactivate a permission.
    */
   remove: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(
+      z.object({
+        Username: z.string(),
+        main_menu: z.string(),
+        submenu: z.string().nullable(),
+        action: z.string(),
+      }),
+    )
     .mutation(async ({ input }) => {
-      await deactivatePermission(input.id);
+      await deactivatePermission(input);
       return { success: true, message: "Permission removed successfully" };
     }),
 });

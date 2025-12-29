@@ -1,5 +1,5 @@
 export type MailGroup = {
-  id: number;
+  Id: number;
   module: string | null;
   action: string | null;
   mail_group_name: string;
@@ -14,4 +14,3 @@ export type CreateMailGroupInput = {
 };
 
 export type UpdateMailGroupInput = CreateMailGroupInput;
-
