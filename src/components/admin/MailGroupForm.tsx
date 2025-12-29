@@ -26,7 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { MailGroup } from "@/types/admin/types.mail-group";
+import type { MailGroup } from "@/server/repositories/admin/types.mail-group";
 import { toast } from "sonner";
 
 interface MailGroupFormProps {

@@ -3,7 +3,7 @@ import type {
   MailGroup,
   CreateMailGroupInput,
   UpdateMailGroupInput,
-} from "@/types/admin";
+} from "./types.mail-group";
 
 /**
  * Get all mail groups.
@@ -88,4 +88,3 @@ export async function deleteMailGroup(id: number): Promise<void> {
     `);
   });
 }
-

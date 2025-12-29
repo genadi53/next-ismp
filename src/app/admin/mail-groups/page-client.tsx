@@ -16,19 +16,19 @@ import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { MailGroupForm } from "@/components/admin/MailGroupForm";
 import { MailGroupsTable } from "@/components/admin/MailGroupsTable";
-import type { MailGroup } from "@/types/admin/types.mail-group";
+import type { MailGroup } from "@/server/repositories/admin/types.mail-group";
 import type { MailGroupFormData } from "@/schemas/admin.schemas";
 import { Container } from "@/components/Container";
 
 export function MailGroupsPageClient() {
+  const [mailGroups] = api.admin.mailGroups.getAll.useSuspenseQuery();
+  const utils = api.useUtils();
+
   const [showForm, setShowForm] = useState(false);
   const [editingMailGroup, setEditingMailGroup] = useState<MailGroup | null>(
     null,
   );
 
-  const [mailGroups] = api.admin.mailGroups.getAll.useSuspenseQuery();
-
-  const utils = api.useUtils();
   const { mutateAsync: createMailGroup, isPending: isCreating } =
     api.admin.mailGroups.create.useMutation({
       onSuccess: () => {
@@ -39,11 +39,9 @@ export function MailGroupsPageClient() {
         setShowForm(false);
         setEditingMailGroup(null);
       },
-      onError: (error) => {
+      onError: (_error) => {
         toast.error("Грешка", {
-          description:
-            error.message ||
-            "Възникна грешка при създаването. Опитайте отново.",
+          description: "Възникна грешка при създаването. Опитайте отново.",
         });
       },
     });
@@ -58,11 +56,9 @@ export function MailGroupsPageClient() {
         setShowForm(false);
         setEditingMailGroup(null);
       },
-      onError: (error) => {
+      onError: (_error) => {
         toast.error("Грешка", {
-          description:
-            error.message ||
-            "Възникна грешка при обновяването. Опитайте отново.",
+          description: "Възникна грешка при обновяването. Опитайте отново.",
         });
       },
     });
@@ -75,11 +71,9 @@ export function MailGroupsPageClient() {
           description: "Имейл групата е успешно изтрита.",
         });
       },
-      onError: (error) => {
+      onError: (_error) => {
         toast.error("Грешка", {
-          description:
-            error.message ||
-            "Възникна грешка при изтриването. Опитайте отново.",
+          description: "Възникна грешка при изтриването. Опитайте отново.",
         });
       },
     });
@@ -108,10 +102,6 @@ export function MailGroupsPageClient() {
   const handleSubmit = async (data: MailGroupFormData): Promise<boolean> => {
     try {
       if (editingMailGroup) {
-        console.log("editingMailGroup");
-        console.log(editingMailGroup);
-        console.log("data");
-        console.log(data);
         await updateMailGroup({
           id: editingMailGroup.Id!,
           data: {
@@ -125,14 +115,6 @@ export function MailGroupsPageClient() {
     } catch (error) {
       console.error("Error saving mail group:", error);
       return false;
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteMailGroup({ id });
-    } catch (error) {
-      console.error("Error deleting mail group:", error);
     }
   };
 
@@ -229,7 +211,9 @@ export function MailGroupsPageClient() {
               <MailGroupsTable
                 mailGroups={mailGroups || []}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
+                onDelete={async (id: number) => {
+                  await deleteMailGroup({ id });
+                }}
                 loading={false}
               />
             </CardContent>

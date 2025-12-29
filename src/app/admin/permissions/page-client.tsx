@@ -48,7 +48,7 @@ import {
   type PermissionFormData,
 } from "@/schemas/admin.schemas";
 import { Container } from "@/components/Container";
-import type { Permission } from "@/types/admin";
+import type { Permission } from "@/server/repositories/admin/types.permissions";
 
 export function PermissionsPageClient() {
   const [searchUsername, setSearchUsername] = useState("");
@@ -144,12 +144,6 @@ export function PermissionsPageClient() {
       .map((p) => p.submenu)
       .filter((value): value is string => Boolean(value && value.trim()))
       .filter((value, index, self) => self.indexOf(value) === index) || [];
-
-  const handleSearch = () => {
-    if (searchUsername.trim()) {
-      setSelectedUsername(searchUsername.trim());
-    }
-  };
 
   const handleAddPermission = async (values: PermissionFormData) => {
     try {
@@ -474,7 +468,9 @@ export function PermissionsPageClient() {
               placeholder="Въведете потребителско име..."
               value={searchUsername}
               onChange={(e) => setSearchUsername(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+              onKeyPress={(e) =>
+                e.key === "Enter" && setSelectedUsername(searchUsername.trim())
+              }
               className="flex-1"
               list="usernames-list"
             />
@@ -484,7 +480,9 @@ export function PermissionsPageClient() {
               ))}
             </datalist>
             <Button
-              onClick={handleSearch}
+              onClick={() => {
+                setSelectedUsername(searchUsername.trim());
+              }}
               disabled={!searchUsername.trim()}
               className="gap-2"
             >

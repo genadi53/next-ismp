@@ -19,7 +19,6 @@ import { LoadsForm } from "@/components/loads/loadsForm";
 import { DataTableLoads } from "@/components/loads/tableLoads";
 import { loadsColumns } from "@/components/loads/columnsLoads";
 import type { Load } from "@/types/loads";
-import { LoadingSpinner } from "@/components/ui/spinner";
 import { Container } from "@/components/Container";
 
 export function LoadsPageClient() {
@@ -86,14 +85,14 @@ export function LoadsPageClient() {
           >
             {!showForm ? (
               <>
-                <Plus className="h-5 w-5 animate-in fade-in spin-in-0 duration-300" />
+                <Plus className="animate-in fade-in spin-in-0 h-5 w-5 duration-300" />
                 <span className="animate-in fade-in slide-in-from-left-2 duration-300">
                   Нов Запис
                 </span>
               </>
             ) : (
               <>
-                <X className="h-5 w-5 animate-in fade-in spin-in-90 duration-300" />
+                <X className="animate-in fade-in spin-in-90 h-5 w-5 duration-300" />
                 <span className="animate-in fade-in slide-in-from-right-2 duration-300">
                   Затвори
                 </span>
@@ -113,7 +112,7 @@ export function LoadsPageClient() {
         )}
       >
         {showForm && (
-          <Card className="mb-6 animate-in fade-in slide-in-from-top-4 shadow-lg duration-500">
+          <Card className="animate-in fade-in slide-in-from-top-4 mb-6 shadow-lg duration-500">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <div>

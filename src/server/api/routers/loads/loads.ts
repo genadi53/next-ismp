@@ -6,17 +6,7 @@ import {
   createLoad,
   markLoadSent,
 } from "@/server/repositories/loads/loads.repository";
-
-const createLoadSchema = z.object({
-  Adddate: z.string(),
-  Shift: z.number(),
-  Shovel: z.string().min(1, "Shovel is required"),
-  Truck: z.string().min(1, "Truck is required"),
-  Br: z.number().nullable(),
-  AddMaterial: z.string().nullable(),
-  RemoveMaterial: z.string().nullable(),
-  // userAdded: z.string().nullable(),
-});
+import { loadsSchema } from "@/schemas/loads.schemas";
 
 export const loadsRouter = createTRPCRouter({
   /**
@@ -36,12 +26,10 @@ export const loadsRouter = createTRPCRouter({
   /**
    * Create a new load entry.
    */
-  create: publicProcedure
-    .input(createLoadSchema)
-    .mutation(async ({ input }) => {
-      await createLoad(input);
-      return { success: true, message: "Load created successfully" };
-    }),
+  create: publicProcedure.input(loadsSchema).mutation(async ({ input }) => {
+    await createLoad(input);
+    return { success: true, message: "Load created successfully" };
+  }),
 
   /**
    * Mark a load as sent.

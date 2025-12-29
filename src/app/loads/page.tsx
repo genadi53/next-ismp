@@ -1,5 +1,4 @@
 import AppLayout from "@/components/AppLayout";
-import { Container } from "@/components/Container";
 import { api, HydrateClient } from "@/trpc/server";
 import { LoadsPageClient } from "./page-client";
 import { Suspense } from "react";

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { MailGroup } from "@/types/admin/types.mail-group";
+import type { MailGroup } from "@/server/repositories/admin/types.mail-group";
 import { Mail, PencilIcon, TrashIcon } from "lucide-react";
 import { NoResults } from "@/components/NoResults";
 import { LoadingSpinner } from "@/components/ui/spinner";
@@ -84,7 +84,7 @@ export function MailGroupsTable({
               </div>
             </TableCell>
             <TableCell>
-              <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-row items-end gap-2">
                 <Button
                   variant="outline"
                   size="icon"

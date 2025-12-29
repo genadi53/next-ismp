@@ -1,5 +1,6 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { Load, CreateLoadInput } from "@/types/loads";
+import type { Load, CreateLoadInput } from "./types.loads";
+import { format } from "date-fns";
 
 /**
  * Get all loads from the last 6 months.
@@ -51,7 +52,7 @@ export async function getUnsentLoads(): Promise<Load[]> {
  */
 export async function createLoad(input: CreateLoadInput): Promise<void> {
   await sqlTransaction(async (request) => {
-    request.input("Adddate", input.Adddate);
+    request.input("Adddate", format(input.Adddate, "yyyy-LL-dd"));
     request.input("Shift", input.Shift);
     request.input("Shovel", input.Shovel);
     request.input("Truck", input.Truck);

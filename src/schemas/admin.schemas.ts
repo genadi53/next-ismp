@@ -17,17 +17,17 @@ export const permissionFormSchema = z.object({
     message: "Главното меню е задължително",
   }),
   main_menuName: z.string(),
+  submenu: z.string().nullable(),
+  submenuName: z.string().nullable(),
   action: z.string().min(1, {
     message: "Действието е задължително",
   }),
   ordermenu: z.number().min(1),
-  Active: z.number().min(0).max(1),
-  submenu: z.string().nullable(),
-  submenuName: z.string().nullable(),
-  IsDispatcher: z.number().min(0).max(1).nullable(),
-  Departmant: z.string().nullable(),
   specialPermisions: z.string().nullable(),
   DMAAdmins: z.number().nullable(),
+  Active: z.number().min(0).max(1),
+  IsDispatcher: z.number().min(0).max(1).nullable(),
+  Departmant: z.string().nullable(),
   ro: z.number().nullable(),
 });
 

@@ -3,7 +3,7 @@ import type {
   Permission,
   CreatePermissionInput,
   UpdatePermissionInput,
-} from "@/types/admin";
+} from "./types.permissions";
 
 /**
  * Get all permissions, optionally filtered by username prefix.

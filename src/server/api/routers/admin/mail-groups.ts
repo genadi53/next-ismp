@@ -7,20 +7,7 @@ import {
   getMailGroups,
   updateMailGroup,
 } from "@/server/repositories/admin/mail-group.repository";
-
-const createMailGroupSchema = z.object({
-  module: z.string(),
-  action: z.string(),
-  mail_group_name: z.string(),
-  mail_group: z.string(),
-});
-
-const updateMailGroupSchema = z.object({
-  module: z.string(),
-  action: z.string(),
-  mail_group_name: z.string(),
-  mail_group: z.string(),
-});
+import { mailGroupSchema } from "@/schemas/admin.schemas";
 
 export const mailGroupsRouter = createTRPCRouter({
   /**
@@ -40,18 +27,16 @@ export const mailGroupsRouter = createTRPCRouter({
   /**
    * Create a new mail group.
    */
-  create: publicProcedure
-    .input(createMailGroupSchema)
-    .mutation(async ({ input }) => {
-      await createMailGroup(input);
-      return { success: true, message: "Mail group created successfully" };
-    }),
+  create: publicProcedure.input(mailGroupSchema).mutation(async ({ input }) => {
+    await createMailGroup(input);
+    return { success: true, message: "Mail group created successfully" };
+  }),
 
   /**
    * Update an existing mail group.
    */
   update: publicProcedure
-    .input(z.object({ id: z.number(), data: updateMailGroupSchema }))
+    .input(z.object({ id: z.number(), data: mailGroupSchema }))
     .mutation(async ({ input }) => {
       await updateMailGroup(input.id, input.data);
       return { success: true, message: "Mail group updated successfully" };

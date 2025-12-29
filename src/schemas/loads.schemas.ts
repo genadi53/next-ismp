@@ -11,10 +11,10 @@ export const loadsSchema = z
       .min(1, { message: "Броят трябва да е по-голям от 0" }),
     AddMaterial: z
       .string({ required_error: "Въведете добавен материал" })
-      .optional(),
+      .nullish(),
     RemoveMaterial: z
       .string({ required_error: "Въведете премахнат материал" })
-      .optional(),
+      .nullish(),
   })
   .refine(
     (data) => {
@@ -29,7 +29,7 @@ export const loadsSchema = z
     {
       message:
         "Трябва да въведете или добавен материал, или премахнат материал, но не и двете. Изчистете формата и опитайте отново.",
-      path: ["AddMaterial"], // This will show the error on the AddMaterial field
+      path: ["AddMaterial", "RemoveMaterial"], // This will show the error on the AddMaterial field
     },
   );
 

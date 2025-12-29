@@ -14,12 +14,12 @@ export type Load = {
 };
 
 export type CreateLoadInput = {
-  Adddate: string;
-  Shift: number | null;
+  Adddate: Date;
+  Shift: number;
   Shovel: string;
   Truck: string;
   Br: number | null;
-  AddMaterial: string | null;
-  RemoveMaterial: string | null;
+  AddMaterial?: string | null;
+  RemoveMaterial?: string | null;
   userAdded?: string | null;
 };

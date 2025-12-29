@@ -42,7 +42,7 @@ import {
 } from "../ui/command";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
-import type { Load } from "@/types/loads";
+import type { Load } from "@/server/repositories/loads/types.loads";
 
 const DefaultFormValues: LoadsFormData = {
   Adddate: new Date(),
@@ -112,14 +112,13 @@ export const LoadsForm = ({
   async function onSubmit(values: LoadsFormData) {
     try {
       await createLoad({
-        Adddate: format(values.Adddate, "yyyy-LL-dd"),
+        Adddate: values.Adddate,
         Shift: values.Shift,
         Shovel: values.Shovel,
         Truck: values.Truck,
-        Br: values.Br || null,
+        Br: values.Br,
         AddMaterial: values.AddMaterial || null,
         RemoveMaterial: values.RemoveMaterial || null,
-        userAdded: null, // This should be set from session/auth
       });
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -257,7 +256,7 @@ export const LoadsForm = ({
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="min-w-[200px] max-h-[400px] p-0 lg:min-w-[375px]"
+                            className="max-h-[400px] min-w-[200px] p-0 lg:min-w-[375px]"
                             align="start"
                             side="bottom"
                           >
@@ -343,7 +342,7 @@ export const LoadsForm = ({
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="min-w-[200px] max-h-[400px] p-0 lg:min-w-[375px]"
+                            className="max-h-[400px] min-w-[200px] p-0 lg:min-w-[375px]"
                             align="start"
                             side="bottom"
                           >
@@ -527,4 +526,3 @@ export const LoadsForm = ({
     </div>
   );
 };
-
