@@ -1,10 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
 import { api } from "@/trpc/react";
-import { LoadingSpinner } from "@/components/ui/spinner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PlanGasForm } from "@/components/pvr/PlanGasForm";
 import Link from "next/link";
 import {
   Table,
@@ -15,27 +13,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Placeholder for PlanGasForm component
-function PlanGasFormPlaceholder() {
-  return (
-    <Alert className="mb-6">
-      <AlertCircle className="h-4 w-4" />
-      <AlertDescription>
-        PlanGasForm component will be migrated in the next phase. This is a
-        complex form with gas measurements that requires migration of components
-        and schemas from the old project.
-      </AlertDescription>
-    </Alert>
-  );
-}
-
 export function PlanGasPageClient() {
   const [measurements] = api.pvr.gas.getAll.useSuspenseQuery();
 
   return (
     <div className="space-y-6">
       {/* Form */}
-      <PlanGasFormPlaceholder />
+      <PlanGasForm />
 
       {/* Measurements History */}
       <Card>

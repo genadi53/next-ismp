@@ -82,7 +82,7 @@ export async function createOperator(
  */
 export async function updateOperator(
   id: number,
-  input: HermesOperator,
+  input: CreateOperatorInput,
 ): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("id", id);

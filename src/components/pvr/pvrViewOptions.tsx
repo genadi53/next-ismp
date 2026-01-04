@@ -1,4 +1,5 @@
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+"use client";
+
 import { type Table } from "@tanstack/react-table";
 import { Settings2 } from "lucide-react";
 
@@ -9,27 +10,31 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { HermesWorkcard } from "@/types/hermes";
-
-type WorkcardsTableFields = Omit<HermesWorkcard, "EndTime" | "OperatorId">;
+import type { BlastingPlan } from "@/types/pvr/types.blasting-plan";
 
 const labels: {
-  [K in keyof WorkcardsTableFields]: string;
+  [K in keyof BlastingPlan]: string;
 } = {
-  Id: "ID",
-  Date: "Дата",
-  StartTime: "Време начало-край",
-  OperatorName: "Име на оператор",
-  CodeAction: "Работна дейност",
-  Duration: "Работно време",
-  Note: "Бележка",
-  WorkingCardId: "ID на работна карта",
-  Bukva: "Буква",
-  EqmtId: "ID на машина",
+  ID: "ID",
+  OperDate: "Дата",
+  BlastingField: "Взривно поле",
+  Horizont1: "Хоризонт 1",
+  Horizont2: "Хоризонт 2",
+  Drill: "Сонда 1",
+  Drill2: "Сонда 2",
+  Holes: "Сондажи",
+  Konturi: "Контури",
+  MineVolume: "Обем ММ",
+  TypeBlast: "Вид Поле",
+  Disabled: "Изключен",
+  Note: "Забележки",
+  lrd: "Последна редакция",
+  userAdded: "Редактор",
 };
 
-export function ViewOptionsWorkcards<TData>({
+export function PVRDataTableViewOptions<TData>({
   table,
 }: {
   table: Table<TData>;
@@ -40,7 +45,7 @@ export function ViewOptionsWorkcards<TData>({
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto hidden h-8 lg:flex"
+          className="ml-auto hidden h-8 mb-1 lg:flex"
         >
           <Settings2 />
           Колони
@@ -53,7 +58,7 @@ export function ViewOptionsWorkcards<TData>({
           .getAllColumns()
           .filter(
             (column) =>
-              typeof column.accessorFn !== "undefined" && column.getCanHide(),
+              typeof column.accessorFn !== "undefined" && column.getCanHide()
           )
           .map((column) => {
             return (
@@ -63,7 +68,7 @@ export function ViewOptionsWorkcards<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {labels[column.id as keyof WorkcardsTableFields]}
+                {labels[column.id as keyof BlastingPlan]}
               </DropdownMenuCheckboxItem>
             );
           })}
@@ -71,3 +76,4 @@ export function ViewOptionsWorkcards<TData>({
     </DropdownMenu>
   );
 }
+

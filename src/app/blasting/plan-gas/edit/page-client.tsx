@@ -5,25 +5,7 @@ import { api } from "@/trpc/react";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-
-// Placeholder for PlanGasForm component
-function PlanGasFormPlaceholder({ measurements }: { measurements: any }) {
-  return (
-    <Alert>
-      <AlertCircle className="h-4 w-4" />
-      <AlertDescription>
-        PlanGasForm component will be migrated in the next phase. This is a
-        complex form with gas measurements that requires migration of components
-        and schemas from the old project.
-        {measurements && (
-          <div className="mt-2 text-sm">
-            Found {measurements.length} measurements to edit.
-          </div>
-        )}
-      </AlertDescription>
-    </Alert>
-  );
-}
+import { PlanGasForm } from "@/components/pvr/PlanGasForm";
 
 export function PlanGasEditPageClient() {
   const searchParams = useSearchParams();
@@ -60,6 +42,6 @@ export function PlanGasEditPageClient() {
     );
   }
 
-  return <PlanGasFormPlaceholder measurements={measurements} />;
+  return <PlanGasForm measurementsToupdate={measurements || undefined} />;
 }
 

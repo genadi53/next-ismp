@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
@@ -22,9 +22,12 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { MorningReportForm } from "@/components/dsp/morning-report/MorningReportForm";
+import { MorningReportEdit } from "@/components/dsp/morning-report/MorningReportEdit";
 
 export function MorningReportPageClient() {
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [dispatcher, setDispatcher] = useState<string>("");
 
   const [morningReports] =
     api.dispatcher.morningReport.getAll.useSuspenseQuery();
@@ -37,10 +40,29 @@ export function MorningReportPageClient() {
       { enabled: !!selectedReportId },
     );
 
-  const isReadOnly = false; // This should be determined based on current user vs active dispatcher
+  useEffect(() => {
+    // Get dispatcher username from current dispatcher query
+    if (currentDispatcher && currentDispatcher.length > 0) {
+      setDispatcher(currentDispatcher[0]?.DispatcherProfile || "");
+    }
+  }, [currentDispatcher]);
+
+  // Check if user is current dispatcher (read-only mode)
+  const isReadOnly =
+    currentDispatcher &&
+    currentDispatcher.length > 0 &&
+    dispatcher !== currentDispatcher[0]?.DispatcherProfile;
 
   const handleContinue = (reportId: number) => {
     setSelectedReportId(reportId);
+  };
+
+  const handleCancelEdit = () => {
+    setSelectedReportId(null);
+  };
+
+  const handleFormSuccess = () => {
+    setSelectedReportId(null);
   };
 
   return (
@@ -76,23 +98,29 @@ export function MorningReportPageClient() {
       <Card className="mb-6 shadow-lg">
         <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-green-50">
           <CardTitle className="text-lg font-semibold text-gray-800">
-            Формуляр за отчет
+            {selectedReport
+              ? "Редактиране на отчет"
+              : "Формуляр за отчет"}
           </CardTitle>
+          <CardDescription>
+            {selectedReport
+              ? "Редактирайте съществуващ отчет"
+              : "Създайте нов сутрешен отчет"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <p className="text-muted-foreground">
-            Формата за създаване/редактиране на сутрешни отчети ще бъде
-            имплементирана в следващ етап.
-          </p>
-          {selectedReport && (
-            <div className="bg-muted mt-4 rounded-lg p-4">
-              <p className="mb-2 text-sm font-medium">
-                Избран отчет за редактиране:
-              </p>
-              <p className="text-muted-foreground text-sm">
-                Дата: {selectedReport.ReportDate}
-              </p>
-            </div>
+          {selectedReport ? (
+            <MorningReportEdit
+              report={selectedReport}
+              dispatcher={dispatcher}
+              onSuccess={handleFormSuccess}
+              onCancel={handleCancelEdit}
+            />
+          ) : (
+            <MorningReportForm
+              dispatcher={dispatcher}
+              onSuccess={handleFormSuccess}
+            />
           )}
         </CardContent>
       </Card>
@@ -151,7 +179,7 @@ export function MorningReportPageClient() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {!report.CompletedOn && (
+                        {!report.CompletedOn && !isReadOnly && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -159,6 +187,9 @@ export function MorningReportPageClient() {
                           >
                             Продължи
                           </Button>
+                        )}
+                        {report.CompletedOn && !report.SentOn && (
+                          <Badge variant="secondary">Завършен</Badge>
                         )}
                       </TableCell>
                     </TableRow>

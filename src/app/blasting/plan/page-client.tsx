@@ -16,47 +16,14 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
 import { LoadingSpinner } from "@/components/ui/spinner";
-
-// Placeholder for BlastingPlanForm component
-function BlastingPlanFormPlaceholder({
-  editingPlan,
-  onSubmit,
-  onCancel,
-  isLoading,
-}: {
-  editingPlan: any;
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
-  isLoading: boolean;
-}) {
-  return (
-    <div className="p-4 border rounded-lg bg-muted/50">
-      <p className="text-sm text-muted-foreground">
-        BlastingPlanForm component will be migrated in the next phase.
-      </p>
-    </div>
-  );
-}
-
-// Placeholder for PVRDataTable component
-function PVRDataTablePlaceholder({
-  columns,
-  data,
-}: {
-  columns: any[];
-  data: any[];
-}) {
-  return (
-    <div className="p-4 border rounded-lg bg-muted/50">
-      <p className="text-sm text-muted-foreground">
-        PVRDataTable component will be migrated in the next phase. Found {data.length} plans.
-      </p>
-    </div>
-  );
-}
+import { BlastingPlanForm } from "@/components/pvr/BlastingPlanForm";
+import { PVRDataTable } from "@/components/pvr/pvrDataTable";
+import { pvrColumns } from "@/components/pvr/pvrColumns";
+import type { BlastingPlan } from "@/types/pvr/types.blasting-plan";
+import type { BlastingPlanDataType } from "@/schemas/blastingPlan.schemas";
 
 export function BlastingPlanPageClient() {
-  const [editingPlan, setEditingPlan] = useState<any | null>(null);
+  const [editingPlan, setEditingPlan] = useState<BlastingPlan | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const utils = api.useUtils();
@@ -114,49 +81,49 @@ export function BlastingPlanPageClient() {
       },
     });
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: BlastingPlanDataType) => {
     try {
       if (editingPlan) {
         await updatePlan({
           id: editingPlan.ID,
           data: {
             OperDate: data.date,
-            BlastingField: data.BlastingField,
-            Horizont1: data.Horiz1,
-            Horizont2: data.Horiz2,
+            BlastingField: data.BlastingField || null,
+            Horizont1: data.Horiz1 || null,
+            Horizont2: data.Horiz2 || null,
             Drill: data.Drill.reduce(
               (prev: string, curr: string, idx: number) =>
                 idx === 0 ? (prev += `${curr}`) : (prev += `,${curr}`),
               "",
             ),
             Drill2: null,
-            Holes: data.Holes,
-            Konturi: data.Konturi,
-            MineVolume: data.MineVolume,
-            TypeBlast: data.TypeBlast,
-            Disabled: data.Disabled,
-            Note: data.Note,
+            Holes: data.Holes || null,
+            Konturi: data.Konturi || null,
+            MineVolume: data.MineVolume || null,
+            TypeBlast: data.TypeBlast || null,
+            Disabled: data.Disabled === 1,
+            Note: data.Note || null,
             userAdded: null,
           },
         });
       } else {
         await createPlan({
           OperDate: data.date,
-          BlastingField: data.BlastingField,
-          Horizont1: data.Horiz1,
-          Horizont2: data.Horiz2,
+          BlastingField: data.BlastingField || null,
+          Horizont1: data.Horiz1 || null,
+          Horizont2: data.Horiz2 || null,
           Drill: data.Drill.reduce(
             (prev: string, curr: string, idx: number) =>
               idx === 0 ? (prev += `${curr}`) : (prev += `,${curr}`),
             "",
           ),
           Drill2: null,
-          Holes: data.Holes,
-          Konturi: data.Konturi,
-          MineVolume: data.MineVolume,
-          TypeBlast: data.TypeBlast,
-          Disabled: data.Disabled,
-          Note: data.Note,
+          Holes: data.Holes || null,
+          Konturi: data.Konturi || null,
+          MineVolume: data.MineVolume || null,
+          TypeBlast: data.TypeBlast || null,
+          Disabled: data.Disabled === 1,
+          Note: data.Note || null,
           userAdded: null,
         });
       }
@@ -165,14 +132,14 @@ export function BlastingPlanPageClient() {
     }
   };
 
-  const handleEdit = (plan: any) => {
+  const handleEdit = (plan: BlastingPlan) => {
     setEditingPlan(plan);
     setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (plan: BlastingPlan) => {
     try {
-      await deletePlan({ id });
+      await deletePlan({ id: plan.ID });
     } catch (error) {
       console.error("Error deleting plan:", error);
     }
@@ -239,7 +206,7 @@ export function BlastingPlanPageClient() {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
-            <BlastingPlanFormPlaceholder
+            <BlastingPlanForm
               editingPlan={editingPlan}
               onSubmit={handleFormSubmit}
               onCancel={handleFormCancel}
@@ -275,8 +242,13 @@ export function BlastingPlanPageClient() {
                 description="Няма намерени планове за взривяване. Започнете като добавите първия план."
               />
             ) : (
-              <PVRDataTablePlaceholder
-                columns={[]}
+              <PVRDataTable
+                columns={pvrColumns({
+                  actions: {
+                    delete: handleDelete,
+                    edit: handleEdit,
+                  },
+                })}
                 data={plans}
               />
             )}

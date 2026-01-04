@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -8,94 +8,86 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { api } from "@/trpc/react";
+import { PrestartForm } from "@/components/dsp/prestart/PrestartForm";
+import { PrestartStatus } from "@/components/dsp/prestart/PrestartStatus";
 
-// This is a simplified version - the full implementation would need
-// to fetch data from the prestart API and manage state properly
 export function PrestartPageClient() {
-  const [overallProgress] = useState(0);
+  // Get current dispatcher - using a placeholder for now
+  // In production, this should come from authentication context
+  const [dispatcher, setDispatcher] = useState<string>("");
+  const [currentDispatcher] =
+    api.dashboard.dispatcher.getCurrent.useSuspenseQuery();
 
-  return (
-    <>
+  useEffect(() => {
+    // Get dispatcher username from current dispatcher query
+    if (currentDispatcher && currentDispatcher.length > 0) {
+      setDispatcher(currentDispatcher[0]?.DispatcherProfile || "");
+    } else {
+      // Fallback: try to get from session or use a default
+      // This should be replaced with actual auth context
+      setDispatcher(""); // Will need to be set from auth
+    }
+  }, [currentDispatcher]);
+
+  const { data: prestartStatus, refetch } =
+    api.dispatcher.prestart.getStatus.useQuery(
+      { dispatcher },
+      { enabled: !!dispatcher },
+    );
+
+  const handleStatusChange = () => {
+    refetch();
+  };
+
+  if (!dispatcher) {
+    return (
       <Alert className="mb-6">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Предстартовата проверка ще бъде напълно имплементирана в следващ етап.
-          Текущата страница е базова структура.
+          Моля, влезте в системата за да използвате предстартовата проверка.
         </AlertDescription>
       </Alert>
+    );
+  }
 
+  return (
+    <>
       <div className="flex flex-col gap-6">
-        {/* Progress Section */}
+        {/* Form Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Общ прогрес</CardTitle>
+            <CardTitle>Предстартова проверка</CardTitle>
             <CardDescription>
-              Общ прогрес на предстартовата проверка
+              Започнете или завършете предстартова проверка
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Progress value={overallProgress} className="mb-4" />
-            <p className="text-muted-foreground text-sm">
-              Завършено: {Math.round(overallProgress)}%
-            </p>
+            <PrestartForm
+              dispatcher={dispatcher}
+              currentPrestart={prestartStatus?.currentPrestart ?? null}
+              hasUnfinished={prestartStatus?.hasUnfinished ?? false}
+              onStatusChange={handleStatusChange}
+            />
           </CardContent>
         </Card>
 
-        {/* Sections Placeholder */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Секции за проверка</CardTitle>
-            <CardDescription>
-              Проверете всички секции преди потвърждаване
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="rounded-lg border p-4">
-                <h3 className="mb-2 font-semibold">Пътища</h3>
-                <p className="text-muted-foreground text-sm">
-                  Проверка на пътищата ще бъде имплементирана скоро.
-                </p>
-              </div>
-              <div className="rounded-lg border p-4">
-                <h3 className="mb-2 font-semibold">Локации</h3>
-                <p className="text-muted-foreground text-sm">
-                  Проверка на локациите ще бъде имплементирана скоро.
-                </p>
-              </div>
-              <div className="rounded-lg border p-4">
-                <h3 className="mb-2 font-semibold">Багери</h3>
-                <p className="text-muted-foreground text-sm">
-                  Проверка на багерите ще бъде имплементирана скоро.
-                </p>
-              </div>
-              <div className="rounded-lg border p-4">
-                <h3 className="mb-2 font-semibold">Камиони</h3>
-                <p className="text-muted-foreground text-sm">
-                  Проверка на камионите ще бъде имплементирана скоро.
-                </p>
-              </div>
-              <div className="rounded-lg border p-4">
-                <h3 className="mb-2 font-semibold">Други</h3>
-                <p className="text-muted-foreground text-sm">
-                  Други проверки ще бъдат имплементирани скоро.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Status Section */}
+        {prestartStatus?.currentPrestart && (
+          <PrestartStatus prestart={prestartStatus.currentPrestart} />
+        )}
 
-        {/* Actions */}
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" disabled>
-            Запиши прогрес
-          </Button>
-          <Button disabled={overallProgress < 100}>Потвърди проверка</Button>
-        </div>
+        {/* Info Alert */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Предстартовата проверка включва проверка на пътища, локации, багери,
+            камиони и друго оборудване. Моля, проверете всички секции преди
+            потвърждаване.
+          </AlertDescription>
+        </Alert>
       </div>
     </>
   );

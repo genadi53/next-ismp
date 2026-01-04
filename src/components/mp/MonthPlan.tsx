@@ -17,28 +17,11 @@ import {
 import { format, getDaysInMonth, lastDayOfMonth } from "date-fns";
 import { Badge } from "../ui/badge";
 import React from "react";
+import { formatNumber } from "@/lib/numbers";
 
 type MonthPlanProps = {
   type: MonthPlanType;
   data: PlanInsertTypes;
-};
-
-// Helper function to format numbers
-const formatNumber = (
-  value: number | null | undefined,
-  digits?: number,
-): string => {
-  if (value === null || value === undefined) return "-";
-  return new Intl.NumberFormat("bg-BG", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: digits ? digits : 0,
-  }).format(value);
-};
-
-// Helper function to format percentages
-const formatPercentage = (value: number | null | undefined): string => {
-  if (value === null || value === undefined) return "-";
-  return `${value.toFixed(2)}%`;
 };
 
 export default function MonthPlan({ type, data }: MonthPlanProps) {
@@ -50,7 +33,10 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
     const filteredData = (data as OperationalPlanInsertArray).filter(
       (row) =>
         format(new Date(row.PlanMonthDay), "yyyy-MM-dd") ===
-        format(lastDayOfMonth(new Date(data[0].PlanMonthDay)), "yyyy-MM-dd"),
+        format(
+          lastDayOfMonth(new Date(data[0]?.PlanMonthDay ?? new Date())),
+          "yyyy-MM-dd",
+        ),
     );
 
     return (
@@ -59,10 +45,13 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
           <CardHeader className="flex flex-row justify-between">
             <div>
               <CardTitle>Информация за Месечен оперативен план</CardTitle>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 (Въведен за месец:{" "}
-                {format(new Date(data[0].PlanMonthDay), "yyyy-MM")} от:{" "}
-                {data[0].userAdded})
+                {format(
+                  new Date(data[0]?.PlanMonthDay ?? new Date()),
+                  "yyyy-MM",
+                )}{" "}
+                от: {data[0]?.userAdded ?? ""})
               </span>
             </div>
             <div>
@@ -129,7 +118,10 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
     const filteredData = (data as NaturalIndicatorsPlanInsertArray).filter(
       (row) =>
         format(new Date(row.PlanMonthDay), "yyyy-MM-dd") ===
-        format(lastDayOfMonth(new Date(data[0].PlanMonthDay)), "yyyy-MM-dd"),
+        format(
+          lastDayOfMonth(new Date(data[0]?.PlanMonthDay ?? new Date())),
+          "yyyy-MM-dd",
+        ),
     );
 
     return (
@@ -140,10 +132,13 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
               <CardTitle>
                 Информация за Месечен план по одобрени натурални показатели
               </CardTitle>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 (Въведен за месец:{" "}
-                {format(new Date(data[0].PlanMonthDay), "yyyy-MM")} от:{" "}
-                {data[0].userAdded})
+                {format(
+                  new Date(data[0]?.PlanMonthDay ?? new Date()),
+                  "yyyy-MM",
+                )}{" "}
+                от: {data[0]?.userAdded ?? ""})
               </span>
             </div>
             <div>
@@ -191,15 +186,17 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
         <CardHeader className="flex flex-row justify-between">
           <div>
             <CardTitle>Информация за Месечен план добив багери</CardTitle>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               (Въведен за месец:{" "}
-              {format(new Date(data[0].PlanMonthDay), "yyyy-MM")} от:{" "}
-              {data[0].userAdded})
+              {format(new Date(data[0]?.PlanMonthDay ?? new Date()), "yyyy-MM")}{" "}
+              от: {data[0]?.userAdded ?? ""})
             </span>
           </div>
           <div>
             <Badge variant="outline" className="text-ell-primary text-sm">
-              {data.length / getDaysInMonth(data[0].PlanMonthDay)} записа
+              {data.length /
+                getDaysInMonth(data[0]?.PlanMonthDay ?? new Date())}{" "}
+              записа
             </Badge>
           </div>
         </CardHeader>
@@ -222,7 +219,10 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
                     (row) =>
                       row.PlanMonthDay ===
                       format(
-                        lastDayOfMonth(new Date(data[0].PlanMonthDay)),
+                        lastDayOfMonth(
+                          new Date(data[0]?.PlanMonthDay ?? new Date()) ??
+                            new Date(),
+                        ),
                         "yyyy-MM-dd",
                       ),
                   )
@@ -260,4 +260,3 @@ export default function MonthPlan({ type, data }: MonthPlanProps) {
 
   return <div>Невалиден тип на месечен план</div>;
 }
-

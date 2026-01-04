@@ -7,63 +7,51 @@ import { Download, MapPin } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import type { GeowlanAP } from "@/types/geowlan/types.geowlan";
+import {
+  GoogleMap,
+  InfoWindow,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
+import { DataTableGeowlan } from "@/components/geowlan/tableGeowlan";
+import { geowlanColumns } from "@/components/geowlan/columnsGeowlan";
+import { GeowlanDeleteDialog } from "@/components/geowlan/deleteDialogGeowlan";
+import { GeowlanForm } from "@/components/geowlan/formGeowlan";
+import { convertLocalCoordToGlobal } from "@/lib/geowlanCoordinatesConverter";
+import {
+  exportGeowlanToKML,
+  validateGeowlanPointsForExport,
+} from "@/lib/kmlExporter";
 
-// Note: Google Maps integration will need to be implemented
-// This is a simplified version without the map component
 export function GeowlanPageClient() {
-  const [geowlanToEdit, setGeowlanToEdit] = useState<any | undefined>(
+  const { data: geowlanData, isLoading } = api.geowlan.aps.getAll.useQuery();
+  const [geowlanToEdit, setGeowlanToEdit] = useState<GeowlanAP | undefined>(
     undefined,
   );
-  const [geowlanToDelete, setGeowlanToDelete] = useState<any | null>(null);
+  const [selected, setSelected] = useState<
+    | { g: GeowlanAP; pos: google.maps.LatLng | google.maps.LatLngLiteral }
+    | undefined
+  >(undefined);
+  const [geowlanToDelete, setGeowlanToDelete] = useState<GeowlanAP | null>(
+    null,
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [geowlanFormOpen, setGeowlanFormOpen] = useState(false);
 
-  const { data: geowlanData, isLoading } = api.geowlan.aps.getAll.useQuery();
-
-  const utils = api.useUtils();
-  const { mutateAsync: deleteGeowlan } = api.geowlan.aps.delete.useMutation({
-    onSuccess: () => {
-      utils.geowlan.aps.getAll.invalidate();
-      toast.success("Успех", {
-        description: "Geowlan точката е успешно изтрита.",
-      });
-      setGeowlanToDelete(null);
-      setDeleteDialogOpen(false);
-    },
-    onError: (error) => {
-      toast.error("Грешка", {
-        description:
-          error.message || "Възникна грешка при изтриването. Опитайте отново.",
-      });
-    },
-  });
-
-  const handleEdit = (geowlan: any) => {
+  const handleEdit = (geowlan: GeowlanAP) => {
     setGeowlanToEdit(geowlan);
     setGeowlanFormOpen(true);
   };
 
-  const handleDelete = (geowlan: any) => {
+  const handleDelete = (geowlan: GeowlanAP) => {
     setGeowlanToDelete(geowlan);
     setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (geowlanToDelete) {
-      try {
-        await deleteGeowlan({ id: geowlanToDelete.id });
-      } catch (error) {
-        console.error("Error deleting geowlan:", error);
-      }
-    }
   };
 
   const onFormSubmit = () => {
     setGeowlanToEdit(undefined);
     setGeowlanFormOpen(false);
-    utils.geowlan.aps.getAll.invalidate();
   };
 
   const handleFormOpenChange = (open: boolean) => {
@@ -73,14 +61,57 @@ export function GeowlanPageClient() {
     setGeowlanFormOpen(open);
   };
 
+  const onDeleteSuccess = () => {
+    setGeowlanToDelete(null);
+  };
+
   const handleExportToKML = async () => {
     if (!geowlanData || geowlanData.length === 0) {
       toast.error("Няма данни за експорт");
       return;
     }
 
-    toast.info("Функционалността за експорт в KML ще бъде имплементирана скоро");
+    try {
+      // Validate data before export
+      const validation = validateGeowlanPointsForExport(geowlanData);
+      if (!validation.isValid) {
+        toast.error(`Грешка при валидация: ${validation.errors.join(", ")}`);
+        return;
+      }
+
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split("T")[0];
+      const filename = `geowlan_points_${currentDate}.kml`;
+
+      await exportGeowlanToKML(geowlanData, filename);
+
+      toast.success(
+        `Успешно експортирани ${geowlanData.length} точки в Google Earth формат`,
+      );
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Възникна грешка при експорта");
+    }
   };
+
+  const handleShowOnMap = (geowlan: GeowlanAP) => {
+    if (map && geowlan.x && geowlan.y) {
+      const position = convertLocalCoordToGlobal(geowlan.x, geowlan.y);
+      map.panTo(position);
+      map.setZoom(16);
+      document
+        .querySelector("#map-geowlan")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const { isLoaded: isMapLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
+  });
+
+  const centerGoogle = useMemo(() => ({ lat: 42.751111, lng: 24.030556 }), []);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   return (
     <div className="flex flex-col gap-8">
@@ -101,89 +132,94 @@ export function GeowlanPageClient() {
               <Download className="h-4 w-4" />
               Експорт за Google Earth
             </Button>
-            <Button
-              onClick={() => setGeowlanFormOpen(true)}
-              variant="default"
-            >
-              Добави точка
-            </Button>
+            <GeowlanForm
+              open={geowlanFormOpen}
+              geowlanToEdit={geowlanToEdit}
+              setOpen={handleFormOpenChange}
+              onFormSubmit={onFormSubmit}
+            />
           </div>
         </div>
       </div>
       <Separator />
 
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <LoadingSpinner size="lg" label="Зареждане..." showLabel />
-        </div>
+      {(isLoading || !isMapLoaded) && (
+        <LoadingSpinner size="lg" label="Зареждане..." showLabel />
       )}
 
-      {/* Google Maps Integration Placeholder */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Интеграцията с Google Maps ще бъде имплементирана в следващ етап.
-          Необходими са: @react-google-maps/api библиотека и Google Maps API ключ.
-        </AlertDescription>
-      </Alert>
-
-      <div id="map-geowlan" className="h-[600px] w-full rounded-lg border bg-muted">
-        <div className="flex h-full items-center justify-center text-muted-foreground">
-          Картата ще бъде имплементирана тук
-        </div>
+      <div id="map-geowlan" className="h-[800px] w-full">
+        {isMapLoaded && (
+          <GoogleMap
+            mapContainerStyle={{ width: "100%", height: "800px" }}
+            center={centerGoogle}
+            zoom={14}
+            mapTypeId="satellite"
+            onLoad={(map) => {
+              setMap(map);
+            }}
+            onUnmount={() => {
+              setMap(null);
+            }}
+          >
+            {geowlanData
+              ? geowlanData.map((geowlan) => {
+                  if (!geowlan.x || !geowlan.y) return null;
+                  return (
+                    <Marker
+                      key={geowlan.id}
+                      position={convertLocalCoordToGlobal(geowlan.x, geowlan.y)}
+                      onClick={(e) =>
+                        setSelected({
+                          g: geowlan as GeowlanAP,
+                          pos: e.latLng!,
+                        })
+                      }
+                    />
+                  );
+                })
+              : null}
+            {selected && (
+              <InfoWindow
+                position={selected.pos}
+                onCloseClick={() => setSelected(undefined)}
+              >
+                <div className="p-2">
+                  <h3 className="font-bold">{selected.g.name}</h3>
+                  <p>
+                    X: {selected.g.x}, Y: {selected.g.y}
+                  </p>
+                  <button
+                    onClick={() => handleEdit(selected.g)}
+                    className="mt-2 rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
+                  >
+                    Редактирай
+                  </button>
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
+        )}
       </div>
 
-      {/* Table Section */}
-      {!isLoading && geowlanData && geowlanData.length > 0 && (
-        <div className="text-muted-foreground">
-          Таблицата с данни ще бъде имплементирана в следващ етап.
-        </div>
+      {!isLoading && geowlanData && (
+        <DataTableGeowlan
+          columns={geowlanColumns({
+            actions: {
+              edit: handleEdit,
+              delete: handleDelete,
+              showOnMap: handleShowOnMap,
+            },
+          })}
+          data={[...(geowlanData as GeowlanAP[])]}
+        />
       )}
 
-      {!isLoading && (!geowlanData || geowlanData.length === 0) && (
-        <div className="text-center py-12 text-muted-foreground">
-          Няма намерени Geowlan точки
-        </div>
-      )}
-
-      {/* Form Dialog Placeholder */}
-      {geowlanFormOpen && (
-        <Alert>
-          <AlertDescription>
-            Формата за създаване/редактиране на Geowlan точки ще бъде
-            имплементирана в следващ етап.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Delete Dialog */}
-      {deleteDialogOpen && geowlanToDelete && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Сигурни ли сте, че искате да изтриете "{geowlanToDelete.name}"?
-            <div className="mt-4 flex gap-2">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleConfirmDelete}
-              >
-                Потвърди
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setDeleteDialogOpen(false);
-                  setGeowlanToDelete(null);
-                }}
-              >
-                Отказ
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+      <GeowlanDeleteDialog
+        geowlanAP={geowlanToDelete}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleteSuccess={onDeleteSuccess}
+      />
     </div>
   );
 }

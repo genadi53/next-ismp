@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import type { Load } from "@/types/loads";
+import type { Load } from "@/server/repositories/loads/types.loads";
 import type { Row } from "@tanstack/react-table";
 import { Pencil } from "lucide-react";
 

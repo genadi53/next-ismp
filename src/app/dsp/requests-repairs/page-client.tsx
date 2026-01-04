@@ -27,9 +27,9 @@ export function RequestsRepairsPageClient() {
   return (
     <>
       {/* Important Notices */}
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="mb-6 flex flex-col gap-4">
         <Alert variant="default" className="border-blue-300 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600 mt-2" />
+          <Info className="mt-2 h-4 w-4 text-blue-600" />
           <AlertTitle className="text-blue-800">Важна информация</AlertTitle>
           <AlertDescription className="text-blue-700">
             Заявки създадени през деня от 8:00 до 5:00 се изпращат само те!
@@ -37,7 +37,7 @@ export function RequestsRepairsPageClient() {
         </Alert>
 
         <Alert variant="default" className="border-orange-300 bg-orange-50">
-          <AlertTriangle className="h-4 w-4 text-orange-600 mt-2" />
+          <AlertTriangle className="mt-2 h-4 w-4 text-orange-600" />
           <AlertTitle className="text-orange-800">Внимание</AlertTitle>
           <AlertDescription className="text-orange-700">
             За една дата и машина може да се изпрати само една заявка!
@@ -46,10 +46,10 @@ export function RequestsRepairsPageClient() {
       </div>
 
       {/* Form Section */}
-      <Card className="shadow-lg mb-6">
+      <Card className="mb-6 shadow-lg">
         <CardHeader className="border-b">
           <div className="flex items-center gap-2">
-            <Wrench className="h-6 w-6 text-primary" />
+            <Wrench className="text-primary h-6 w-6" />
             <div>
               <CardTitle className="text-xl">Създаване на заявка</CardTitle>
               <CardDescription>
@@ -111,7 +111,7 @@ export function RequestsRepairsPageClient() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
+                    <TableCell colSpan={7} className="py-8 text-center">
                       <div className="text-muted-foreground">
                         Няма намерени заявки
                       </div>
@@ -126,4 +126,3 @@ export function RequestsRepairsPageClient() {
     </>
   );
 }
-

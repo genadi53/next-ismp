@@ -143,7 +143,7 @@ export function DataTableEquipment<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="text-sm break-words whitespace-normal"
+                      className="text-sm wrap-break-word whitespace-normal"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

@@ -1,8 +1,11 @@
-import XLSX from "xlsx";
-import type { DayShift, ExtractedGrafikRow } from "../types/dispechers";
+import * as XLSX from "xlsx";
+import type {
+  DayShift,
+  ExtractedGrafikRow,
+} from "@/types/dispatcher/types.schedule";
 
 export const extractGrafikDispetchers = (
-  file: File
+  file: File,
 ): Promise<ExtractedGrafikRow[] | undefined> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

@@ -8,10 +8,7 @@ import {
   updateOperator,
   deleteOperator,
 } from "@/server/repositories";
-import {
-  createOperatorSchema,
-  updateOperatorSchema,
-} from "@/schemas/hermes.schemas";
+import { createOperatorSchema } from "@/schemas/hermes.schemas";
 
 export const operatorsRouter = createTRPCRouter({
   /**
@@ -51,7 +48,7 @@ export const operatorsRouter = createTRPCRouter({
    * Update an existing operator
    */
   update: publicProcedure
-    .input(z.object({ id: z.number(), data: updateOperatorSchema }))
+    .input(z.object({ id: z.number(), data: createOperatorSchema }))
     .mutation(async ({ input }) => {
       await updateOperator(input.id, input.data);
       return { success: true, message: "Operator updated successfully" };
