@@ -1,5 +1,5 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { PlanShovels, CreatePlanShovelsInput } from "@/types/mine-planning";
+import type { PlanShovels, CreatePlanShovelsInput } from "./types.plan-shovels";
 
 /**
  * Get shovel plan for the current date.

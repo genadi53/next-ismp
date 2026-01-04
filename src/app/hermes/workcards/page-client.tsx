@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import type { HermesWorkcard } from "@/types/hermes";
+import type { HermesWorkcard } from "@/server/repositories/hermes";
 import {
   Card,
   CardContent,
@@ -34,8 +34,11 @@ import { WorkcardForm } from "@/components/hermes/workcards/formWorkcards";
 export function WorkcardsPageClient() {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
-  const [workcardToEdit, setWorkcardToEdit] = useState<HermesWorkcard | undefined>(undefined);
-  const [workcardToDelete, setWorkcardToDelete] = useState<HermesWorkcard | null>(null);
+  const [workcardToEdit, setWorkcardToEdit] = useState<
+    HermesWorkcard | undefined
+  >(undefined);
+  const [workcardToDelete, setWorkcardToDelete] =
+    useState<HermesWorkcard | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [workcards] = api.hermes.workcards.getAll.useSuspenseQuery();
@@ -64,7 +67,7 @@ export function WorkcardsPageClient() {
   };
 
   const handlePrint = (workcard: HermesWorkcard) => {
-    router.push(`/hermes/workcards/${workcard.ID}/print`);
+    router.push(`/hermes/workcards/${workcard.Id}/print`);
   };
 
   const handleDelete = (workcard: HermesWorkcard) => {
@@ -76,7 +79,7 @@ export function WorkcardsPageClient() {
     if (!workcardToDelete) return;
 
     try {
-      await deleteMutation.mutateAsync({ id: workcardToDelete.ID });
+      await deleteMutation.mutateAsync({ id: workcardToDelete.Id });
       setShowDeleteDialog(false);
       setWorkcardToDelete(null);
     } catch (error) {
@@ -111,7 +114,7 @@ export function WorkcardsPageClient() {
           className={cn(
             "gap-2 transition-colors duration-200",
             showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40"
+              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
           )}
         >
           {!showForm ? (
@@ -136,7 +139,9 @@ export function WorkcardsPageClient() {
               <FileText className="text-primary h-6 w-6" />
               <div>
                 <CardTitle className="text-xl">
-                  {workcardToEdit ? "Редактиране на работна карта" : "Добави нова работна карта"}
+                  {workcardToEdit
+                    ? "Редактиране на работна карта"
+                    : "Добави нова работна карта"}
                 </CardTitle>
                 <CardDescription>
                   {workcardToEdit
@@ -152,8 +157,8 @@ export function WorkcardsPageClient() {
             )}
           </CardHeader>
           <CardContent>
-            <WorkcardForm 
-              workcardToEdit={workcardToEdit} 
+            <WorkcardForm
+              workcardToEdit={workcardToEdit}
               onSuccess={handleFormSuccess}
             />
           </CardContent>
@@ -166,14 +171,17 @@ export function WorkcardsPageClient() {
           <CardHeader className="border-b">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl">Списък с работни карти</CardTitle>
+                <CardTitle className="text-xl">
+                  Списък с работни карти
+                </CardTitle>
                 <CardDescription>
                   Преглед и управление на съществуващи работни карти
                 </CardDescription>
               </div>
               {workcards && (
                 <Badge variant="outline" className="text-ell-primary text-sm">
-                  {workcards.length} {workcards.length === 1 ? "карта" : "карти"}
+                  {workcards.length}{" "}
+                  {workcards.length === 1 ? "карта" : "карти"}
                 </Badge>
               )}
             </div>
@@ -209,10 +217,11 @@ export function WorkcardsPageClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
             <AlertDialogDescription>
-              Това действие не може да бъде отменено. Работната карта ще бъде изтрита перманентно.
+              Това действие не може да бъде отменено. Работната карта ще бъде
+              изтрита перманентно.
               {workcardToDelete && (
                 <div className="bg-muted mt-2 rounded p-2">
-                  <strong>Работна карта ID:</strong> {workcardToDelete.ID}
+                  <strong>Работна карта ID:</strong> {workcardToDelete.Id}
                 </div>
               )}
             </AlertDialogDescription>
@@ -233,4 +242,3 @@ export function WorkcardsPageClient() {
     </>
   );
 }
-

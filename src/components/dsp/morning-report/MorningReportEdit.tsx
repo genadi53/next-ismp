@@ -19,7 +19,7 @@ import { z } from "zod";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Send } from "lucide-react";
-import type { MorningReport } from "@/types/dispatcher";
+import type { MorningReport } from "@/server/repositories/dispatcher";
 import { format } from "date-fns";
 
 const morningReportEditSchema = z.object({

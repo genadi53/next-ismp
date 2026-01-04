@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import type { DmaDocument } from "@/types/dma";
+import type { DmaDocument } from "@/server/repositories/dma";
 
 export function DataTableViewOptions<TData>({
   table,

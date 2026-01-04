@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../../table/columnHeader";
-import type { DmaSupplier } from "@/types/dma";
+import type { DmaSupplier } from "@/server/repositories/dma";
 import { RowActionsSuppliers } from "./rowActionsSuppliers";
 
 export const suppliersColumns = ({

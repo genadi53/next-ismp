@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { HermesOperator } from "@/types/hermes";
+import type { HermesOperator } from "@/server/repositories/hermes";
 import { DataTableColumnHeader } from "../../table/columnHeader";
 import { RowActionsOperators } from "./rowActionsOperators";
 

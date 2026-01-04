@@ -1,5 +1,5 @@
 import { sqlQuery } from "@/server/database/db";
-import type { Road } from "@/types/prestart";
+import type { Road } from "./types.roads";
 
 /**
  * Get all roads/travel paths.

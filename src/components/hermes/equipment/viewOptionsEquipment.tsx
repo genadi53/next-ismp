@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import type { HermesEquipment } from "@/types/hermes";
+import type { HermesEquipment } from "@/server/repositories/hermes";
 
 type EquipmentTableFields = Omit<
   HermesEquipment,

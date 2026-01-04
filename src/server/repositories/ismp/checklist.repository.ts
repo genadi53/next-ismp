@@ -1,5 +1,5 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { MonthChecklist, CreateMonthChecklistInput } from "@/types/ismp";
+import type { MonthChecklist, CreateMonthChecklistInput } from "./types.checklist";
 
 /**
  * Get month checklist for a specific year/month.

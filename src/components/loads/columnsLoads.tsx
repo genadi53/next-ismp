@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../table/columnHeader";
 import type { Load } from "@/server/repositories/loads/types.loads";
 import { RowActionsLoads } from "./rowActionsLoads";
-import { ShiftNumbers } from "@/types/types";
+import { SHIFT_NUMBERS } from "@/lib/constants";
 
 export const loadsColumns = ({
   actions,
@@ -49,7 +49,7 @@ export const loadsColumns = ({
     cell: ({ row }) => {
       const shiftNum: number | null = row.getValue("Shift");
       if (!shiftNum) return <div className="text-sm">-</div>;
-      return <div className="text-sm">{ShiftNumbers[shiftNum]}</div>;
+      return <div className="text-sm">{SHIFT_NUMBERS[shiftNum]}</div>;
     },
   },
   {

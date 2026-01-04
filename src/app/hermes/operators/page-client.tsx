@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/trpc/react";
-import type { HermesOperator } from "@/types/hermes";
+import type { HermesOperator } from "@/server/repositories/hermes";
 import {
   Card,
   CardContent,

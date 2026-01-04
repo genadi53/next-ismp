@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import type { CreateBlastReportInput } from "@/types/pvr/types.raport";
+import type { CreateBlastReportInput } from "@/server/repositories/pvr";
 
 const toOneString = (strArray: string[]) => {
   return strArray.reduce(

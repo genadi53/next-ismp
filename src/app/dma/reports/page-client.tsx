@@ -1,7 +1,6 @@
 "use client";
 
 import { api } from "@/trpc/react";
-import type { DmaReport } from "@/types/dma";
 import {
   Card,
   CardContent,
@@ -13,7 +12,6 @@ import { FileText } from "lucide-react";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -26,7 +24,7 @@ export function ReportsPageClient() {
     <Card className="shadow-lg">
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
-          <FileText className="h-6 w-6 text-primary" />
+          <FileText className="text-primary h-6 w-6" />
           <div>
             <CardTitle className="text-xl">Отчет за актове</CardTitle>
             <CardDescription>
@@ -37,9 +35,9 @@ export function ReportsPageClient() {
       </CardHeader>
       <CardContent>
         {reports && reports.length === 0 && (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Няма отчети</h3>
+          <div className="py-12 text-center">
+            <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-semibold">Няма отчети</h3>
             <p className="text-muted-foreground">
               Все още няма генерирани отчети за актове.
             </p>
@@ -47,7 +45,7 @@ export function ReportsPageClient() {
         )}
 
         {reports && reports.length > 0 && (
-          <div className="rounded-lg border overflow-hidden mt-6">
+          <div className="mt-6 overflow-hidden rounded-lg border">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
@@ -58,14 +56,21 @@ export function ReportsPageClient() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {reports.map((report, index) => (
-                  <TableRow key={index} className="hover:bg-muted/50 transition-colors">
-                    <TableCell className="text-sm">{report.Year}</TableCell>
+                {reports.map((_report, index) => (
+                  <TableRow
+                    key={index}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    {/* <TableCell className="text-sm">{report.Year}</TableCell>
                     <TableCell className="text-sm">{report.Month}</TableCell>
-                    <TableCell className="text-sm">{report.DocumentCount}</TableCell>
                     <TableCell className="text-sm">
-                      {report.TotalAmount ? `${Number(report.TotalAmount).toFixed(2)} лв.` : "0.00 лв."}
+                      {report.DocumentCount}
                     </TableCell>
+                    <TableCell className="text-sm">
+                      {report.TotalAmount
+                        ? `${Number(report.TotalAmount).toFixed(2)} лв.`
+                        : "0.00 лв."}
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>
@@ -76,4 +81,3 @@ export function ReportsPageClient() {
     </Card>
   );
 }
-

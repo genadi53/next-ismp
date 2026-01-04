@@ -15,11 +15,10 @@ import { api } from "@/trpc/react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
-import { LoadingSpinner } from "@/components/ui/spinner";
 import { BlastingPlanForm } from "@/components/pvr/BlastingPlanForm";
 import { PVRDataTable } from "@/components/pvr/pvrDataTable";
 import { pvrColumns } from "@/components/pvr/pvrColumns";
-import type { BlastingPlan } from "@/types/pvr/types.blasting-plan";
+import type { BlastingPlan } from "@/server/repositories/pvr";
 import type { BlastingPlanDataType } from "@/schemas/blastingPlan.schemas";
 
 export function BlastingPlanPageClient() {
@@ -65,21 +64,20 @@ export function BlastingPlanPageClient() {
       },
     });
 
-  const { mutateAsync: deletePlan, isPending: isDeleting } =
-    api.pvr.blastingPlan.delete.useMutation({
-      onSuccess: () => {
-        toast.success("Успешно", {
-          description: "Планът е успешно изтрит",
-        });
-        utils.pvr.blastingPlan.getAll.invalidate();
-      },
-      onError: (error) => {
-        toast.error("Грешка", {
-          description:
-            error.message || "Грешка при изтриване на плана. Опитайте отново.",
-        });
-      },
-    });
+  const { mutateAsync: deletePlan } = api.pvr.blastingPlan.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Успешно", {
+        description: "Планът е успешно изтрит",
+      });
+      utils.pvr.blastingPlan.getAll.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Грешка", {
+        description:
+          error.message || "Грешка при изтриване на плана. Опитайте отново.",
+      });
+    },
+  });
 
   const handleFormSubmit = async (data: BlastingPlanDataType) => {
     try {
@@ -258,4 +256,3 @@ export function BlastingPlanPageClient() {
     </div>
   );
 }
-

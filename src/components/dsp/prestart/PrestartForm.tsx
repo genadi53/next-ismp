@@ -15,7 +15,7 @@ import {
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
-import type { PrestartCheck } from "@/types/dispatcher";
+import type { PrestartCheck } from "@/server/repositories/dispatcher";
 
 type PrestartFormProps = {
   dispatcher: string;

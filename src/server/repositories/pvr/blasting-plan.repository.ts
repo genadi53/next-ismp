@@ -3,7 +3,7 @@ import type {
   BlastingPlan,
   CreateBlastingPlanInput,
   UpdateBlastingPlanInput,
-} from "@/types/pvr";
+} from "./types.blasting-plan";
 
 /**
  * Get blasting plans from the last 2 months.

@@ -1,5 +1,5 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { HermesZarabotki, CreateZarabotkiInput } from "@/types/hermes";
+import type { HermesZarabotki, CreateZarabotkiInput } from "./types.zarabotki";
 
 /**
  * Get zarabotki for a specific year and month.

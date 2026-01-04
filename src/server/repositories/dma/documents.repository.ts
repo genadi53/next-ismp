@@ -10,7 +10,7 @@ import type {
   DmaAllowedDate,
   CreateDmaAllowedDateInput,
   DmaDocumentsDetails,
-} from "@/types/dma";
+} from "./types.documents";
 
 /**
  * Get all DMA documents.

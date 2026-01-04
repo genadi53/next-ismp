@@ -2,7 +2,7 @@ import { sqlQuery, sqlTransaction } from "@/server/database/db";
 import type {
   PlanOperativen,
   CreatePlanOperativenInput,
-} from "@/types/mine-planning";
+} from "./types.plan-operativen";
 
 /**
  * Get operational plan for the current date.

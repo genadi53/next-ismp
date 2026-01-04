@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import type { HermesWorkcard } from "@/types/hermes";
+import type { HermesWorkcard } from "@/server/repositories/hermes";
 
 type WorkcardsTableFields = Omit<HermesWorkcard, "EndTime" | "OperatorId">;
 

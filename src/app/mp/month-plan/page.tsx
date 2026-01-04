@@ -26,32 +26,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, FileSpreadsheet } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
-import type { MonthPlanType } from "@/types/plans";
+import type { MonthPlanType } from "@/server/repositories/mine-planning";
 import MonthPlan from "@/components/mp/MonthPlan";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-
-// Bulgarian month names
-const monthNamesBG: Record<number, string> = {
-  1: "Януари",
-  2: "Февруари",
-  3: "Март",
-  4: "Април",
-  5: "Май",
-  6: "Юни",
-  7: "Юли",
-  8: "Август",
-  9: "Септември",
-  10: "Октомври",
-  11: "Ноември",
-  12: "Декември",
-};
+import { MONTH_NAMES_BG } from "@/lib/constants";
 
 export default function MonthPlanPage() {
   const [monthPlanType, setMonthPlanType] = useState<MonthPlanType | undefined>(
@@ -234,150 +215,154 @@ export default function MonthPlanPage() {
         description="Качване на Excel файл за обработка на месечен план"
       >
         <div className="space-y-6">
-          {/* Info Alert */}
-          <Alert>
-            <FileSpreadsheet className="h-4 w-4" />
-            <AlertTitle>Необходима е Excel библиотека</AlertTitle>
-            <AlertDescription>
-              За пълна функционалност е необходимо да се инсталира библиотеката{" "}
-              <code>xlsx</code> и да се имплементират функциите за обработка на
-              Excel файлове.
-            </AlertDescription>
-          </Alert>
+          <div className="flex flex-row gap-4">
+            <div className="flex max-w-xl flex-1 flex-col gap-4">
+              <Select
+                onValueChange={(e) => setMonthPlanType(e as MonthPlanType)}
+                value={monthPlanType || ""}
+              >
+                <SelectTrigger className="w-full min-w-0">
+                  <SelectValue placeholder="Изберете вид месечен план" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={"Месечен оперативен план"}>
+                    Месечен оперативен план
+                  </SelectItem>
+                  <SelectItem value={"Месечен ГР Проект"}>
+                    Месечен ГР Проект
+                  </SelectItem>
+                  <SelectItem value={"Месечен план добив багери"}>
+                    Месечен план добив багери
+                  </SelectItem>
+                  <SelectItem
+                    value={"Месечен план по одобрени натурални показатели"}
+                  >
+                    Месечен план по одобрени натурални показатели
+                  </SelectItem>
+                </SelectContent>
+              </Select>
 
-          <Separator />
-
-          <div className="flex max-w-lg flex-col gap-4">
-            <Select
-              onValueChange={(e) => setMonthPlanType(e as MonthPlanType)}
-              value={monthPlanType || ""}
-            >
-              <SelectTrigger className="w-full min-w-0">
-                <SelectValue placeholder="Изберете вид месечен план" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={"Месечен оперативен план"}>
-                  Месечен оперативен план
-                </SelectItem>
-                <SelectItem value={"Месечен ГР Проект"}>
-                  Месечен ГР Проект
-                </SelectItem>
-                <SelectItem value={"Месечен план добив багери"}>
-                  Месечен план добив багери
-                </SelectItem>
-                <SelectItem
-                  value={"Месечен план по одобрени натурални показатели"}
-                >
-                  Месечен план по одобрени натурални показатели
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full min-w-[240px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground",
-                  )}
-                >
-                  {date ? (
-                    monthNamesBG[date.getMonth() + 1] + " " + date.getFullYear()
-                  ) : (
-                    <span>Изберете месец за който е плана</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  disabled={(date) => date < new Date("1900-01-01")}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Качване на файл</CardTitle>
-                <CardDescription>
-                  Изберете Excel файл (.xlsx или .xls) за обработка на месечен
-                  план
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="excel-file">Excel файл</Label>
-                  <Input
-                    id="excel-file"
-                    type="file"
-                    ref={fileInputRef}
-                    accept=".xlsx,.xls"
-                    onChange={handleFileUpload}
-                    disabled={isProcessing}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full min-w-[240px] justify-start text-left font-normal",
+                      !date && "text-muted-foreground",
+                    )}
+                  >
+                    {date ? (
+                      MONTH_NAMES_BG[date.getMonth() + 1] +
+                      " " +
+                      date.getFullYear()
+                    ) : (
+                      <span>Изберете месец за който е плана</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    disabled={(date) => date < new Date("1900-01-01")}
                   />
-                </div>
+                </PopoverContent>
+              </Popover>
 
-                {isProcessing && (
-                  <div className="flex items-center space-x-2">
-                    <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2"></div>
-                    <span className="text-muted-foreground text-sm">
-                      Обработване на файла...
-                    </span>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Качване на файл</CardTitle>
+                  <CardDescription>
+                    Изберете Excel файл (.xlsx или .xls) за обработка на месечен
+                    план
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="excel-file">Excel файл</Label>
+                    <Input
+                      id="excel-file"
+                      type="file"
+                      ref={fileInputRef}
+                      accept=".xlsx,.xls"
+                      onChange={handleFileUpload}
+                      disabled={isProcessing}
+                    />
                   </div>
-                )}
 
-                {fileName && !isProcessing && (
-                  <div className="text-muted-foreground text-sm">
-                    Качен файл: {fileName}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  {isProcessing && (
+                    <div className="flex items-center space-x-2">
+                      <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2"></div>
+                      <span className="text-muted-foreground text-sm">
+                        Обработване на файла...
+                      </span>
+                    </div>
+                  )}
 
-            <div className="flex w-lg flex-row items-center gap-4">
-              <Button
-                className="w-24"
-                variant="ell"
-                type="submit"
-                disabled={!fileName || isProcessing}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  await extractPlanData();
-                }}
-              >
-                Запиши
-              </Button>
+                  {fileName && !isProcessing && (
+                    <div className="text-muted-foreground text-sm">
+                      Качен файл: {fileName}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-              <Button
-                className="w-24"
-                variant="outline"
-                type="reset"
-                disabled={isProcessing}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleReset();
-                }}
-              >
-                Изчисти
-              </Button>
+              <div className="flex w-lg flex-row items-center gap-4">
+                <Button
+                  className="w-24"
+                  variant="ell"
+                  type="submit"
+                  disabled={!fileName || isProcessing}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    await extractPlanData();
+                  }}
+                >
+                  Запиши
+                </Button>
 
-              <Button
-                className="w-24"
-                variant="default"
-                type="button"
-                disabled={isProcessing || isSending || !processedData}
-                onClick={(e) => {
-                  e.preventDefault();
-                  sendPlanData();
-                }}
-              >
-                Изпрати
-              </Button>
+                <Button
+                  className="w-24"
+                  variant="outline"
+                  type="reset"
+                  disabled={isProcessing}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleReset();
+                  }}
+                >
+                  Изчисти
+                </Button>
+
+                <Button
+                  className="w-24"
+                  variant="default"
+                  type="button"
+                  disabled={isProcessing || isSending || !processedData}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    sendPlanData();
+                  }}
+                >
+                  Изпрати
+                </Button>
+              </div>
             </div>
+
+            {/* Info Alert */}
+            {/* <div className="w-full">
+              <Alert className="w-full">
+                <FileSpreadsheet className="h-4 w-4" />
+                <AlertTitle>Необходима е Excel библиотека</AlertTitle>
+                <AlertDescription>
+                  За пълна функционалност е необходимо да се инсталира
+                  библиотеката <code>xlsx</code> и да се имплементират функциите
+                  за обработка на Excel файлове.
+                </AlertDescription>
+              </Alert>
+            </div> */}
           </div>
 
           {/* Display processed data */}

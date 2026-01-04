@@ -7,6 +7,7 @@ import {
   getWorkcardDetails,
   createWorkcard,
   deleteWorkcard,
+  updateWorkcard,
 } from "@/server/repositories";
 import { createWorkcardSchema } from "@/schemas/hermes.schemas";
 
@@ -59,5 +60,15 @@ export const workcardsRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       await deleteWorkcard(input.id);
       return { success: true, message: "Workcard deleted successfully" };
+    }),
+
+  /**
+   * Update an existing workcard
+   */
+  update: publicProcedure
+    .input(z.object({ id: z.number(), data: createWorkcardSchema }))
+    .mutation(async ({ input }) => {
+      await updateWorkcard(input.id, input.data);
+      return { success: true, message: "Workcard updated successfully" };
     }),
 });

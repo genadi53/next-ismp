@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { GeowlanAP } from "@/types/geowlan/types.geowlan";
+import type { GeowlanAP } from "@/server/repositories/geowlan";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 

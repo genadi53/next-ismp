@@ -34,13 +34,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
-import type { BlastingPlan } from "@/types/pvr/types.blasting-plan";
-import { TYPE_BLAST_OPTIONS, DRILL_SIZES } from "@/types/pvr/types.blasting-plan";
+import type { BlastingPlan } from "@/server/repositories/pvr";
+import {
+  TYPE_BLAST_OPTIONS,
+  DRILL_SIZES,
+} from "@/server/repositories/pvr";
 import {
   blastingPlanSchema,
   type BlastingPlanDataType,
 } from "@/schemas/blastingPlan.schemas";
-import type { DrillType } from "@/types/types";
+import type { DrillType } from "@/types/global.types";
 import { DRILLS_TYPES } from "@/lib/constants";
 
 interface BlastingPlanFormProps {
@@ -90,7 +93,12 @@ export function BlastingPlanForm({
           typeof editingPlan.Drill === "string" && editingPlan.Drill
             ? editingPlan.Drill.split(",").filter(Boolean)
             : [],
-        TypeBlast: (editingPlan.TypeBlast as "Контур" | "Поле" | "Поле-Контур" | "Проби") || "Поле",
+        TypeBlast:
+          (editingPlan.TypeBlast as
+            | "Контур"
+            | "Поле"
+            | "Поле-Контур"
+            | "Проби") || "Поле",
         Holes: editingPlan.Holes || 0,
         Konturi: editingPlan.Konturi || 0,
         MineVolume: editingPlan.MineVolume || 0,
@@ -166,14 +174,14 @@ export function BlastingPlanForm({
     const currentDrills = form.getValues("Drill");
     form.setValue(
       "Drill",
-      currentDrills.filter((_, i) => i !== index)
+      currentDrills.filter((_, i) => i !== index),
     );
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Left Column */}
           <div className="space-y-4">
             <FormField
@@ -191,7 +199,7 @@ export function BlastingPlanForm({
                           variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -431,7 +439,7 @@ export function BlastingPlanForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Изключен</FormLabel>
-                  <div className="flex items-center space-x-4 mt-2">
+                  <div className="mt-2 flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="disabled-yes"
@@ -477,17 +485,17 @@ export function BlastingPlanForm({
               )}
             />
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 dark:bg-yellow-950 dark:border-yellow-800">
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
                 <strong>Важно:</strong> Когато въвеждате колко сондажа са големи
                 и колко са малки, ги въведете според сондата:
               </p>
-              <ul className="text-sm text-yellow-700 dark:text-yellow-300 mt-2 space-y-1">
+              <ul className="mt-2 space-y-1 text-sm text-yellow-700 dark:text-yellow-300">
                 <li>• за сонди A8, A9, C4, C5 - 165mm</li>
                 <li>• за сонди A7 - 142mm</li>
                 <li>• за сонди SK2, SK3, SK6, A10, C11, C14 - 250mm</li>
               </ul>
-              <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-2">
+              <p className="mt-2 text-sm text-yellow-800 dark:text-yellow-200">
                 <strong>ПРИМЕР:</strong> ако полето е работено от сонди SK3-50
                 сондажа и A9-30 сондажа, в полето забележка въвеждате:{" "}
                 <strong>50(250mm)+30(165mm)</strong>
@@ -495,11 +503,11 @@ export function BlastingPlanForm({
             </div>
 
             {watchedDrill.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-950 dark:border-blue-800">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
                   <strong>Информация за сондите:</strong>
                 </p>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
                   {getDrillSizeInfo()}
                 </p>
               </div>
@@ -529,4 +537,3 @@ export function BlastingPlanForm({
     </Form>
   );
 }
-

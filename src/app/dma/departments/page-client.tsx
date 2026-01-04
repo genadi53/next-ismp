@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/trpc/react";
-import type { DmaDepartment } from "@/types/dma";
+import type { DmaDepartment } from "@/server/repositories/dma";
 import {
   Card,
   CardContent,
@@ -13,9 +13,8 @@ import {
 import { departmentsColumns } from "@/components/dma/departments/columnsDepartments";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Building2, AlertCircle } from "lucide-react";
+import { Plus, X, Building2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { LoadingSpinner } from "@/components/ui/spinner";
 import { NoResults } from "@/components/NoResults";
 import { toast } from "sonner";
 import {
@@ -57,12 +56,8 @@ export function DepartmentsPageClient() {
   };
 
   const handleDelete = (department: DmaDepartment) => {
+    console.log(department);
     toast.info("Функционалността за изтриване ще бъде добавена скоро");
-  };
-
-  const handleFormCancel = () => {
-    setDepartmentToEdit(undefined);
-    setShowForm(false);
   };
 
   const table = useReactTable({

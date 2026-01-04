@@ -4,7 +4,7 @@ import type {
   CreateMorningReportInput,
   UpdateMorningReportInput,
   SendMorningReportInput,
-} from "@/types/dispatcher";
+} from "./types.morning-report";
 
 /**
  * Get all morning reports.

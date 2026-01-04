@@ -39,7 +39,7 @@ export function DataTableAssets<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -66,20 +66,20 @@ export function DataTableAssets<TData, TValue>({
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative max-w-md flex-1">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder="Търсене във всички полета..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-9 pr-9"
+            className="pr-9 pl-9"
           />
           {globalFilter && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setGlobalFilter("")}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -96,12 +96,12 @@ export function DataTableAssets<TData, TValue>({
             }}
             className="h-10 text-red-500"
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="mr-2 h-4 w-4" />
             Изчисти филтри
           </Button>
         )}
       </div>
-      <div className="rounded-lg border overflow-hidden">
+      <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -116,7 +116,7 @@ export function DataTableAssets<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -135,11 +135,11 @@ export function DataTableAssets<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="text-sm whitespace-normal break-words"
+                      className="text-sm wrap-break-word whitespace-normal"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -155,7 +155,7 @@ export function DataTableAssets<TData, TValue>({
                         ? "Опитайте да промените филтрите за търсене"
                         : "Няма активи в системата"
                     }
-                    icon={<Package className="size-12 text-ell-primary/50" />}
+                    icon={<Package className="text-ell-primary/50 size-12" />}
                   />
                 </TableCell>
               </TableRow>
@@ -167,4 +167,3 @@ export function DataTableAssets<TData, TValue>({
     </div>
   );
 }
-

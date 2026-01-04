@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, FileSpreadsheet, Check, AlertCircle } from "lucide-react";
+import { FileSpreadsheet, Check, AlertCircle } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { read, utils } from "xlsx";
@@ -73,7 +73,14 @@ export default function ZarabotkiEquipmentsPage() {
       const workbook = read(data);
 
       // Get the first sheet
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const worksheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
+      if (!worksheet) {
+        toast.error("Грешка", {
+          description: "Файлът не съдържа данни.",
+        });
+        return;
+      }
+
       const jsonData = utils.sheet_to_json<any>(worksheet);
 
       // Map data to expected format
@@ -105,7 +112,16 @@ export default function ZarabotkiEquipmentsPage() {
       return;
     }
 
-    await replaceMutation.mutateAsync({ data: previewData });
+    await replaceMutation.mutateAsync(
+      previewData.map((row) => ({
+        Department: row.Department,
+        Zveno: row.Zveno,
+        Machine: row.Machine,
+        Indicator: row.Indicator,
+        Indicator_Quantity: row.Indicator_Quantity,
+        Total_Sum: row.Total_Sum,
+      })),
+    );
   };
 
   const handleClear = () => {
@@ -128,7 +144,8 @@ export default function ZarabotkiEquipmentsPage() {
                 Качване на Excel файл
               </CardTitle>
               <CardDescription>
-                Изберете Excel файл (.xlsx или .xls) съдържащ данни за заработки по оборудване
+                Изберете Excel файл (.xlsx или .xls) съдържащ данни за заработки
+                по оборудване
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -160,8 +177,8 @@ export default function ZarabotkiEquipmentsPage() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Формат на файла</AlertTitle>
                 <AlertDescription>
-                  Excel файлът трябва да съдържа колони: <strong>EqmtId</strong> (ID на оборудване) и{" "}
-                  <strong>Amount</strong> (сума).
+                  Excel файлът трябва да съдържа колони: <strong>EqmtId</strong>{" "}
+                  (ID на оборудване) и <strong>Amount</strong> (сума).
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -173,8 +190,9 @@ export default function ZarabotkiEquipmentsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Преглед на данни</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {previewData.length} {previewData.length === 1 ? "запис" : "записа"}
+                  <span className="text-muted-foreground text-sm font-normal">
+                    {previewData.length}{" "}
+                    {previewData.length === 1 ? "запис" : "записа"}
                   </span>
                 </CardTitle>
                 <CardDescription>
@@ -182,13 +200,17 @@ export default function ZarabotkiEquipmentsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-lg border overflow-auto max-h-96">
+                <div className="max-h-96 overflow-auto rounded-lg border">
                   <Table>
                     <TableHeader className="bg-muted/50">
                       <TableRow>
                         <TableHead className="font-semibold">№</TableHead>
-                        <TableHead className="font-semibold">ID на оборудване</TableHead>
-                        <TableHead className="font-semibold text-right">Сума</TableHead>
+                        <TableHead className="font-semibold">
+                          ID на оборудване
+                        </TableHead>
+                        <TableHead className="text-right font-semibold">
+                          Сума
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -205,7 +227,7 @@ export default function ZarabotkiEquipmentsPage() {
                   </Table>
                 </div>
 
-                <div className="flex justify-end gap-4 mt-6">
+                <div className="mt-6 flex justify-end gap-4">
                   <Button
                     variant="outline"
                     onClick={handleClear}
@@ -240,12 +262,16 @@ export default function ZarabotkiEquipmentsPage() {
                 <CardTitle>Инструкции</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <ol className="list-decimal list-inside space-y-2">
+                <ol className="list-inside list-decimal space-y-2">
                   <li>Подгответе Excel файл с данни за заработки</li>
-                  <li>Уверете се, че файлът съдържа колоните: EqmtId и Amount</li>
+                  <li>
+                    Уверете се, че файлът съдържа колоните: EqmtId и Amount
+                  </li>
                   <li>Изберете файла чрез бутона за качване</li>
                   <li>Прегледайте данните в таблицата</li>
-                  <li>Натиснете "Запази заработки" за да актуализирате системата</li>
+                  <li>
+                    Натиснете "Запази заработки" за да актуализирате системата
+                  </li>
                 </ol>
               </CardContent>
             </Card>
@@ -255,4 +281,3 @@ export default function ZarabotkiEquipmentsPage() {
     </AppLayout>
   );
 }
-

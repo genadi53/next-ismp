@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { BlastingPlan } from "@/types/pvr/types.blasting-plan";
+import type { BlastingPlan } from "@/server/repositories/pvr";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;

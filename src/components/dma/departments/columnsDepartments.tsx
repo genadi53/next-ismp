@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../../table/columnHeader";
-import type { DmaDepartment } from "@/types/dma";
+import type { DmaDepartment } from "@/server/repositories/dma/types.departments";
 import { RowActionsDepartments } from "./rowActionsDepartments";
 
 export const departmentsColumns = ({
@@ -30,7 +30,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const Department: string | null = row.getValue("Department");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {Department}
         </div>
       );
@@ -42,7 +42,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const depMol: string | null = row.getValue("DepMol");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {depMol}
         </div>
       );
@@ -54,7 +54,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const depMolDuty: string | null = row.getValue("DepMolDuty");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {depMolDuty}
         </div>
       );
@@ -66,7 +66,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const deptApproval: string | null = row.getValue("DeptApproval");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {deptApproval}
         </div>
       );
@@ -78,7 +78,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const deptApprovalDuty: string | null = row.getValue("DeptApprovalDuty");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {deptApprovalDuty}
         </div>
       );
@@ -90,7 +90,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const description: string | null = row.getValue("DepartmentDesc");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {description}
         </div>
       );
@@ -108,7 +108,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const CreatedFrom: string | null = row.getValue("CreatedFrom");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {CreatedFrom?.replaceAll("@ELLATZITE-MED.COM", "")}
         </div>
       );
@@ -126,7 +126,7 @@ export const departmentsColumns = ({
     cell: ({ row }) => {
       const LastUpdatedFrom: string | null = row.getValue("LastUpdatedFrom");
       return (
-        <div className="text-sm max-w-sm break-words whitespace-break-spaces">
+        <div className="wrap-break-words max-w-sm text-sm whitespace-break-spaces">
           {LastUpdatedFrom?.replaceAll("@ELLATZITE-MED.COM", "")}
         </div>
       );
@@ -155,4 +155,3 @@ export const departmentsColumns = ({
     cell: ({ row }) => <RowActionsDepartments row={row} actions={actions} />,
   },
 ];
-

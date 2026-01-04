@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/trpc/react";
-import { AlertCircle, AlertTriangle, Info, Wrench } from "lucide-react";
+import { AlertTriangle, Info, Wrench } from "lucide-react";
 import Link from "next/link";
 
 export function RequestsRepairsPageClient() {

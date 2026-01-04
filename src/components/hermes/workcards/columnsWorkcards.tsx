@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../../table/columnHeader";
-import type { HermesWorkcard } from "@/types/hermes";
+import type { HermesWorkcard } from "@/server/repositories/hermes";
 import { RowActionsWorkcards } from "./rowActionsWorkcards";
 
 export const workcardsColumns = ({

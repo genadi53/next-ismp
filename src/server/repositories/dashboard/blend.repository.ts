@@ -1,5 +1,5 @@
 import { sqlQuery } from "@/server/database/db";
-import type { BlendData } from "@/types/dashboard";
+import type { BlendData } from "./types.blend";
 
 /**
  * Get blend data for the current shift.

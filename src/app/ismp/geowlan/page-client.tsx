@@ -7,7 +7,7 @@ import { Download, MapPin } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import type { GeowlanAP } from "@/types/geowlan/types.geowlan";
+import type { GeowlanAP } from "@/server/repositories/geowlan";
 import {
   GoogleMap,
   InfoWindow,

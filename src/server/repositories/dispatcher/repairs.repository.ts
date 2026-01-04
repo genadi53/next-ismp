@@ -3,7 +3,7 @@ import type {
   RequestRepair,
   CreateRequestRepairInput,
   ExcavatorInfo,
-} from "@/types/dispatcher";
+} from "./types.repairs";
 
 /**
  * Get excavator repair reasons.

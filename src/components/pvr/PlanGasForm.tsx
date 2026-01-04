@@ -31,7 +31,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useState, useMemo, useEffect } from "react";
 import { TimeInput } from "@/components/ui/time-input";
 import { toast } from "sonner";
-import type { GasMeasurement } from "@/types/pvr/types.gas";
+import type { GasMeasurement } from "@/server/repositories/pvr";
 import { api } from "@/trpc/react";
 
 export function PlanGasForm({

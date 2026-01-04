@@ -3,7 +3,7 @@ import type {
   HermesEquipment,
   HermesEquipmentNames,
   CreateEquipmentInput,
-} from "@/types/hermes";
+} from "./types.equipment";
 
 /**
  * Get all equipments from the database.

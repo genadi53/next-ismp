@@ -3,7 +3,7 @@ import type {
   BlastReport,
   CreateBlastReportInput,
   UpdateBlastReportInput,
-} from "@/types/pvr";
+} from "./types.raport";
 
 /**
  * Get all blast reports.

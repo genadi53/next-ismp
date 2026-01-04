@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Pin, Trash2 } from "lucide-react";
-import type { GeowlanAP } from "@/types/geowlan/types.geowlan";
+import type { GeowlanAP } from "@/server/repositories/geowlan";
 import { convertLocalCoordToGlobal } from "@/lib/geowlanCoordinatesConverter";
 
 type GeowlanActions = {

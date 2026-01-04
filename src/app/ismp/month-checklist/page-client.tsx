@@ -21,8 +21,7 @@ import { CalendarIcon, CheckCircle2, Circle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { monthNamesBG } from "@/types/types";
-import { api } from "@/trpc/react";
+import { monthNamesBG } from "@/types/global.types";
 import { toast } from "sonner";
 
 interface ChecklistItem {
@@ -64,8 +63,9 @@ export function MonthChecklistPageClient() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date(),
   );
-  const [checklistItems, setChecklistItems] =
-    useState<ChecklistItem[]>(defaultChecklistItems);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>(
+    defaultChecklistItems,
+  );
 
   const handleCheckboxChange = (id: string) => {
     setChecklistItems((prev) =>
@@ -102,7 +102,7 @@ export function MonthChecklistPageClient() {
       <div className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-ell-primary">
+            <h1 className="text-ell-primary text-3xl font-bold tracking-tight">
               Месечен Контролен Списък
             </h1>
             <p className="text-muted-foreground">
@@ -112,7 +112,11 @@ export function MonthChecklistPageClient() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant={"outline"} className="text-ell-primary" onClick={handleSendEmail}>
+          <Button
+            variant={"outline"}
+            className="text-ell-primary"
+            onClick={handleSendEmail}
+          >
             Изпрати Имейл
           </Button>
           <Badge
@@ -185,11 +189,11 @@ export function MonthChecklistPageClient() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Прогрес</span>
-                  <span className="font-semibold text-ell-primary">
+                  <span className="text-ell-primary font-semibold">
                     {completionPercentage}%
                   </span>
                 </div>
-                <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
+                <div className="bg-secondary h-3 w-full overflow-hidden rounded-full">
                   <div
                     className={cn(
                       "h-full transition-all duration-500 ease-out",
@@ -204,8 +208,8 @@ export function MonthChecklistPageClient() {
 
               {/* Completion Status */}
               {completionPercentage === 100 && (
-                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 rounded-lg border border-green-200 bg-green-50 p-4 duration-300 dark:border-green-800 dark:bg-green-950">
-                  <CheckCircle2 className="text-green-600 h-5 w-5" />
+                <div className="animate-in fade-in slide-in-from-top-2 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-4 duration-300 dark:border-green-800 dark:bg-green-950">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <p className="text-sm font-medium text-green-800 dark:text-green-200">
                     Поздравления! Всички задачи са завършени.
                   </p>
@@ -236,14 +240,14 @@ export function MonthChecklistPageClient() {
                   <Label
                     htmlFor={item.id}
                     className={cn(
-                      "flex-1 cursor-pointer select-none text-base font-medium transition-all",
-                      item.completed && "line-through text-muted-foreground",
+                      "flex-1 cursor-pointer text-base font-medium transition-all select-none",
+                      item.completed && "text-muted-foreground line-through",
                     )}
                   >
                     {item.label}
                   </Label>
                   {item.completed ? (
-                    <CheckCircle2 className="text-green-600 h-5 w-5" />
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
                   ) : (
                     <Circle className="text-muted-foreground h-5 w-5" />
                   )}
@@ -280,4 +284,3 @@ export function MonthChecklistPageClient() {
     </div>
   );
 }
-

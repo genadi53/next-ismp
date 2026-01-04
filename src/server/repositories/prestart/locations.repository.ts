@@ -1,5 +1,5 @@
 import { sqlQuery } from "@/server/database/db";
-import type { PrestartLocation, PrestartLock } from "@/types/prestart";
+import type { PrestartLocation, PrestartLock } from "./types.locations";
 
 /**
  * Get all prestart locations.

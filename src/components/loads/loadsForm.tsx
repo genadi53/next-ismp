@@ -31,7 +31,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Materials } from "@/lib/constants";
 import { useEffect } from "react";
-import { ShiftNumbers } from "@/types/types";
+import { SHIFT_NUMBERS } from "@/lib/constants";
 import {
   Command,
   CommandEmpty,
@@ -216,7 +216,7 @@ export const LoadsForm = ({
                               key={shiftNumber}
                               value={String(shiftNumber)}
                             >
-                              {ShiftNumbers[shiftNumber]}
+                              {SHIFT_NUMBERS[shiftNumber]}
                             </SelectItem>
                           ))}
                         </SelectContent>

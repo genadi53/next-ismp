@@ -1,4 +1,4 @@
-import type { GeowlanAP } from "@/types/geowlan/types.geowlan";
+import type { GeowlanAP } from "@/server/repositories/geowlan";
 import { convertLocalCoordToGlobal } from "./geowlanCoordinatesConverter";
 
 /**

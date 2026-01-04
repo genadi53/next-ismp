@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { PrestartCheck } from "@/types/dispatcher";
+import type { PrestartCheck } from "@/server/repositories/dispatcher";
 
 type PrestartStatusProps = {
   prestart: PrestartCheck | null;

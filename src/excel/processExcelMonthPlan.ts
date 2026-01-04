@@ -4,7 +4,7 @@ import type {
   ExcelShovelData,
   RawExcelData,
   NaturalIndicatorsPlanExcelData,
-} from "@/types/plans";
+} from "@/server/repositories/mine-planning";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
 

@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Printer } from "lucide-react";
-import type { DmaDocument } from "@/types/dma";
+import type { DmaDocument } from "@/server/repositories/dma";
 
 interface RowActionsDocumentsProps {
   document: DmaDocument;

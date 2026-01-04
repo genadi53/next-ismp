@@ -4,7 +4,7 @@ import type {
   CreateDmaAssetInput,
   UpdateDmaAssetInput,
   DmaReport,
-} from "@/types/dma";
+} from "./types.assets";
 
 /**
  * Get all DMA assets/components.

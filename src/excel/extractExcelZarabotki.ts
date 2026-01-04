@@ -1,8 +1,8 @@
-import type { RawExcelData } from "@/types/mine-planning/index";
+import type { RawExcelData } from "@/server/repositories/mine-planning";
 import type {
   ZarabotkiEquipment,
   RawExcelDataZarabotki,
-} from "@/types/hermes/types.zarabotki";
+} from "@/server/repositories/hermes";
 import XLSX from "xlsx";
 
 export const extractExcelZarabotki = (

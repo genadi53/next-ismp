@@ -4,7 +4,7 @@ import type {
   OperationalPlanInsertArray,
   PlanInsertTypes,
   ShovelPlanInsertArray,
-} from "@/types/plans";
+} from "@/server/repositories/mine-planning";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Table,

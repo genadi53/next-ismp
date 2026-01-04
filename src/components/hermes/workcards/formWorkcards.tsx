@@ -37,7 +37,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { format } from "date-fns";
-import type { HermesWorkcard, CreateWorkcardInput } from "@/types/hermes";
+import type {
+  HermesWorkcard,
+  CreateWorkcardInput,
+} from "@/server/repositories/hermes";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -104,11 +107,11 @@ export const WorkcardForm = ({
       Date: new Date(),
       StartTime: "",
       EndTime: "",
-      OperatorId: "",
+      OperatorId: 0,
       CodeAction: 0,
       Note: "",
       WorkingCardId: 0,
-      EqmtId: "",
+      EqmtId: 0,
     },
   });
 
@@ -118,13 +121,14 @@ export const WorkcardForm = ({
         Date: new Date(workcardToEdit.Date),
         StartTime: workcardToEdit.StartTime ?? "",
         EndTime: workcardToEdit.EndTime ?? "",
-        OperatorId: workcardToEdit.OperatorId?.toString() ?? "",
-        CodeAction: typeof workcardToEdit.CodeAction === "number" 
-          ? workcardToEdit.CodeAction 
-          : parseInt(workcardToEdit.CodeAction?.split("-")[0] ?? "0"),
+        OperatorId: workcardToEdit.OperatorId ?? 0,
+        CodeAction:
+          typeof workcardToEdit.CodeAction === "number"
+            ? workcardToEdit.CodeAction
+            : parseInt(workcardToEdit.CodeAction?.split("-")[0] ?? "0"),
         Note: workcardToEdit.Note ?? "",
         WorkingCardId: workcardToEdit.WorkingCardId ?? 0,
-        EqmtId: workcardToEdit.EqmtId?.toString() ?? "",
+        EqmtId: workcardToEdit.EqmtId ?? 0,
       });
     } else {
       form.reset();
@@ -134,12 +138,12 @@ export const WorkcardForm = ({
   async function onSubmit(values: CreateWorkcardInput) {
     const formattedValues = {
       ...values,
-      Date: format(values.Date, "yyyy-MM-dd"),
-    };
+      Date: values.Date,
+    } satisfies CreateWorkcardInput;
 
     if (workcardToEdit) {
       await updateMutation.mutateAsync({
-        id: workcardToEdit.ID,
+        id: workcardToEdit.Id,
         data: formattedValues,
       });
     } else {
@@ -148,10 +152,10 @@ export const WorkcardForm = ({
   }
 
   return (
-    <div className="max-w-3xl p-4 rounded-xl">
+    <div className="max-w-3xl rounded-xl p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full py-2.5">
+          <div className="grid w-full grid-cols-1 gap-4 py-2.5 md:grid-cols-2 lg:grid-cols-4">
             <div className="w-full md:col-span-2 lg:col-span-3">
               <FormField
                 control={form.control}
@@ -166,7 +170,7 @@ export const WorkcardForm = ({
                             variant="outline"
                             className={cn(
                               "w-full min-w-[240px] pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
@@ -203,7 +207,7 @@ export const WorkcardForm = ({
                   <FormItem>
                     <FormLabel>Начален час</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -219,7 +223,7 @@ export const WorkcardForm = ({
                   <FormItem>
                     <FormLabel>Краен час</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -244,13 +248,13 @@ export const WorkcardForm = ({
                               variant="outline"
                               role="combobox"
                               className={cn(
-                                "w-full justify-between min-w-0 truncate",
-                                !field.value && "text-muted-foreground"
+                                "w-full min-w-0 justify-between truncate",
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {field.value
                                 ? workcardDetails.operators.find(
-                                    (op) => op.Id.toString() === field.value
+                                    (op) => op.Id === field.value,
                                   )?.Operator || "Изберете оператор"
                                 : "Изберете оператор"}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -258,7 +262,7 @@ export const WorkcardForm = ({
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent
-                          className="min-w-0 w-[200px] lg:w-[375px] max-h-[400px] p-0"
+                          className="max-h-[400px] w-[200px] min-w-0 p-0 lg:w-[375px]"
                           align="start"
                           side="bottom"
                         >
@@ -285,13 +289,13 @@ export const WorkcardForm = ({
                                       <Check
                                         className={cn(
                                           "ml-auto h-4 w-4",
-                                          Id.toString() === field.value
+                                          Id === field.value
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                     </CommandItem>
-                                  )
+                                  ),
                                 )}
                               </CommandGroup>
                             </CommandList>
@@ -399,7 +403,7 @@ export const WorkcardForm = ({
                               >
                                 {EquipmentName}
                               </SelectItem>
-                            )
+                            ),
                           )}
                         </SelectContent>
                       </Select>
@@ -417,7 +421,7 @@ export const WorkcardForm = ({
               />
             </div>
 
-            <div className="flex flex-col gap-2 w-full md:col-span-2 lg:col-span-2">
+            <div className="flex w-full flex-col gap-2 md:col-span-2 lg:col-span-2">
               <Label>Описание</Label>
               {workcardDetails?.notes && workcardDetails.notes.length > 0 ? (
                 <Popover>
@@ -427,8 +431,8 @@ export const WorkcardForm = ({
                       role="combobox"
                       type="button"
                       className={cn(
-                        "w-full justify-between max-0 truncate font-normal",
-                        !form.getValues().Note && "text-muted-foreground"
+                        "max-0 w-full justify-between truncate font-normal",
+                        !form.getValues().Note && "text-muted-foreground",
                       )}
                     >
                       {"Често срещани причини"}
@@ -436,7 +440,7 @@ export const WorkcardForm = ({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="min-w-0 w-[200px] lg:w-[375px] max-h-[400px] p-0"
+                    className="max-h-[400px] w-[200px] min-w-0 p-0 lg:w-[375px]"
                     align="start"
                     side="bottom"
                   >
@@ -462,7 +466,7 @@ export const WorkcardForm = ({
                                   "ml-auto h-4 w-4",
                                   note === form.getValues().Note
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
@@ -476,7 +480,7 @@ export const WorkcardForm = ({
                 <Input
                   type="text"
                   placeholder="Често срещани причини"
-                  value={form.getValues().Note}
+                  value={form.getValues().Note || ""}
                   onChange={(e) => {
                     form.setValue("Note", e.target.value);
                   }}
@@ -506,7 +510,7 @@ export const WorkcardForm = ({
             </div>
           </div>
 
-          <div className="flex flex-row items-center gap-4 w-lg">
+          <div className="flex w-lg flex-row items-center gap-4">
             <Button
               className="w-36"
               variant="outline"
@@ -531,4 +535,3 @@ export const WorkcardForm = ({
     </div>
   );
 };
-

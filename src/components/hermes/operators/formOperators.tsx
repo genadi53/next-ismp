@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import type { HermesOperator, CreateOperatorInput } from "@/types/hermes";
+import type { HermesOperator, CreateOperatorInput } from "@/server/repositories/hermes";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { api } from "@/trpc/react";

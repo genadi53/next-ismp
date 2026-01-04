@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../../table/columnHeader";
-import type { HermesEquipment } from "@/types/hermes";
+import type { HermesEquipment } from "@/server/repositories/hermes";
 import { RowActionsEquipment } from "./rowActionsEquipment";
 
 export const equipmentColumns = ({

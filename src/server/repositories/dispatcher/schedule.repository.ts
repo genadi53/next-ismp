@@ -2,7 +2,7 @@ import { sqlQuery, sqlTransaction } from "@/server/database/db";
 import type {
   DispatcherSchedule,
   CreateDispatcherScheduleInput,
-} from "@/types/dispatcher";
+} from "./types.schedule";
 
 /**
  * Get dispatcher schedule for the current month.

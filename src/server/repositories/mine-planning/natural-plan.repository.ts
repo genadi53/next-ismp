@@ -1,5 +1,5 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { PlanNP, CreatePlanNPInput } from "@/types/mine-planning";
+import type { PlanNP, CreatePlanNPInput } from "./types.plan-np";
 
 /**
  * Get natural plan (НП) for the current date.

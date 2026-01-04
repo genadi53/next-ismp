@@ -3,7 +3,7 @@ import type {
   MgtlOre,
   CreateMgtlOreInput,
   UpdateMgtlOreInput,
-} from "@/types/dispatcher";
+} from "./types.mgtl-ore";
 
 /**
  * Get MGTL ore export data for the last 2 months.

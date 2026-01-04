@@ -4,7 +4,7 @@ import type {
   CreatePrestartCheckInput,
   CompletePrestartCheckInput,
   PrestartStatus,
-} from "@/types/dispatcher";
+} from "./types.prestart";
 
 /**
  * Check for unfinished prestart checks.

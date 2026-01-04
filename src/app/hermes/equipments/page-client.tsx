@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/trpc/react";
-import type { HermesEquipment } from "@/types/hermes";
+import type { HermesEquipment } from "@/server/repositories/hermes";
 import {
   Card,
   CardContent,
@@ -32,8 +32,11 @@ import { EquipmentForm } from "@/components/hermes/equipment/formEquipment";
 
 export function EquipmentsPageClient() {
   const [showForm, setShowForm] = useState(false);
-  const [equipmentToEdit, setEquipmentToEdit] = useState<HermesEquipment | undefined>(undefined);
-  const [equipmentToDelete, setEquipmentToDelete] = useState<HermesEquipment | null>(null);
+  const [equipmentToEdit, setEquipmentToEdit] = useState<
+    HermesEquipment | undefined
+  >(undefined);
+  const [equipmentToDelete, setEquipmentToDelete] =
+    useState<HermesEquipment | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [equipments] = api.hermes.equipments.getAll.useSuspenseQuery();
@@ -70,7 +73,7 @@ export function EquipmentsPageClient() {
     if (!equipmentToDelete) return;
 
     try {
-      await deleteMutation.mutateAsync({ id: equipmentToDelete.ID });
+      await deleteMutation.mutateAsync({ id: equipmentToDelete.Id });
       setShowDeleteDialog(false);
       setEquipmentToDelete(null);
     } catch (error) {
@@ -105,7 +108,7 @@ export function EquipmentsPageClient() {
           className={cn(
             "gap-2 transition-colors duration-200",
             showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40"
+              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
           )}
         >
           {!showForm ? (
@@ -130,7 +133,9 @@ export function EquipmentsPageClient() {
               <Wrench className="text-primary h-6 w-6" />
               <div>
                 <CardTitle className="text-xl">
-                  {equipmentToEdit ? "Редактиране на оборудване" : "Добави ново оборудване"}
+                  {equipmentToEdit
+                    ? "Редактиране на оборудване"
+                    : "Добави ново оборудване"}
                 </CardTitle>
                 <CardDescription>
                   {equipmentToEdit
@@ -146,8 +151,8 @@ export function EquipmentsPageClient() {
             )}
           </CardHeader>
           <CardContent>
-            <EquipmentForm 
-              equipmentToEdit={equipmentToEdit} 
+            <EquipmentForm
+              equipmentToEdit={equipmentToEdit}
               onSuccess={handleFormSuccess}
             />
           </CardContent>
@@ -167,7 +172,8 @@ export function EquipmentsPageClient() {
               </div>
               {equipments && (
                 <Badge variant="outline" className="text-ell-primary text-sm">
-                  {equipments.length} {equipments.length === 1 ? "единица" : "единици"}
+                  {equipments.length}{" "}
+                  {equipments.length === 1 ? "единица" : "единици"}
                 </Badge>
               )}
             </div>
@@ -202,7 +208,8 @@ export function EquipmentsPageClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
             <AlertDialogDescription>
-              Това действие не може да бъде отменено. Оборудването ще бъде изтрито перманентно.
+              Това действие не може да бъде отменено. Оборудването ще бъде
+              изтрито перманентно.
               {equipmentToDelete && (
                 <div className="bg-muted mt-2 rounded p-2">
                   <strong>Оборудване:</strong> {equipmentToDelete.EqmtName}
@@ -226,4 +233,3 @@ export function EquipmentsPageClient() {
     </>
   );
 }
-

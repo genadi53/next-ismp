@@ -1,4 +1,4 @@
-import type { DrillType } from "@/types/types";
+import type { DrillType, MonthBG, ShiftNames } from "@/types/global.types";
 
 export const HermesOperatorDlazhnost = [
   "Машинист,еднок.багер/Багерист",
@@ -142,3 +142,25 @@ export const DMA_MEA = [
   "Метър",
   "Лин. Метри",
 ];
+
+export const MONTH_NAMES_BG: Record<number, MonthBG> = {
+  1: "Януари",
+  2: "Февруари",
+  3: "Март",
+  4: "Април",
+  5: "Май",
+  6: "Юни",
+  7: "Юли",
+  8: "Август",
+  9: "Септември",
+  10: "Октомври",
+  11: "Ноември",
+  12: "Декември",
+};
+
+export const SHIFT_NUMBERS: Record<number, ShiftNames> = {
+  1: "Първа",
+  2: "Обяд",
+  3: "Втора",
+  4: "Нощна",
+};

@@ -18,7 +18,7 @@ import { api } from "@/trpc/react";
 import { LoadsForm } from "@/components/loads/loadsForm";
 import { DataTableLoads } from "@/components/loads/tableLoads";
 import { loadsColumns } from "@/components/loads/columnsLoads";
-import type { Load } from "@/types/loads";
+import type { Load } from "@/server/repositories/loads";
 import { Container } from "@/components/Container";
 
 export function LoadsPageClient() {

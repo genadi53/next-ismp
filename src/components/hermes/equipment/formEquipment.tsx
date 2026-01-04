@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { HermesEquipment, CreateEquipmentInput } from "@/types/hermes";
+import type { HermesEquipment, CreateEquipmentInput } from "@/server/repositories/hermes";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";

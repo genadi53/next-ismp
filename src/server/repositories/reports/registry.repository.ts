@@ -3,7 +3,7 @@ import type {
   ReportsRegistry,
   CreateReportsRegistryInput,
   UpdateReportsRegistryInput,
-} from "@/types/reports";
+} from "./types.registry";
 
 /**
  * Get all reports registry entries.

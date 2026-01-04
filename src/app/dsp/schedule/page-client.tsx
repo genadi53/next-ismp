@@ -29,8 +29,8 @@ import { extractGrafikDispetchers } from "@/excel/extractGrafikDispetchers";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/cn";
 import { DispatcherSystemNames } from "@/lib/constants";
-import type { CreateDispatcherScheduleInput } from "@/types/dispatcher";
-import { monthNamesBG } from "@/types/types";
+import type { CreateDispatcherScheduleInput } from "@/server/repositories/dispatcher";
+import { monthNamesBG } from "@/types/global.types";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -143,7 +143,7 @@ export function SchedulePageClient() {
           .forEach(([day, shift]) => {
             grafik.push({
               dispatcherID,
-              Name,
+              Name: Name ?? "Unknown",
               LoginName,
               Date: `${yearMonth}-${day.padStart(2, "0")}`,
               Shift: Number(shift),
@@ -180,7 +180,17 @@ export function SchedulePageClient() {
     if (!monthGrafik || monthGrafik.length <= 0) return;
 
     try {
-      await createSchedule(monthGrafik);
+      await createSchedule(
+        monthGrafik
+          .filter((entry) => entry.dispatcherID !== null)
+          .map((entry) => ({
+            Date: entry.Date,
+            Shift: entry.Shift,
+            dispatcherID: entry.dispatcherID!,
+            Name: entry.Name ?? "Unknown",
+            LoginName: entry.LoginName,
+          })),
+      );
     } catch (error) {
       console.error(error);
     }
@@ -188,7 +198,7 @@ export function SchedulePageClient() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 max-w-lg">
+      <div className="flex max-w-lg flex-col gap-4">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -239,22 +249,22 @@ export function SchedulePageClient() {
 
             {isProcessing && (
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                <span className="text-sm text-muted-foreground">
+                <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2"></div>
+                <span className="text-muted-foreground text-sm">
                   Обработване на файла...
                 </span>
               </div>
             )}
 
             {fileName && !isProcessing && (
-              <div className="text-sm text-muted-foreground">
+              <div className="text-muted-foreground text-sm">
                 Качен файл: {fileName}
               </div>
             )}
           </CardContent>
         </Card>
 
-        <div className="flex flex-row items-center gap-4 w-lg">
+        <div className="flex w-lg flex-row items-center gap-4">
           <Button
             className="w-24"
             variant={"default"}
@@ -296,7 +306,7 @@ export function SchedulePageClient() {
         </div>
       </div>
 
-      <div className="w-full mx-auto mt-6">
+      <div className="mx-auto mt-6 w-full">
         {monthGrafik?.length > 0 && (
           <Table>
             <TableHeader>
@@ -327,4 +337,3 @@ export function SchedulePageClient() {
     </>
   );
 }
-

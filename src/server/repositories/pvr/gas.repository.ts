@@ -6,7 +6,7 @@ import type {
   UpdateGasMeasurementInput,
   GasReference,
   SamplerDetails,
-} from "@/types/pvr";
+} from "./types.gas";
 
 /**
  * Get gas measurements (last 100).

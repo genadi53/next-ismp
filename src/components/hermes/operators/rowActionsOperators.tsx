@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { HermesOperator } from "@/types/hermes";
+import type { HermesOperator } from "@/server/repositories/hermes";
 
 interface RowActionsOperatorsProps<TData> {
   row: Row<TData>;

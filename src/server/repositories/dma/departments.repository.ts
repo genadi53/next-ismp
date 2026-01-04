@@ -3,7 +3,7 @@ import type {
   DmaDepartment,
   CreateDmaDepartmentInput,
   UpdateDmaDepartmentInput,
-} from "@/types/dma";
+} from "./types.departments";
 
 /**
  * Get all DMA departments.

@@ -34,7 +34,7 @@ import {
   convertGlobalCoordToLocal,
   convertLocalCoordToGlobal,
 } from "@/lib/geowlanCoordinatesConverter";
-import type { GeowlanAP } from "@/types/geowlan/types.geowlan";
+import type { GeowlanAP } from "@/server/repositories/geowlan";
 import { ColorConverter } from "@/lib/ColorConverter";
 
 type GeowlanFormProps = {

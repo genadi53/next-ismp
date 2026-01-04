@@ -1,9 +1,9 @@
-import { sqlQuery, sqlQueryOne, sqlTransaction } from "@/server/database/db";
+import { sqlQuery, sqlTransaction } from "@/server/database/db";
 import type {
   GeowlanAP,
   CreateGeowlanAPInput,
   UpdateGeowlanAPInput,
-} from "@/types/geowlan";
+} from "./types.geowlan";
 
 /**
  * Get all geowlan access points with mast information.
@@ -144,4 +144,3 @@ export async function deleteGeowlanAP(id: number): Promise<void> {
     `);
   });
 }
-

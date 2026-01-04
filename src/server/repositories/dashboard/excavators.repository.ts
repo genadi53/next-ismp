@@ -4,7 +4,7 @@ import type {
   TotalSumExcavs,
   HourCountExcav,
   HourProdExcav,
-} from "@/types/dashboard";
+} from "./types.excavators";
 
 /**
  * Get excavator count by region for the current shift.
@@ -264,4 +264,3 @@ export async function hourProdExcav(): Promise<HourProdExcav[]> {
     ORDER BY [hour]
   `);
 }
-

@@ -23,8 +23,13 @@ import { ZodError } from "zod";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  // Extract user from headers
+  // Looking for 'x-user' header or 'authorization' header
+  const username = opts.headers.get("x-user") || null;
+
   return {
     ...opts,
+    user: username ? { username } : null,
   };
 };
 
@@ -101,3 +106,32 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Authorization middleware
+ *
+ * This middleware checks if a user is authenticated by verifying the user exists in the context.
+ * If no user is found, it throws an UNAUTHORIZED error.
+ */
+const authMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new Error("UNAUTHORIZED: No user found in request headers");
+  }
+
+  return next({
+    ctx: {
+      // Infers the `user` as non-nullable
+      user: ctx.user,
+    },
+  });
+});
+
+/**
+ * Protected (authenticated) procedure
+ *
+ * Use this procedure for any API endpoints that require authentication.
+ * It guarantees that ctx.user is defined and non-null.
+ */
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(authMiddleware);

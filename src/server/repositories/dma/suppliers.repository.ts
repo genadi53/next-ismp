@@ -1,5 +1,5 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { DmaSupplier, CreateDmaSupplierInput } from "@/types/dma";
+import type { DmaSupplier, CreateDmaSupplierInput } from "./types.suppliers";
 
 /**
  * Get all DMA suppliers.

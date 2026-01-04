@@ -1,5 +1,5 @@
 import { sqlQuery } from "@/server/database/db";
-import type { NetworkLog } from "@/types/ismp";
+import type { NetworkLog } from "./types.logs";
 
 /**
  * Get all network action logs.

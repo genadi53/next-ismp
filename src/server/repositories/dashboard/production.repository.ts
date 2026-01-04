@@ -3,7 +3,7 @@ import type {
   ProductionPlan,
   ExcavProductionDetailed,
   ExcavVol,
-} from "@/types/dashboard";
+} from "./types.production";
 
 /**
  * Get production plan data for the current shift day.

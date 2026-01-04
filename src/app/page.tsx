@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { Container } from "@/components/Container";
-import { api, HydrateClient } from "@/trpc/server";
+import { HydrateClient } from "@/trpc/server";
 
 export default async function Home() {
   // const test = await api.admin.permissions.getForUser({

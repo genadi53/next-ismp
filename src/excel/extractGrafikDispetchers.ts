@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import type {
   DayShift,
   ExtractedGrafikRow,
-} from "@/types/dispatcher/types.schedule";
+} from "@/server/repositories/dispatcher";
 
 export const extractGrafikDispetchers = (
   file: File,

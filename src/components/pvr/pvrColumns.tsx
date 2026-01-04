@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/table/columnHeader";
-import type { BlastingPlan } from "@/types/pvr/types.blasting-plan";
+import type { BlastingPlan } from "@/server/repositories/pvr";
 import { RowActionsBlastingPlan } from "./pvrRowActions";
 import { Badge } from "@/components/ui/badge";
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import type { DmaDocument } from "@/types/dma";
+import type { DmaDocument } from "@/server/repositories/dma";
 import {
   Card,
   CardContent,

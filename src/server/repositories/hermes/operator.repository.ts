@@ -3,7 +3,7 @@ import type {
   HermesOperator,
   HermesOperatorNames,
   CreateOperatorInput,
-} from "@/types/hermes/types.operator";
+} from "./types.operator";
 
 /**
  * Get all operators from the database.

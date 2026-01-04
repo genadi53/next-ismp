@@ -1,5 +1,8 @@
 import { sqlQuery } from "@/server/database/db";
-import type { CurrentDispatcher, DispatchEquipmentName } from "@/types/dashboard";
+import type {
+  CurrentDispatcher,
+  DispatchEquipmentName,
+} from "./types.dispatcher";
 
 /**
  * Get the current dispatcher information.
@@ -51,7 +54,9 @@ export async function getCurrentDispatcher(): Promise<CurrentDispatcher[]> {
 /**
  * Get all equipment names for dispatch selection.
  */
-export async function getDispatchEquipmentNames(): Promise<DispatchEquipmentName[]> {
+export async function getDispatchEquipmentNames(): Promise<
+  DispatchEquipmentName[]
+> {
   const results = await sqlQuery<{ FieldId: string }>(`
     SELECT * FROM [ISMP_SP_FUNCTION].[dbo].AllEquipment() 
     WHERE fieldId NOT IN (N'2B998', N'2BРЦ', N'2S98', N'2W999', N'2C999', N'2BРЦ') 
@@ -59,4 +64,3 @@ export async function getDispatchEquipmentNames(): Promise<DispatchEquipmentName
   `);
   return results.map((r) => r.FieldId);
 }
-

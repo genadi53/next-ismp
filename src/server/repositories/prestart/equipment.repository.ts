@@ -3,7 +3,7 @@ import type {
   PrestartTruck,
   PrestartExcavator,
   PrestartShovel,
-} from "@/types/prestart";
+} from "./types.equipment";
 
 /**
  * Get all trucks for prestart checklist.

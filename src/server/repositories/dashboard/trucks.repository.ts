@@ -5,7 +5,7 @@ import type {
   HourCountTruck,
   HourProdTruck,
   InfoTruck,
-} from "@/types/dashboard";
+} from "./types.trucks";
 
 /**
  * Get truck count by region for the current shift.

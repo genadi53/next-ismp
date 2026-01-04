@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import type { Row } from "@tanstack/react-table";
-import type { DmaDepartment } from "@/types/dma";
+import type { DmaDepartment } from "@/server/repositories/dma";
 
 interface RowActionsDepartmentsProps {
   row: Row<DmaDepartment>;

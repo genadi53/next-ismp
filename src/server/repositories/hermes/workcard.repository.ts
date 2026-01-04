@@ -3,10 +3,11 @@ import type {
   HermesWorkcard,
   CreateWorkcardInput,
   WorkcardDetails,
-} from "@/types/hermes";
+} from "./types.workcard";
 import { getOperatorNames } from "./operator.repository";
 import { getEquipmentNames } from "./equipment.repository";
 import { calculateDuration } from "@/lib/time";
+import { format } from "date-fns";
 
 /**
  * Get all workcards from the database.
@@ -92,7 +93,9 @@ export async function getWorkcardDetails(): Promise<WorkcardDetails> {
 export async function createWorkcard(
   input: CreateWorkcardInput,
 ): Promise<void> {
-  const [Wyear, WMonth, WDay] = input.Date.split("-").map(Number);
+  const [Wyear, WMonth, WDay] = format(input.Date, "yyyy-MM-dd")
+    .split("-")
+    .map(Number);
   const duration = calculateDuration(input.EndTime, input.StartTime);
 
   await sqlTransaction(async (request) => {
@@ -128,6 +131,50 @@ export async function deleteWorkcard(id: number): Promise<void> {
     request.input("id", id);
     await request.query(`
       DELETE FROM [Hermes].[dbo].[RabKartiData]
+      WHERE [ID] = @id
+    `);
+  });
+}
+
+/**
+ * Update an existing workcard.
+ */
+export async function updateWorkcard(
+  id: number,
+  input: CreateWorkcardInput,
+): Promise<void> {
+  const [Wyear, WMonth, WDay] = format(input.Date, "yyyy-MM-dd")
+    .split("-")
+    .map(Number);
+  const duration = calculateDuration(input.EndTime, input.StartTime);
+
+  await sqlTransaction(async (request) => {
+    request.input("Wyear", Wyear);
+    request.input("WMonth", WMonth);
+    request.input("WDay", WDay);
+    request.input("StartTime", input.StartTime);
+    request.input("EndTime", input.EndTime);
+    request.input("OperatorId", input.OperatorId);
+    request.input("CodeAction", input.CodeAction);
+    request.input("Duration", duration);
+    request.input("Note", input.Note);
+    request.input("WorkingCardId", input.WorkingCardId);
+    request.input("Bukva", 1);
+    request.input("EqmtId", input.EqmtId);
+    request.input("id", id);
+
+    await request.query(`
+      UPDATE [Hermes].[dbo].[RabKartiData]
+      SET [Wyear] = @Wyear, 
+          [WMonth] = @WMonth, 
+          [WDay] = @WDay, 
+          [StartTime] = @StartTime, 
+          [EndTime] = @EndTime, 
+          [OperatorId] = @OperatorId, 
+          [CodeAction] = @CodeAction, 
+          [Duration] = @Duration, 
+          [Note] = @Note, 
+          [WorkingCardId] = @WorkingCardId, [Bukva] = @Bukva, [EqmtId] = @EqmtId
       WHERE [ID] = @id
     `);
   });

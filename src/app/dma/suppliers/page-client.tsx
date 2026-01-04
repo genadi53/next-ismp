@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/trpc/react";
-import type { DmaSupplier } from "@/types/dma";
+import type { DmaSupplier } from "@/server/repositories/dma";
 import {
   Card,
   CardContent,
@@ -13,9 +13,8 @@ import {
 import { suppliersColumns } from "@/components/dma/suppliers/columnsSuppliers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Building2, AlertCircle } from "lucide-react";
+import { Plus, X, Building2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { LoadingSpinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import {
   Table,
@@ -59,6 +58,7 @@ export function SuppliersPageClient() {
   };
 
   const handleDelete = (supplier: DmaSupplier) => {
+    console.log(supplier);
     toast.info("Функционалността за изтриване ще бъде добавена скоро");
   };
 
