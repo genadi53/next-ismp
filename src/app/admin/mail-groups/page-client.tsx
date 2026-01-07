@@ -13,78 +13,18 @@ import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
 import { MailGroupForm } from "@/components/admin/MailGroupForm";
 import { MailGroupsTable } from "@/components/admin/MailGroupsTable";
 import type { MailGroup } from "@/server/repositories/admin/types.mail-group";
-import type { MailGroupFormData } from "@/schemas/admin.schemas";
 import { Container } from "@/components/Container";
 
 export function MailGroupsPageClient() {
   const [mailGroups] = api.admin.mailGroups.getAll.useSuspenseQuery();
-  const utils = api.useUtils();
 
   const [showForm, setShowForm] = useState(false);
   const [editingMailGroup, setEditingMailGroup] = useState<MailGroup | null>(
     null,
   );
-
-  const { mutateAsync: createMailGroup, isPending: isCreating } =
-    api.admin.mailGroups.create.useMutation({
-      onSuccess: () => {
-        utils.admin.mailGroups.getAll.invalidate();
-        toast.success("Успех", {
-          description: "Имейл групата е успешно създадена.",
-        });
-        setShowForm(false);
-        setEditingMailGroup(null);
-      },
-      onError: (_error) => {
-        toast.error("Грешка", {
-          description: "Възникна грешка при създаването. Опитайте отново.",
-        });
-      },
-    });
-
-  const { mutateAsync: updateMailGroup, isPending: isUpdating } =
-    api.admin.mailGroups.update.useMutation({
-      onSuccess: () => {
-        utils.admin.mailGroups.getAll.invalidate();
-        toast.success("Успех", {
-          description: "Имейл групата е успешно обновена.",
-        });
-        setShowForm(false);
-        setEditingMailGroup(null);
-      },
-      onError: (_error) => {
-        toast.error("Грешка", {
-          description: "Възникна грешка при обновяването. Опитайте отново.",
-        });
-      },
-    });
-
-  const { mutateAsync: deleteMailGroup } =
-    api.admin.mailGroups.delete.useMutation({
-      onSuccess: () => {
-        utils.admin.mailGroups.getAll.invalidate();
-        toast.success("Успех", {
-          description: "Имейл групата е успешно изтрита.",
-        });
-      },
-      onError: (_error) => {
-        toast.error("Грешка", {
-          description: "Възникна грешка при изтриването. Опитайте отново.",
-        });
-      },
-    });
-
-  const handleCreate = () => {
-    setEditingMailGroup(null);
-    setShowForm(true);
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 100);
-  };
 
   const handleEdit = (mailGroup: MailGroup) => {
     setEditingMailGroup(mailGroup);
@@ -99,25 +39,6 @@ export function MailGroupsPageClient() {
     setEditingMailGroup(null);
   };
 
-  const handleSubmit = async (data: MailGroupFormData): Promise<boolean> => {
-    try {
-      if (editingMailGroup) {
-        await updateMailGroup({
-          id: editingMailGroup.Id!,
-          data: {
-            ...data,
-          },
-        });
-      } else {
-        await createMailGroup(data);
-      }
-      return true;
-    } catch (error) {
-      console.error("Error saving mail group:", error);
-      return false;
-    }
-  };
-
   return (
     <Container
       title="Имейл групи"
@@ -129,7 +50,11 @@ export function MailGroupsPageClient() {
               if (showForm) {
                 handleCancel();
               } else {
-                handleCreate();
+                setEditingMailGroup(null);
+                setShowForm(true);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }, 100);
               }
             }}
             variant={showForm ? "outline" : "ell"}
@@ -172,9 +97,7 @@ export function MailGroupsPageClient() {
           <div className="mb-6">
             <MailGroupForm
               mailGroup={editingMailGroup || undefined}
-              onSubmit={handleSubmit}
               onCancel={handleCancel}
-              loading={isCreating || isUpdating}
             />
           </div>
         )}
@@ -210,11 +133,7 @@ export function MailGroupsPageClient() {
             <CardContent>
               <MailGroupsTable
                 mailGroups={mailGroups || []}
-                onEdit={handleEdit}
-                onDelete={async (id: number) => {
-                  await deleteMailGroup({ id });
-                }}
-                loading={false}
+                onEditClick={handleEdit}
               />
             </CardContent>
           </Card>

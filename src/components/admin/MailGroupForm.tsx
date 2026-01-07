@@ -27,21 +27,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { MailGroup } from "@/server/repositories/admin/types.mail-group";
-import { toast } from "sonner";
+import { toast } from "../ui/toast";
+import { api } from "@/trpc/react";
 
 interface MailGroupFormProps {
   mailGroup?: MailGroup;
-  onSubmit: (data: MailGroupFormData) => Promise<boolean>;
   onCancel: () => void;
-  loading?: boolean;
 }
 
-export function MailGroupForm({
-  mailGroup,
-  onSubmit,
-  onCancel,
-  loading,
-}: MailGroupFormProps) {
+export function MailGroupForm({ mailGroup, onCancel }: MailGroupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<MailGroupFormData>({
@@ -54,24 +48,58 @@ export function MailGroupForm({
     },
   });
 
+  const utils = api.useUtils();
+  const { mutateAsync: createMailGroup, isPending: isCreating } =
+    api.admin.mailGroups.create.useMutation({
+      onSuccess: () => {
+        utils.admin.mailGroups.getAll.invalidate();
+        toast({
+          title: "Успех",
+          description: "Имейл групата е успешно създадена.",
+        });
+        onCancel();
+      },
+      onError: (_error) => {
+        toast({
+          title: "Грешка",
+          description: "Възникна грешка при създаването. Опитайте отново.",
+          variant: "destructive",
+        });
+      },
+    });
+
+  const { mutateAsync: updateMailGroup, isPending: isUpdating } =
+    api.admin.mailGroups.update.useMutation({
+      onSuccess: () => {
+        utils.admin.mailGroups.getAll.invalidate();
+        toast({
+          title: "Успех",
+          description: "Имейл групата е успешно обновена.",
+        });
+        onCancel();
+      },
+      onError: (_error) => {
+        toast({
+          title: "Грешка",
+          description: "Възникна грешка при обновяването. Опитайте отново.",
+          variant: "destructive",
+        });
+      },
+    });
+
   const handleSubmit = async (data: MailGroupFormData) => {
     setIsSubmitting(true);
-    try {
-      const success = await onSubmit(data);
-      if (success) {
-        form.reset();
-        toast.success("Успех", {
-          description: "Имейл групата е успешно записана.",
-        });
-        return;
-      }
-      toast.error("Грешка", {
-        description:
-          "Възникна грешка при записването на имейл групата. Опитайте отново, или се обадете на администратор.",
+    if (mailGroup) {
+      await updateMailGroup({
+        id: mailGroup.Id!,
+        data: {
+          ...data,
+        },
       });
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      await createMailGroup(data);
     }
+    return;
   };
 
   return (
@@ -164,7 +192,7 @@ export function MailGroupForm({
               <Button
                 type="submit"
                 variant="ell"
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting || isUpdating || isCreating}
                 className="flex-1"
               >
                 {isSubmitting
@@ -177,7 +205,7 @@ export function MailGroupForm({
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting || isUpdating || isCreating}
               >
                 Отказ
               </Button>

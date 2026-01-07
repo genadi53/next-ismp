@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { NoResults } from "@/components/NoResults";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import {
   permissionFormSchema,
@@ -59,6 +59,7 @@ export function PermissionsPageClient() {
     api.admin.permissions.getAll.useSuspenseQuery(undefined);
   const [usernames] = api.admin.permissions.getUsernames.useSuspenseQuery();
 
+  const utils = api.useUtils();
   const { data: userPermissions, isLoading: loadingUser } =
     api.admin.permissions.getForUser.useQuery(
       {
@@ -68,20 +69,22 @@ export function PermissionsPageClient() {
       { enabled: !!selectedUsername },
     );
 
-  const utils = api.useUtils();
   const { mutateAsync: createPermissions } =
     api.admin.permissions.create.useMutation({
       onSuccess: () => {
         utils.admin.permissions.getAll.invalidate();
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Правата са успешно добавени.",
         });
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при добавянето на права. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });
@@ -96,15 +99,18 @@ export function PermissionsPageClient() {
             mainMenu: "",
           });
         }
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Правата са успешно премахнати.",
         });
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при премахването на права. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });

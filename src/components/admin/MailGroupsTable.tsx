@@ -23,28 +23,36 @@ import {
 import type { MailGroup } from "@/server/repositories/admin/types.mail-group";
 import { Mail, PencilIcon, TrashIcon } from "lucide-react";
 import { NoResults } from "@/components/NoResults";
-import { LoadingSpinner } from "@/components/ui/spinner";
+import { api } from "@/trpc/react";
+import { toast } from "../ui/toast";
 
 interface MailGroupsTableProps {
   mailGroups: MailGroup[];
-  onEdit: (mailGroup: MailGroup) => void;
-  onDelete: (id: number) => void;
-  loading?: boolean;
+  onEditClick: (mailGroup: MailGroup) => void;
 }
 
 export function MailGroupsTable({
   mailGroups,
-  onEdit,
-  onDelete,
-  loading,
+  onEditClick,
 }: MailGroupsTableProps) {
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-6">
-        <LoadingSpinner size="lg" label="Моля изчакайте..." showLabel />
-      </div>
-    );
-  }
+  const utils = api.useUtils();
+  const { mutateAsync: deleteMailGroup } =
+    api.admin.mailGroups.delete.useMutation({
+      onSuccess: () => {
+        utils.admin.mailGroups.getAll.invalidate();
+        toast({
+          title: "Успех",
+          description: "Имейл групата е успешно изтрита.",
+        });
+      },
+      onError: (_error) => {
+        toast({
+          title: "Грешка",
+          description: "Възникна грешка при изтриването. Опитайте отново.",
+          variant: "destructive",
+        });
+      },
+    });
 
   if (mailGroups.length === 0) {
     return (
@@ -88,7 +96,7 @@ export function MailGroupsTable({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onEdit(mailGroup)}
+                  onClick={() => onEditClick(mailGroup)}
                 >
                   <PencilIcon className="h-4 w-4" />
                 </Button>
@@ -111,7 +119,7 @@ export function MailGroupsTable({
                     <AlertDialogFooter>
                       <AlertDialogCancel>Отказ</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => onDelete(mailGroup.Id)}
+                        onClick={() => deleteMailGroup({ id: mailGroup.Id! })}
                         className="bg-destructive hover:bg-destructive/90 text-white"
                       >
                         Изтриване
