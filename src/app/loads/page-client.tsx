@@ -54,20 +54,20 @@ export function LoadsPageClient() {
       description="Добавяне и редактиране на липсващи курсове"
       headerChildren={
         <div className="mb-4 flex items-center gap-2">
-          <Button
-            className="min-w-28"
-            variant="outline"
-            size="lg"
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              router.push("/loads/send");
-            }}
-          >
-            {unsentLoads && unsentLoads.length > 0
-              ? `Изпрати (${unsentLoads.length}) записа`
-              : "Изпрати промени"}
-          </Button>
+          {unsentLoads && unsentLoads.length > 0 && (
+            <Button
+              className="min-w-28"
+              variant="outline"
+              size="lg"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push("/loads/send");
+              }}
+            >
+              {`Изпрати (${unsentLoads.length}) записа`}
+            </Button>
+          )}
           <Button
             onClick={() => {
               setShowForm((currShown) => !currShown);

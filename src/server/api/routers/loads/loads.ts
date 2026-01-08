@@ -5,6 +5,7 @@ import {
   getUnsentLoads,
   createLoad,
   markLoadSent,
+  updateLoad,
 } from "@/server/repositories/loads/loads.repository";
 import { loadsSchema } from "@/schemas/loads.schemas";
 
@@ -55,4 +56,14 @@ export const loadsRouter = createTRPCRouter({
       count: unsentLoads.length,
     };
   }),
+
+  /**
+   * Update a load entry.
+   */
+  update: publicProcedure
+    .input(z.object({ id: z.number(), data: loadsSchema }))
+    .mutation(async ({ input }) => {
+      await updateLoad(input.id, input.data);
+      return { success: true, message: "Load updated successfully" };
+    }),
 });

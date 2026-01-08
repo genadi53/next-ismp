@@ -26,23 +26,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/cn";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Materials } from "@/lib/constants";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { SHIFT_NUMBERS } from "@/lib/constants";
-import {
-  Command,
-  CommandEmpty,
-  CommandItem,
-  CommandGroup,
-  CommandInput,
-  CommandList,
-} from "../ui/command";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import type { Load } from "@/server/repositories/loads/types.loads";
+import { Combobox } from "../ui/combobox";
 
 const DefaultFormValues: LoadsFormData = {
   Adddate: new Date(),
@@ -68,7 +61,8 @@ export const LoadsForm = ({
   const { mutateAsync: createLoad, isPending } =
     api.loads.loads.create.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Записът е успешен.",
         });
         utils.loads.loads.getAll.invalidate();
@@ -76,7 +70,9 @@ export const LoadsForm = ({
         onCancelEdit?.();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при създаването на записа. Опитайте отново.",
@@ -84,16 +80,32 @@ export const LoadsForm = ({
       },
     });
 
-  const form = useForm<LoadsFormData>({
-    resolver: zodResolver(loadsSchema),
-    mode: "onChange",
-    reValidateMode: "onChange",
-    defaultValues: DefaultFormValues,
-  });
+  const { mutateAsync: updateLoad, isPending: isUpdatePending } =
+    api.loads.loads.update.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Успех",
+          description: "Записът е успешено променен.",
+        });
+        utils.loads.loads.getAll.invalidate();
+        form.reset(DefaultFormValues);
+        onCancelEdit?.();
+      },
+      onError: (error) => {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
+          description:
+            error.message ||
+            "Възникна грешка при промяната на записа. Опитайте отново.",
+        });
+      },
+    });
 
-  useEffect(() => {
+  // Compute initial form values based on loadToEdit
+  const initialFormValues = useMemo<LoadsFormData>(() => {
     if (loadToEdit) {
-      form.reset({
+      return {
         Adddate: new Date(loadToEdit.Adddate),
         Shift: loadToEdit.Shift
           ? Number(loadToEdit.Shift)
@@ -101,25 +113,35 @@ export const LoadsForm = ({
         Shovel: loadToEdit.Shovel || "",
         Truck: loadToEdit.Truck || "",
         Br: loadToEdit.Br || 0,
-        AddMaterial: loadToEdit.AddMaterial || "",
-        RemoveMaterial: loadToEdit.RemoveMaterial || "",
-      });
-    } else {
-      form.reset(DefaultFormValues);
+        AddMaterial: loadToEdit.AddMaterial?.trim() || "",
+        RemoveMaterial: loadToEdit.RemoveMaterial?.trim() || "",
+      };
     }
-  }, [loadToEdit, form]);
+    return DefaultFormValues;
+  }, [loadToEdit]);
 
-  async function onSubmit(values: LoadsFormData) {
+  const form = useForm<LoadsFormData>({
+    resolver: zodResolver(loadsSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: initialFormValues,
+  });
+
+  // Sync form when loadToEdit changes (for cases when component doesn't remount)
+  useEffect(() => {
+    form.reset(initialFormValues);
+  }, [initialFormValues, form]);
+
+  async function onSubmit(formData: LoadsFormData) {
     try {
-      await createLoad({
-        Adddate: values.Adddate,
-        Shift: values.Shift,
-        Shovel: values.Shovel,
-        Truck: values.Truck,
-        Br: values.Br,
-        AddMaterial: values.AddMaterial || null,
-        RemoveMaterial: values.RemoveMaterial || null,
-      });
+      if (loadToEdit) {
+        await updateLoad({
+          id: loadToEdit.id,
+          data: formData,
+        });
+      } else {
+        await createLoad(formData);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -178,7 +200,6 @@ export const LoadsForm = ({
               <FormField
                 control={form.control}
                 name="Shift"
-                key={loadToEdit?.id || "new"}
                 render={({ field }) => {
                   // Handle NaN and invalid values
                   let selectValue = "";
@@ -233,73 +254,26 @@ export const LoadsForm = ({
                 control={form.control}
                 name="Shovel"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex w-full flex-col">
                     <FormLabel>Багер</FormLabel>
                     {!isLoading &&
                     equipmentNames &&
                     equipmentNames.length > 0 ? (
-                      <>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground",
-                                )}
-                              >
-                                {field.value ? field.value : "Изберете Багер"}
-                                <ChevronsUpDown className="opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="max-h-[400px] min-w-[200px] p-0 lg:min-w-[375px]"
-                            align="start"
-                            side="bottom"
-                          >
-                            <Command>
-                              <CommandInput
-                                placeholder="Търси Багер..."
-                                className="h-9"
-                              />
-                              <CommandList>
-                                <CommandEmpty>
-                                  Няма намерени резултати.
-                                </CommandEmpty>
-                                <CommandGroup>
-                                  {equipmentNames
-                                    .filter(
-                                      (eq) =>
-                                        eq.includes("2B") || eq.includes("2L"),
-                                    )
-                                    .map((shovelName) => (
-                                      <CommandItem
-                                        value={shovelName}
-                                        key={shovelName}
-                                        onSelect={() => {
-                                          field.onChange(shovelName);
-                                        }}
-                                      >
-                                        {shovelName}
-                                        <Check
-                                          className={cn(
-                                            "ml-auto",
-                                            shovelName === field.value
-                                              ? "opacity-100"
-                                              : "opacity-0",
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </>
+                      <FormControl>
+                        <Combobox
+                          list={equipmentNames
+                            .filter(
+                              (eq) => eq.includes("2B") || eq.includes("2L"),
+                            )
+                            .map((shovelName) => ({
+                              label: shovelName ? shovelName.trim() : "",
+                              value: shovelName ? shovelName.trim() : "",
+                            }))}
+                          placeholderString="Изберете багер"
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
+                        />
+                      </FormControl>
                     ) : (
                       <Input
                         placeholder="Изберете багер"
@@ -324,65 +298,19 @@ export const LoadsForm = ({
                     {!isLoading &&
                     equipmentNames &&
                     equipmentNames.length > 0 ? (
-                      <>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground",
-                                )}
-                              >
-                                {field.value ? field.value : "Изберете Камион"}
-                                <ChevronsUpDown className="opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="max-h-[400px] min-w-[200px] p-0 lg:min-w-[375px]"
-                            align="start"
-                            side="bottom"
-                          >
-                            <Command>
-                              <CommandInput
-                                placeholder="Търси Камион..."
-                                className="h-9"
-                              />
-                              <CommandList>
-                                <CommandEmpty>
-                                  Няма намерени резултати.
-                                </CommandEmpty>
-                                <CommandGroup>
-                                  {equipmentNames
-                                    .filter((eq) => eq.includes("2C"))
-                                    .map((truckName) => (
-                                      <CommandItem
-                                        value={truckName}
-                                        key={truckName}
-                                        onSelect={() => {
-                                          field.onChange(truckName);
-                                        }}
-                                      >
-                                        {truckName}
-                                        <Check
-                                          className={cn(
-                                            "ml-auto",
-                                            truckName === field.value
-                                              ? "opacity-100"
-                                              : "opacity-0",
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </>
+                      <FormControl>
+                        <Combobox
+                          list={equipmentNames
+                            .filter((eq) => eq.includes("2C"))
+                            .map((truckName) => ({
+                              label: truckName,
+                              value: truckName,
+                            }))}
+                          placeholderString="Изберете камион"
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
+                        />
+                      </FormControl>
                     ) : (
                       <Input
                         type="text"
@@ -432,7 +360,7 @@ export const LoadsForm = ({
                     <FormLabel>Добавен материал</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value)}
-                      value={field.value ? field.value.toString() : ""}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -462,7 +390,7 @@ export const LoadsForm = ({
                     <FormLabel>Премахнат материал</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value)}
-                      value={field.value ? field.value.toString() : ""}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -489,7 +417,7 @@ export const LoadsForm = ({
               className="w-36"
               variant="outline"
               type="reset"
-              disabled={isPending}
+              disabled={isPending || isUpdatePending}
               onClick={(e) => {
                 e.preventDefault();
                 form.reset(DefaultFormValues);
@@ -500,9 +428,9 @@ export const LoadsForm = ({
 
             <Button
               className="w-36"
-              variant="default"
+              variant="ell"
               type="submit"
-              disabled={!form.formState.isValid || isPending}
+              disabled={!form.formState.isValid || isPending || isUpdatePending}
             >
               {loadToEdit ? "Обнови" : "Запиши"}
             </Button>

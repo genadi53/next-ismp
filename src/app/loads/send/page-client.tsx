@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
 
 export function SendLoadsPageClient() {
@@ -23,7 +23,8 @@ export function SendLoadsPageClient() {
   const { mutateAsync: sendAll, isPending: isSending } =
     api.loads.loads.sendAll.useMutation({
       onSuccess: (data) => {
-        toast.success("Успешно изпратено", {
+        toast({
+          title: "Успешно изпратено",
           description: `Курсовете (${data.count}) са изпратени успешно.`,
         });
         utils.loads.loads.getAll.invalidate();
@@ -31,7 +32,8 @@ export function SendLoadsPageClient() {
         router.push("/loads");
       },
       onError: (error) => {
-        toast.error("Грешка при изпращане", {
+        toast({
+          title: "Грешка при изпращане",
           description:
             error.message ||
             "Възникна грешка при изпращане на курсовете. Опитайте отново, или се обадете на администратор.",
@@ -41,8 +43,10 @@ export function SendLoadsPageClient() {
 
   const onSend = async () => {
     if (!unsentLoads || unsentLoads.length === 0) {
-      toast.error("Няма записи за изпращане", {
+      toast({
+        title: "Няма записи за изпращане",
         description: "Няма непратени курсове за изпращане.",
+        variant: "destructive",
       });
       return;
     }

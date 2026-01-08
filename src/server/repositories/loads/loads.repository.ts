@@ -84,3 +84,31 @@ export async function markLoadSent(id: number): Promise<void> {
     `);
   });
 }
+
+/**
+ * Update a load entry.
+ */
+export async function updateLoad(
+  id: number,
+  input: CreateLoadInput,
+): Promise<void> {
+  await sqlTransaction(async (request) => {
+    request.input("Adddate", format(input.Adddate, "yyyy-LL-dd"));
+    request.input("Shift", input.Shift);
+    request.input("Shovel", input.Shovel);
+    request.input("Truck", input.Truck);
+    request.input("Br", input.Br);
+    request.input("AddMaterial", input.AddMaterial);
+    request.input("RemoveMaterial", input.RemoveMaterial);
+    request.input("userAdded", "test@testov.com");
+    request.input("id", id);
+
+    await request.query(`
+      UPDATE [ELLDBAdmins].[dbo].[Kursove] 
+      SET Adddate = @Adddate, Shift = @Shift, Shovel = @Shovel,
+      Truck = @Truck, Br = @Br, AddMaterial = @AddMaterial, 
+      RemoveMaterial = @RemoveMaterial, userAdded = @userAdded, lrd = GETDATE()
+      WHERE [id] = @id
+    `);
+  });
+}
