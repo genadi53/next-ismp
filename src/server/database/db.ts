@@ -1,6 +1,7 @@
 import sql from "mssql";
 import mysql from "mysql2/promise";
 import { env } from "@/env";
+import { logError } from "@/lib/logger/logger";
 
 // =============================================================================
 // SQL Server Configuration & Pool
@@ -45,7 +46,7 @@ async function getSqlPool(): Promise<sql.ConnectionPool> {
  */
 export async function sqlQuery<T = Record<string, unknown>>(
   query: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
 ): Promise<T[]> {
   const pool = await getSqlPool();
   const request = pool.request();
@@ -69,7 +70,7 @@ export async function sqlQuery<T = Record<string, unknown>>(
  */
 export async function sqlQueryOne<T = Record<string, unknown>>(
   query: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
 ): Promise<T | null> {
   const results = await sqlQuery<T>(query, params);
   return results[0] ?? null;
@@ -86,7 +87,7 @@ export async function sqlQueryOne<T = Record<string, unknown>>(
  * });
  */
 export async function sqlTransaction(
-  fn: (request: sql.Request) => Promise<void>
+  fn: (request: sql.Request) => Promise<void>,
 ): Promise<void> {
   const pool = await getSqlPool();
   const transaction = new sql.Transaction(pool);
@@ -140,7 +141,7 @@ function getMysqlPool(): mysql.Pool {
  */
 export async function mysqlQuery<T = Record<string, unknown>>(
   query: string,
-  params?: unknown[]
+  params?: unknown[],
 ): Promise<T[]> {
   const pool = getMysqlPool();
   const [rows] = await pool.execute<mysql.RowDataPacket[]>(query, params);
@@ -155,7 +156,7 @@ export async function mysqlQuery<T = Record<string, unknown>>(
  */
 export async function mysqlQueryOne<T = Record<string, unknown>>(
   query: string,
-  params?: unknown[]
+  params?: unknown[],
 ): Promise<T | null> {
   const results = await mysqlQuery<T>(query, params);
   return results[0] ?? null;
@@ -172,7 +173,7 @@ export async function mysqlQueryOne<T = Record<string, unknown>>(
  * });
  */
 export async function mysqlTransaction(
-  fn: (connection: mysql.PoolConnection) => Promise<void>
+  fn: (connection: mysql.PoolConnection) => Promise<void>,
 ): Promise<void> {
   const pool = getMysqlPool();
   const connection = await pool.getConnection();
@@ -185,7 +186,11 @@ export async function mysqlTransaction(
     await connection.rollback();
     throw error;
   } finally {
-    connection.release();
+    try {
+      connection.release();
+    } catch (error) {
+      logError("[Database] Error releasing MySQL connection", error);
+    }
   }
 }
 
@@ -199,12 +204,21 @@ export async function mysqlTransaction(
  */
 export async function closeConnections(): Promise<void> {
   if (sqlPool) {
-    await sqlPool.close();
-    sqlPool = null;
+    try {
+      await sqlPool.close();
+      sqlPool = null;
+    } catch (error) {
+      logError("[Database] Error closing SQL Server connection pool", error);
+      sqlPool = null;
+    }
   }
   if (mysqlPool) {
-    await mysqlPool.end();
-    mysqlPool = null;
+    try {
+      await mysqlPool.end();
+      mysqlPool = null;
+    } catch (error) {
+      logError("[Database] Error closing MySQL connection pool", error);
+      mysqlPool = null;
+    }
   }
 }
-

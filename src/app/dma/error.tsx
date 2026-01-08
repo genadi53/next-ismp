@@ -2,6 +2,7 @@
 
 import AppLayout from "@/components/AppLayout";
 import { AlertCircle } from "lucide-react";
+import { logError } from "@/lib/logger/logger";
 
 export default function Error({
   error,
@@ -12,7 +13,12 @@ export default function Error({
   title?: string;
   message?: string;
 }) {
-  console.error(error);
+  if (error) {
+    logError("[Error Boundary] Component error", error, {
+      title,
+      message,
+    });
+  }
   return (
     <AppLayout>
       <div className="flex flex-col items-center justify-center space-y-3 py-12">

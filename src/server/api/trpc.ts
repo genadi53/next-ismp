@@ -9,6 +9,7 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { logError, logInfo } from "@/lib/logger/logger";
 
 /**
  * 1. CONTEXT
@@ -42,7 +43,16 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter({ shape, error }) {
+  errorFormatter({ shape, error, ctx, path, input }) {
+    // Log all tRPC errors
+    logError(`[tRPC] Error in ${path ?? "unknown"}`, error, {
+      path,
+      code: shape.data.code,
+      httpStatus: shape.data.httpStatus,
+      input: input ? JSON.stringify(input) : undefined,
+      user: ctx?.user?.username,
+    });
+
     return {
       ...shape,
       data: {
@@ -81,22 +91,33 @@ export const createTRPCRouter = t.router;
  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
  * network latency that would occur in production but not in local development.
  */
-const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const start = Date.now();
+const timingMiddleware = t.middleware(
+  async ({ next, path, ctx, type, input }) => {
+    const start = Date.now();
 
-  if (t._config.isDev) {
-    // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
+    if (t._config.isDev) {
+      // artificial delay in dev
+      const waitMs = Math.floor(Math.random() * 400) + 100;
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
 
-  const result = await next();
+    const result = await next();
 
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+    const end = Date.now();
+    const duration = end - start;
 
-  return result;
-});
+    // Log all tRPC procedure calls
+    logInfo(`[tRPC] ${type.toUpperCase()} ${path}`, {
+      path,
+      type,
+      duration,
+      user: ctx.user?.username,
+      input: input ? JSON.stringify(input) : undefined,
+    });
+
+    return result;
+  },
+);
 
 /**
  * Public (unauthenticated) procedure

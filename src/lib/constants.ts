@@ -164,3 +164,6 @@ export const SHIFT_NUMBERS: Record<number, ShiftNames> = {
   3: "Втора",
   4: "Нощна",
 };
+
+export const LOGS_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+export const LOGS_MAX_ROTATED_FILES = 10;
