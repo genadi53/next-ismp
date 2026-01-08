@@ -9,39 +9,63 @@ export const operatorColumns = ({
   actions: Record<"edit" | "delete", (operator: HermesOperator) => void>;
 }): ColumnDef<HermesOperator>[] => [
   {
-    accessorKey: "ID",
+    accessorKey: "Id",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" haveColumnFilter={false} />
+      <DataTableColumnHeader
+        column={column}
+        title="Id"
+        haveColumnFilter={false}
+      />
     ),
   },
   {
     accessorKey: "OperatorId",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID на оператор" haveColumnFilter={false} />
+      <DataTableColumnHeader
+        column={column}
+        title="ID на оператор"
+        haveColumnFilter={false}
+      />
     ),
   },
   {
     accessorKey: "OperatorName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Име на оператор" haveColumnFilter={false} />
+      <DataTableColumnHeader
+        column={column}
+        title="Име на оператор"
+        haveColumnFilter={false}
+      />
     ),
   },
   {
     accessorKey: "Zveno",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Звено" haveColumnFilter={false} />
+      <DataTableColumnHeader
+        column={column}
+        title="Звено"
+        haveColumnFilter={false}
+      />
     ),
   },
   {
     accessorKey: "Dlazhnost",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Длъжност" haveColumnFilter={false} />
+      <DataTableColumnHeader
+        column={column}
+        title="Длъжност"
+        haveColumnFilter={false}
+      />
     ),
   },
   {
     accessorKey: "Department",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Отдел" haveColumnFilter={false} />
+      <DataTableColumnHeader
+        column={column}
+        title="Отдел"
+        haveColumnFilter={false}
+      />
     ),
   },
   {
@@ -49,4 +73,3 @@ export const operatorColumns = ({
     cell: ({ row }) => <RowActionsOperators row={row} actions={actions} />,
   },
 ];
-

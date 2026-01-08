@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, Wrench } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,14 +43,17 @@ export function EquipmentsPageClient() {
   const utils = api.useUtils();
   const deleteMutation = api.hermes.equipments.delete.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Оборудването е изтрито успешно.",
       });
       utils.hermes.equipments.getAll.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при изтриването.",
+        variant: "destructive",
       });
     },
   });

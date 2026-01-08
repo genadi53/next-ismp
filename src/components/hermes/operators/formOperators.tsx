@@ -19,23 +19,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import type { HermesOperator, CreateOperatorInput } from "@/server/repositories/hermes";
-import { toast } from "sonner";
+import type {
+  HermesOperator,
+  CreateOperatorInput,
+} from "@/server/repositories/hermes";
+import { toast } from "@/components/ui/toast";
 import { useEffect } from "react";
 import { api } from "@/trpc/react";
 import { createOperatorSchema } from "@/schemas/hermes.schemas";
-
-// Constants - these should ideally be in a separate constants file
-const HermesOperatorDepartment = ["ЦД", "ЦЕ", "ЦОП", "ЦТ"];
-const HermesOperatorDlazhnost = ["Шофьор", "Машинист", "Ръководител"];
-const HermesZvena: Record<string, string> = {
-  "01": "Добив",
-  "02": "Транспорт",
-  "03": "Складиране",
-};
+import {
+  HermesOperatorDepartment,
+  HermesOperatorDlazhnost,
+  HermesZvena,
+} from "@/lib/constants";
 
 type OperatorsFormProps = {
-  operatorToEdit?: HermesOperator;
+  operatorToEdit?: HermesOperator | null;
   onSuccess?: () => void;
 };
 
@@ -47,7 +46,8 @@ export const OperatorsForm = ({
 
   const createMutation = api.hermes.operators.create.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Операторът е успешно създаден.",
       });
       utils.hermes.operators.getAll.invalidate();
@@ -55,15 +55,18 @@ export const OperatorsForm = ({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при създаването.",
+        variant: "destructive",
       });
     },
   });
 
   const updateMutation = api.hermes.operators.update.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Операторът е успешно обновен.",
       });
       utils.hermes.operators.getAll.invalidate();
@@ -71,8 +74,10 @@ export const OperatorsForm = ({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при обновяването.",
+        variant: "destructive",
       });
     },
   });

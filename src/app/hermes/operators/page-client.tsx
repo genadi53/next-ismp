@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, UsersRound } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,29 +29,33 @@ import {
 import { DataTableOperators } from "@/components/hermes/operators/tableOperators";
 import { operatorColumns } from "@/components/hermes/operators/columnsOperators";
 import { OperatorsForm } from "@/components/hermes/operators/formOperators";
+import { Container } from "@/components/Container";
 
 export function OperatorsPageClient() {
   const [showForm, setShowForm] = useState(false);
-  const [operatorToEdit, setOperatorToEdit] = useState<
-    HermesOperator | undefined
-  >(undefined);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [operatorToEdit, setOperatorToEdit] = useState<HermesOperator | null>(
+    null,
+  );
   const [operatorToDelete, setOperatorToDelete] =
     useState<HermesOperator | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [operators] = api.hermes.operators.getAll.useSuspenseQuery();
 
   const utils = api.useUtils();
   const deleteMutation = api.hermes.operators.delete.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Операторът е изтрит успешно.",
       });
       utils.hermes.operators.getAll.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при изтриването.",
+        variant: "destructive",
       });
     },
   });
@@ -82,49 +86,52 @@ export function OperatorsPageClient() {
   };
 
   const handleFormSuccess = () => {
-    setOperatorToEdit(undefined);
+    setOperatorToEdit(null);
     setShowForm(false);
   };
 
   return (
-    <>
-      {/* Header Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={() => {
-            if (showForm) {
-              setOperatorToEdit(undefined);
-              setShowForm(false);
-            } else {
-              setOperatorToEdit(undefined);
-              setShowForm(true);
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 100);
-            }
-          }}
-          variant={showForm ? "outline" : "ell"}
-          size="lg"
-          className={cn(
-            "gap-2 transition-colors duration-200",
-            showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
-          )}
-        >
-          {!showForm ? (
-            <>
-              <Plus className="h-5 w-5" />
-              <span>Добави Оператор</span>
-            </>
-          ) : (
-            <>
-              <X className="h-5 w-5" />
-              <span>Затвори</span>
-            </>
-          )}
-        </Button>
-      </div>
-
+    <Container
+      title="Управление на оператори"
+      description="Добавяне и редакция на оператори в системата Hermes"
+      headerChildren={
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => {
+              if (showForm) {
+                setOperatorToEdit(null);
+                setShowForm(false);
+              } else {
+                setOperatorToEdit(null);
+                setShowForm(true);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }, 100);
+              }
+            }}
+            variant={showForm ? "outline" : "ell"}
+            size="lg"
+            className={cn(
+              "gap-2 transition-colors duration-200",
+              showForm &&
+                "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+            )}
+          >
+            {!showForm ? (
+              <>
+                <Plus className="h-5 w-5" />
+                <span>Добави Оператор</span>
+              </>
+            ) : (
+              <>
+                <X className="h-5 w-5" />
+                <span>Затвори</span>
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
       {/* Form Section */}
       {showForm && (
         <Card className="mb-4 shadow-lg">
@@ -206,15 +213,16 @@ export function OperatorsPageClient() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Сигурни ли сте, че искате да изтриете{" "}
+              {operatorToDelete
+                ? operatorToDelete.OperatorName
+                : "този оператор"}
+              ?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Това действие не може да бъде отменено. Операторът ще бъде изтрит
               перманентно.
-              {operatorToDelete && (
-                <div className="bg-muted mt-2 rounded p-2">
-                  <strong>Оператор:</strong> {operatorToDelete.OperatorName}
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -230,6 +238,6 @@ export function OperatorsPageClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </Container>
   );
 }
