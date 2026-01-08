@@ -1,9 +1,10 @@
 import type { RawExcelData } from "@/server/repositories/mine-planning";
 import type {
-  ZarabotkiEquipment,
+  HermesZarabotki,
   RawExcelDataZarabotki,
 } from "@/server/repositories/hermes";
 import XLSX from "xlsx";
+import { logError } from "@/lib/logger/logger";
 
 export const extractExcelZarabotki = (
   file: File,
@@ -15,7 +16,16 @@ export const extractExcelZarabotki = (
       const workbook = XLSX.read(e.target?.result, { type: "binary" });
 
       const sheetName = workbook.SheetNames[0];
+      if (!sheetName) {
+        reject(new Error("No sheet name found in the file"));
+        return;
+      }
+
       const worksheet = workbook.Sheets[sheetName];
+      if (!worksheet) {
+        reject(new Error("No worksheet found in the file"));
+        return;
+      }
 
       let minRow = Infinity;
       let maxRow = -1;
@@ -63,6 +73,9 @@ export const extractExcelZarabotki = (
 
     reader.onerror = (e) => {
       reject(e);
+      logError("Error reading Excel file Zarabotki:", e, {
+        file: file.name,
+      });
     };
 
     reader.readAsArrayBuffer(file);
@@ -72,14 +85,14 @@ export const extractExcelZarabotki = (
 export const mapperZarabotki = (excelData: RawExcelDataZarabotki[]) => {
   return excelData.map((item) => {
     return {
-      Year: item.Година,
-      Month: item.Месец,
-      Department: item.Цех,
-      Zveno: item.Звено,
-      Machine: item["Код на машина"],
-      Indicator: item.Показател,
-      Indicator_Quantity: item["Количество показател"] ?? 0,
-      Total_Sum: item["Общо сума"] ?? 0,
+      Година: item.Година,
+      Месец: item.Месец,
+      Цех: item.Цех,
+      Звено: item.Звено,
+      Код_на_машина: item["Код на машина"],
+      Показател: item.Показател,
+      Количество_показател: item["Количество показател"] ?? 0,
+      Общо_сума: item["Общо сума"] ?? 0,
     };
-  }) as ZarabotkiEquipment[];
+  }) as HermesZarabotki[];
 };

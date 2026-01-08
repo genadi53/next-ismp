@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import AppLayout from "@/components/AppLayout";
-import { Container } from "@/components/Container";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,13 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileSpreadsheet, Check, AlertCircle } from "lucide-react";
-import { api } from "@/trpc/react";
-import { toast } from "sonner";
-import { read, utils } from "xlsx";
 import {
   Table,
   TableBody,
@@ -25,108 +18,139 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-interface ZarabotkaRow {
-  EqmtId: number;
-  Amount: number;
-}
+import {
+  extractExcelZarabotki,
+  mapperZarabotki,
+} from "@/excel/extractExcelZarabotki";
+import { api } from "@/trpc/react";
+import type {
+  CreateZarabotkiInput,
+  HermesZarabotki,
+} from "@/server/repositories/hermes/types.zarabotki";
+import { useRef, useState } from "react";
+import { Upload, FileSpreadsheet, Check, Send } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
+import { NoResults } from "@/components/NoResults";
+import { logError } from "@/lib/logger/logger";
+import AppLayout from "@/components/AppLayout";
+import { Container } from "@/components/Container";
 
 export default function ZarabotkiEquipmentsPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [previewData, setPreviewData] = useState<ZarabotkaRow[]>([]);
+  const [data, setData] = useState<HermesZarabotki[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const replaceMutation = api.hermes.zarabotki.replace.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
-        description: "Заработките са успешно обновени.",
-      });
+      // Clear the form after successful submission
+      setData([]);
       setFile(null);
-      setPreviewData([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return toast({
+        title: "Успех",
+        description: "Данните са успешно добавени в системата.",
+      });
     },
     onError: (error) => {
-      toast.error("Грешка", {
-        description: error.message || "Възникна грешка при обновяването.",
+      setError(error.message);
+      logError(
+        "ZarabotkiEquipments: Error sending zarabotki data:",
+        error.message,
+      );
+      return toast({
+        title: "Грешка",
+        variant: "destructive",
+        description: "Грешка при изпращане на данните. Моля опитайте отново.",
       });
     },
   });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+    setIsProcessing(true);
+    setError(null);
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        setFile(file);
+        if (!file.name.includes("xlsx") && !file.name.includes("xls")) {
+          throw new Error("Invalid file format");
+        }
 
-    // Validate file type
-    if (!selectedFile.name.match(/\.(xlsx|xls)$/)) {
-      toast.error("Грешка", {
-        description: "Моля изберете Excel файл (.xlsx или .xls)",
-      });
+        const excelData = await extractExcelZarabotki(file);
+
+        if (
+          !excelData ||
+          excelData.length === 0 ||
+          excelData.filter((item) => !!item["Код на машина"]).length === 0
+        ) {
+          throw new Error("No valid data from file");
+        }
+
+        const formattedData: HermesZarabotki[] = mapperZarabotki(excelData);
+        setData(formattedData);
+      } catch (err) {
+        setData([]);
+        setError(err instanceof Error ? err.message : "Unknown error");
+        logError("ZarabotkiEquipments: Error processing file:", err, {
+          file: file?.name ?? "Unknown file",
+        });
+        setIsProcessing(false);
+        return toast({
+          title: "Грешка",
+          variant: "destructive",
+          description: "Грешка при обработка на файла. Моля проверете формата.",
+        });
+      }
+    }
+    setIsProcessing(false);
+  };
+
+  const handleSendData = async () => {
+    if (data.length === 0) {
       return;
     }
 
-    setFile(selectedFile);
-    setIsProcessing(true);
-
+    setIsSending(true);
+    setError(null);
     try {
-      // Read the file
-      const data = await selectedFile.arrayBuffer();
-      const workbook = read(data);
+      const zarabotki: CreateZarabotkiInput[] = data.filter(
+        (item) => !!item.Код_на_машина,
+      );
 
-      // Get the first sheet
-      const worksheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
-      if (!worksheet) {
-        toast.error("Грешка", {
-          description: "Файлът не съдържа данни.",
+      if (zarabotki.length === 0) {
+        logError("ZarabotkiEquipments: No valid data to send:", {
+          dataExample: data[0],
         });
-        return;
+        setIsSending(false);
+        return toast({
+          title: "Грешка",
+          variant: "destructive",
+          description:
+            "Няма валидни данни за изпращане. Моля проверете данните.",
+        });
       }
 
-      const jsonData = utils.sheet_to_json<any>(worksheet);
-
-      // Map data to expected format
-      // Assuming columns are: EqmtId, Amount
-      const mappedData: ZarabotkaRow[] = jsonData.map((row: any) => ({
-        EqmtId: parseInt(row.EqmtId || row.eqmtId || row.EquipmentId || "0"),
-        Amount: parseFloat(row.Amount || row.amount || row.Sum || "0"),
-      }));
-
-      setPreviewData(mappedData);
-      toast.success("Файлът е зареден успешно", {
-        description: `Открити са ${mappedData.length} записа`,
+      await replaceMutation.mutateAsync(zarabotki);
+    } catch (err: any) {
+      logError("ZarabotkiEquipments: Error sending zarabotki data:", err, {
+        dataExample: data[0],
       });
-    } catch (error) {
-      console.error("Error processing file:", error);
-      toast.error("Грешка", {
-        description: "Възникна грешка при обработката на файла.",
+
+      setError(err?.message ?? "Unknown error");
+      return toast({
+        title: "Грешка",
+        variant: "destructive",
+        description: "Грешка при изпращане на данните. Моля опитайте отново.",
       });
     } finally {
-      setIsProcessing(false);
+      setIsSending(false);
     }
-  };
-
-  const handleSubmit = async () => {
-    if (previewData.length === 0) {
-      toast.error("Грешка", {
-        description: "Няма данни за изпращане. Моля заредете файл.",
-      });
-      return;
-    }
-
-    await replaceMutation.mutateAsync(
-      previewData.map((row) => ({
-        Department: row.Department,
-        Zveno: row.Zveno,
-        Machine: row.Machine,
-        Indicator: row.Indicator,
-        Indicator_Quantity: row.Indicator_Quantity,
-        Total_Sum: row.Total_Sum,
-      })),
-    );
-  };
-
-  const handleClear = () => {
-    setFile(null);
-    setPreviewData([]);
   };
 
   return (
@@ -136,145 +160,201 @@ export default function ZarabotkiEquipmentsPage() {
         description="Качване и обновяване на заработки от Excel файл"
       >
         <div className="space-y-6">
-          {/* Upload Section */}
-          <Card>
+          {/* File Upload Card */}
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileSpreadsheet className="h-5 w-5" />
-                Качване на Excel файл
+                <Upload className="text-ell-primary h-5 w-5" />
+                Качване на файл
               </CardTitle>
               <CardDescription>
-                Изберете Excel файл (.xlsx или .xls) съдържащ данни за заработки
-                по оборудване
+                Изберете Excel файл (.xlsx или .xls) за обработка на месечен
+                план
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="file-upload">Excel файл</Label>
-                <div className="flex items-center gap-4">
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileChange}
-                    disabled={isProcessing || replaceMutation.isPending}
-                    className="cursor-pointer"
-                  />
-                  {file && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleClear}
-                      disabled={isProcessing || replaceMutation.isPending}
-                    >
-                      Изчисти
-                    </Button>
-                  )}
-                </div>
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="excel-file">Excel файл</Label>
+                <Input
+                  id="excel-file"
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".xlsx,.xls"
+                  onChange={handleFileChange}
+                  disabled={isProcessing || replaceMutation.isPending}
+                />
               </div>
 
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Формат на файла</AlertTitle>
-                <AlertDescription>
-                  Excel файлът трябва да съдържа колони: <strong>EqmtId</strong>{" "}
-                  (ID на оборудване) и <strong>Amount</strong> (сума).
-                </AlertDescription>
-              </Alert>
+              {isProcessing && (
+                <div className="bg-muted/50 flex animate-pulse items-center gap-3 rounded-lg border p-4">
+                  <div className="border-primary h-5 w-5 animate-spin rounded-full border-b-2"></div>
+                  <span className="text-sm font-medium">
+                    Обработване на файла...
+                  </span>
+                </div>
+              )}
+
+              {file && !isProcessing && !error && (
+                <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+                  <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                      Файлът е успешно качен
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      {file.name}
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Preview Section */}
-          {previewData.length > 0 && (
-            <Card>
+          {/* Data Table */}
+          {data.length > 0 && !isProcessing && (
+            <Card className="animate-in fade-in-50 shadow-lg duration-700">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Преглед на данни</span>
-                  <span className="text-muted-foreground text-sm font-normal">
-                    {previewData.length}{" "}
-                    {previewData.length === 1 ? "запис" : "записа"}
-                  </span>
-                </CardTitle>
-                <CardDescription>
-                  Прегледайте данните преди да ги запишете в системата
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      Данни от файла
+                      <Badge variant="secondary" className="ml-2">
+                        {data.filter((item) => !!item.Код_на_машина).length}{" "}
+                        записа
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription>
+                      Преглед на данните преди изпращане
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="max-h-96 overflow-auto rounded-lg border">
-                  <Table>
-                    <TableHeader className="bg-muted/50">
-                      <TableRow>
-                        <TableHead className="font-semibold">№</TableHead>
-                        <TableHead className="font-semibold">
-                          ID на оборудване
-                        </TableHead>
-                        <TableHead className="text-right font-semibold">
-                          Сума
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {previewData.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{row.EqmtId}</TableCell>
-                          <TableCell className="text-right">
-                            {row.Amount.toFixed(2)}
-                          </TableCell>
+                <div className="overflow-hidden rounded-md border">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="font-semibold">
+                            Година
+                          </TableHead>
+                          <TableHead className="font-semibold">Месец</TableHead>
+                          <TableHead className="font-semibold">Цех</TableHead>
+                          <TableHead className="font-semibold">Звено</TableHead>
+                          <TableHead className="font-semibold">
+                            Код на машина
+                          </TableHead>
+                          <TableHead className="font-semibold">
+                            Показател
+                          </TableHead>
+                          <TableHead className="text-right font-semibold">
+                            Количество
+                          </TableHead>
+                          <TableHead className="text-right font-semibold">
+                            Сума (лв)
+                          </TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                <div className="mt-6 flex justify-end gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={handleClear}
-                    disabled={replaceMutation.isPending}
-                  >
-                    Отказ
-                  </Button>
-                  <Button
-                    variant="ell"
-                    onClick={handleSubmit}
-                    disabled={replaceMutation.isPending}
-                    className="gap-2"
-                  >
-                    {replaceMutation.isPending ? (
-                      <>Изпращане...</>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4" />
-                        Запази заработки
-                      </>
-                    )}
-                  </Button>
+                      </TableHeader>
+                      <TableBody>
+                        {data
+                          .filter((item) => !!item.Код_на_машина)
+                          .map((item, index) => (
+                            <TableRow
+                              key={index}
+                              className="hover:bg-muted/50 transition-colors"
+                            >
+                              <TableCell className="font-medium">
+                                {item.Година}
+                              </TableCell>
+                              <TableCell>{item.Месец}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{item.Цех}</Badge>
+                              </TableCell>
+                              <TableCell>{item.Звено}</TableCell>
+                              <TableCell>
+                                <code className="bg-muted rounded px-2 py-1 font-mono text-sm">
+                                  {item.Код_на_машина}
+                                </code>
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate">
+                                {item.Показател}
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                {item.Количество_показател?.toFixed(2) ||
+                                  "0.00"}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">
+                                {item.Общо_сума?.toFixed(2) || "0.00"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Instructions Card */}
-          {previewData.length === 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Инструкции</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <ol className="list-inside list-decimal space-y-2">
-                  <li>Подгответе Excel файл с данни за заработки</li>
-                  <li>
-                    Уверете се, че файлът съдържа колоните: EqmtId и Amount
-                  </li>
-                  <li>Изберете файла чрез бутона за качване</li>
-                  <li>Прегледайте данните в таблицата</li>
-                  <li>
-                    Натиснете "Запази заработки" за да актуализирате системата
-                  </li>
-                </ol>
+          {/* Empty State */}
+          {!isProcessing && data.length === 0 && !file && (
+            <Card className="shadow-lg">
+              <CardContent>
+                <NoResults
+                  title="Няма качени данни"
+                  description="Качете Excel файл със заработки на оборудване"
+                  icon={
+                    <FileSpreadsheet className="text-ell-primary/50 size-12" />
+                  }
+                />
               </CardContent>
             </Card>
+          )}
+
+          {/* Action Buttons */}
+          {data.length > 0 && (
+            <div className="flex justify-end gap-3 border-t pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setData([]);
+                  setFile(null);
+                  setError(null);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                  }
+                }}
+                disabled={
+                  isProcessing || isSending || replaceMutation.isPending
+                }
+                className="min-w-[120px]"
+              >
+                Изчисти
+              </Button>
+              <Button
+                onClick={handleSendData}
+                disabled={
+                  data.length === 0 ||
+                  isProcessing ||
+                  isSending ||
+                  replaceMutation.isPending
+                }
+                className="min-w-[120px]"
+                variant="ell"
+              >
+                {isSending || replaceMutation.isPending ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                    Изпращане...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Изпрати
+                  </>
+                )}
+              </Button>
+            </div>
           )}
         </div>
       </Container>
