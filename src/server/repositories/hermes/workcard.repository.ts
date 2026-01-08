@@ -14,22 +14,24 @@ import { format } from "date-fns";
  */
 export async function getAllWorkcards(): Promise<HermesWorkcard[]> {
   return sqlQuery<HermesWorkcard>(`
-    SELECT rk.[ID] AS Id
-          ,CAST(CAST([Wyear] AS NVARCHAR(5)) + '-' + CAST([WMonth] AS NVARCHAR(5)) + '-' + CAST([WDay] AS NVARCHAR(5)) AS DATE) AS [Date]
-          ,[StartTime]
-          ,[EndTime]
-          ,o.[OperatorId]
-          ,o.[OperatorNamre] AS OperatorName
-          ,CAST(rk.[CodeAction] AS NVARCHAR) + '-' + ac.ActionName AS [CodeAction]
-          ,[Duration]
-          ,[Note]
-          ,[WorkingCardId]
-          ,[Bukva]
-          ,[EqmtId]
-    FROM [Hermes].[dbo].[RabKartiData] rk
-    LEFT JOIN [Hermes].[dbo].[OperatorsEnum] o ON o.ID = rk.OperatorId
-    LEFT JOIN [Hermes].[dbo].[Actions] ac ON ac.CodeAction = rk.CodeAction
-    ORDER BY [Date] DESC
+   SELECT top 1000 rk.[ID] as Id
+      ,cast(cast([Wyear] as nvarchar(5)) + '-' + cast([WMonth] as nvarchar(5)) + '-' +  cast([WDay] as nvarchar(5)) as date) as [Date]
+      ,[StartTime]
+      ,[EndTime]
+      ,o.[OperatorId]
+      ,o.[OperatorNamre] as OperatorName
+      ,cast(rk.[CodeAction] as nvarchar) + '-' + ac.ActionName as [CodeAction]
+      ,[Duration]
+      ,[Note]
+      ,[WorkingCardId]
+      ,[Bukva]
+      ,[EqmtId]
+  FROM [Hermes].[dbo].[RabKartiData] rk
+  left join Hermes.dbo.OperatorsEnum o
+      on o.ID = rk.OperatorId
+  left join [Hermes].[dbo].[Actions] ac
+      on ac.CodeAction = rk.CodeAction
+  order by [Date] desc
   `);
 }
 

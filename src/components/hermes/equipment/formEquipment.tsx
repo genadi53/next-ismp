@@ -25,7 +25,7 @@ import type {
   HermesEquipment,
   CreateEquipmentInput,
 } from "@/server/repositories/hermes";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import { createEquipmentSchema } from "@/schemas/hermes.schemas";
@@ -45,6 +45,21 @@ export const EquipmentForm = ({
 }) => {
   const utils = api.useUtils();
 
+  const defaultFormValues: CreateEquipmentInput = {
+    DT_smetka: 0,
+    Obekt: "",
+    DT_Priz1_ceh: "",
+    DT_Priz2_kod_zveno: "",
+    DT_Priz3_kod_eqmt: "",
+    EqmtName: "",
+    EqmtGroupName: "",
+    PriceMinnaMasa: 0,
+    PriceShists: 0,
+    PriceGrano: 0,
+    DspEqmt: "",
+    Active: 0,
+  };
+
   const createMutation = api.hermes.equipments.create.useMutation({
     onSuccess: () => {
       toast({
@@ -53,7 +68,7 @@ export const EquipmentForm = ({
         variant: "default",
       });
       utils.hermes.equipments.getAll.invalidate();
-      form.reset();
+      form.reset(defaultFormValues);
       onSuccess?.();
     },
     onError: (error) => {
@@ -74,7 +89,7 @@ export const EquipmentForm = ({
         variant: "default",
       });
       utils.hermes.equipments.getAll.invalidate();
-      form.reset();
+      form.reset(defaultFormValues);
       onSuccess?.();
     },
     onError: (error) => {
@@ -87,27 +102,10 @@ export const EquipmentForm = ({
     },
   });
 
-  const form = useForm<CreateEquipmentInput>({
-    resolver: zodResolver(createEquipmentSchema),
-    defaultValues: {
-      DT_smetka: 0,
-      Obekt: "",
-      DT_Priz1_ceh: "",
-      DT_Priz2_kod_zveno: "",
-      DT_Priz3_kod_eqmt: "",
-      EqmtName: "",
-      EqmtGroupName: "",
-      PriceMinnaMasa: 0,
-      PriceShists: 0,
-      PriceGrano: 0,
-      DspEqmt: "",
-      Active: 0,
-    },
-  });
-
-  useEffect(() => {
+  // Compute initial form values based on equipmentToEdit
+  const initialFormValues = useMemo<CreateEquipmentInput>(() => {
     if (equipmentToEdit) {
-      form.reset({
+      return {
         DT_smetka: equipmentToEdit.DT_smetka,
         Obekt: equipmentToEdit.Obekt ?? "",
         DT_Priz1_ceh: (equipmentToEdit.DT_Priz1_ceh ?? "").trim(),
@@ -120,11 +118,20 @@ export const EquipmentForm = ({
         PriceGrano: equipmentToEdit.PriceGrano ?? 0,
         DspEqmt: equipmentToEdit.DspEqmt ?? "",
         Active: equipmentToEdit.Active ?? 0,
-      });
-    } else {
-      form.reset();
+      };
     }
-  }, [equipmentToEdit, form]);
+    return defaultFormValues;
+  }, [equipmentToEdit]);
+
+  const form = useForm<CreateEquipmentInput>({
+    resolver: zodResolver(createEquipmentSchema),
+    defaultValues: initialFormValues,
+  });
+
+  // Sync form when equipmentToEdit changes (for cases when component doesn't remount)
+  useEffect(() => {
+    form.reset(initialFormValues);
+  }, [initialFormValues, form]);
 
   async function onSubmit(values: CreateEquipmentInput) {
     if (equipmentToEdit) {
@@ -470,7 +477,7 @@ export const EquipmentForm = ({
               className="w-36"
               variant="outline"
               type="button"
-              onClick={() => form.reset()}
+              onClick={() => form.reset(defaultFormValues)}
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               Изчисти

@@ -24,7 +24,7 @@ import type {
   CreateOperatorInput,
 } from "@/server/repositories/hermes";
 import { toast } from "@/components/ui/toast";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { api } from "@/trpc/react";
 import { createOperatorSchema } from "@/schemas/hermes.schemas";
 import {
@@ -44,6 +44,14 @@ export const OperatorsForm = ({
 }: OperatorsFormProps = {}) => {
   const utils = api.useUtils();
 
+  const defaultFormValues: CreateOperatorInput = {
+    OperatorName: "",
+    OperatorId: 0,
+    Dlazhnost: "",
+    Department: "",
+    Zveno: "",
+  };
+
   const createMutation = api.hermes.operators.create.useMutation({
     onSuccess: () => {
       toast({
@@ -51,7 +59,7 @@ export const OperatorsForm = ({
         description: "Операторът е успешно създаден.",
       });
       utils.hermes.operators.getAll.invalidate();
-      form.reset();
+      form.reset(defaultFormValues);
       onSuccess?.();
     },
     onError: (error) => {
@@ -70,7 +78,7 @@ export const OperatorsForm = ({
         description: "Операторът е успешно обновен.",
       });
       utils.hermes.operators.getAll.invalidate();
-      form.reset();
+      form.reset(defaultFormValues);
       onSuccess?.();
     },
     onError: (error) => {
@@ -82,30 +90,29 @@ export const OperatorsForm = ({
     },
   });
 
-  const form = useForm<CreateOperatorInput>({
-    resolver: zodResolver(createOperatorSchema),
-    defaultValues: {
-      OperatorName: "",
-      OperatorId: 0,
-      Dlazhnost: "",
-      Department: "",
-      Zveno: "",
-    },
-  });
-
-  useEffect(() => {
+  // Compute initial form values based on operatorToEdit
+  const initialFormValues = useMemo<CreateOperatorInput>(() => {
     if (operatorToEdit) {
-      form.reset({
+      return {
         OperatorName: operatorToEdit.OperatorName ?? "",
         OperatorId: operatorToEdit.OperatorId ?? 0,
-        Dlazhnost: operatorToEdit.Dlazhnost ?? "",
-        Department: operatorToEdit.Department ?? "",
-        Zveno: operatorToEdit.Zveno ?? "",
-      });
-    } else {
-      form.reset();
+        Dlazhnost: operatorToEdit.Dlazhnost?.trim() ?? "",
+        Department: operatorToEdit.Department?.trim() ?? "",
+        Zveno: operatorToEdit.Zveno?.trim() ?? "",
+      };
     }
-  }, [operatorToEdit, form]);
+    return defaultFormValues;
+  }, [operatorToEdit]);
+
+  const form = useForm<CreateOperatorInput>({
+    resolver: zodResolver(createOperatorSchema),
+    defaultValues: initialFormValues,
+  });
+
+  // Sync form when operatorToEdit changes (for cases when component doesn't remount)
+  useEffect(() => {
+    form.reset(initialFormValues);
+  }, [initialFormValues, form]);
 
   async function onSubmit(values: CreateOperatorInput) {
     if (operatorToEdit) {
@@ -268,7 +275,7 @@ export const OperatorsForm = ({
               className="w-36"
               variant="outline"
               type="button"
-              onClick={() => form.reset()}
+              onClick={() => form.reset(defaultFormValues)}
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               Изчисти

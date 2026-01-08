@@ -26,26 +26,46 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/cn";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandItem,
-  CommandGroup,
-  CommandInput,
-  CommandList,
-} from "@/components/ui/command";
+
 import { format } from "date-fns";
 import type {
   HermesWorkcard,
   CreateWorkcardInput,
 } from "@/server/repositories/hermes";
 import { Label } from "@/components/ui/label";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import { useEffect, useMemo } from "react";
+import { toast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import { createWorkcardSchema } from "@/schemas/hermes.schemas";
+import { Combobox } from "@/components/ui/combobox";
+import { TimeInput } from "@/components/ui/time-input";
+
+/**
+ * Formats a time value from database (could be date string or HH:mm) to HH:mm format
+ */
+// const formatTimeValue = (timeValue: string | null | undefined): string => {
+//   if (!timeValue) return "";
+
+//   // If it's already in HH:mm format, return it
+//   const hhmmPattern = /^\d{1,2}:\d{1,2}$/;
+//   if (hhmmPattern.test(timeValue)) {
+//     return timeValue;
+//   }
+
+//   // Try to parse as a date string and extract time
+//   try {
+//     const date = new Date(timeValue);
+//     if (!isNaN(date.getTime())) {
+//       return format(date, "HH:mm");
+//     }
+//   } catch {
+//     // If parsing fails, return empty string
+//   }
+
+//   return "";
+// };
 
 const workcardActions = [
   { value: 1, label: "Ремонт | CRK04 (ТАТ)" },
@@ -67,73 +87,96 @@ export const WorkcardForm = ({
 }: WorkcardFormProps) => {
   const { data: workcardDetails } = api.hermes.workcards.getDetails.useQuery();
 
+  if (workcardToEdit) {
+    Object.entries(workcardToEdit).map(([key, val]) => {
+      console.log(`${key} -> ${typeof val} -> ${val}`);
+    });
+  }
+
   const utils = api.useUtils();
+
+  const defaultFormValues: CreateWorkcardInput = {
+    Date: new Date(),
+    StartTime: "",
+    EndTime: "",
+    OperatorId: 0,
+    CodeAction: 0,
+    Note: "",
+    WorkingCardId: "",
+    EqmtId: 0,
+  };
 
   const createMutation = api.hermes.workcards.create.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Работната карта е успешно създадена.",
       });
       utils.hermes.workcards.getAll.invalidate();
-      form.reset();
+      form.reset(defaultFormValues);
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при създаването.",
+        variant: "destructive",
       });
     },
   });
 
   const updateMutation = api.hermes.workcards.update.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Работната карта е успешно обновена.",
       });
       utils.hermes.workcards.getAll.invalidate();
-      form.reset();
+      form.reset(defaultFormValues);
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при обновяването.",
+        variant: "destructive",
       });
     },
   });
 
-  const form = useForm<CreateWorkcardInput>({
-    resolver: zodResolver(createWorkcardSchema),
-    defaultValues: {
-      Date: new Date(),
-      StartTime: "",
-      EndTime: "",
-      OperatorId: 0,
-      CodeAction: 0,
-      Note: "",
-      WorkingCardId: 0,
-      EqmtId: 0,
-    },
-  });
-
-  useEffect(() => {
+  // Compute initial form values based on workcardToEdit
+  const initialFormValues = useMemo<CreateWorkcardInput>(() => {
     if (workcardToEdit) {
-      form.reset({
+      return {
         Date: new Date(workcardToEdit.Date),
-        StartTime: workcardToEdit.StartTime ?? "",
-        EndTime: workcardToEdit.EndTime ?? "",
-        OperatorId: workcardToEdit.OperatorId ?? 0,
+        StartTime:
+          format(workcardToEdit.StartTime || new Date(), "HH:mm") ?? "",
+        EndTime: format(workcardToEdit.EndTime || new Date(), "HH:mm") ?? "",
+        OperatorId:
+          workcardDetails?.operators.find((op) =>
+            op.Operator.includes(`${workcardToEdit.OperatorId}`),
+          )?.Id || 0,
         CodeAction:
           typeof workcardToEdit.CodeAction === "number"
             ? workcardToEdit.CodeAction
             : parseInt(workcardToEdit.CodeAction?.split("-")[0] ?? "0"),
         Note: workcardToEdit.Note ?? "",
-        WorkingCardId: workcardToEdit.WorkingCardId ?? 0,
+        WorkingCardId: workcardToEdit.WorkingCardId ?? "",
         EqmtId: workcardToEdit.EqmtId ?? 0,
-      });
-    } else {
-      form.reset();
+      };
     }
-  }, [workcardToEdit, form]);
+    return defaultFormValues;
+  }, [workcardToEdit]);
+
+  const form = useForm<CreateWorkcardInput>({
+    resolver: zodResolver(createWorkcardSchema),
+    defaultValues: initialFormValues,
+  });
+
+  // Sync form when workcardToEdit changes (for cases when component doesn't remount)
+  useEffect(() => {
+    form.reset(initialFormValues);
+  }, [initialFormValues, form]);
 
   async function onSubmit(values: CreateWorkcardInput) {
     const formattedValues = {
@@ -207,7 +250,11 @@ export const WorkcardForm = ({
                   <FormItem>
                     <FormLabel>Начален час</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} value={field.value || ""} />
+                      <TimeInput
+                        placeholder="00:00"
+                        value={field.value || ""}
+                        onChange={(value) => field.onChange(value || "")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -223,7 +270,11 @@ export const WorkcardForm = ({
                   <FormItem>
                     <FormLabel>Краен час</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} value={field.value || ""} />
+                      <TimeInput
+                        placeholder="00:00"
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -241,67 +292,24 @@ export const WorkcardForm = ({
 
                     {workcardDetails?.operators &&
                     workcardDetails?.operators.length > 0 ? (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full min-w-0 justify-between truncate",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              {field.value
-                                ? workcardDetails.operators.find(
-                                    (op) => op.Id === field.value,
-                                  )?.Operator || "Изберете оператор"
-                                : "Изберете оператор"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="max-h-[400px] w-[200px] min-w-0 p-0 lg:w-[375px]"
-                          align="start"
-                          side="bottom"
-                        >
-                          <Command>
-                            <CommandInput
-                              placeholder="Търси оператор..."
-                              className="h-9"
-                            />
-                            <CommandList>
-                              <CommandEmpty>
-                                Няма намерени резултати.
-                              </CommandEmpty>
-                              <CommandGroup>
-                                {workcardDetails.operators.map(
-                                  ({ Id, Operator }) => (
-                                    <CommandItem
-                                      value={`${Id}-${Operator}`}
-                                      key={Id}
-                                      onSelect={() => {
-                                        field.onChange(Id.toString());
-                                      }}
-                                    >
-                                      {Operator}
-                                      <Check
-                                        className={cn(
-                                          "ml-auto h-4 w-4",
-                                          Id === field.value
-                                            ? "opacity-100"
-                                            : "opacity-0",
-                                        )}
-                                      />
-                                    </CommandItem>
-                                  ),
-                                )}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Combobox
+                        list={workcardDetails.operators.map((a) => ({
+                          label: a.Operator,
+                          value: a.Id.toString(),
+                        }))}
+                        placeholderString="Изберете оператор"
+                        value={
+                          field.value !== null &&
+                          field.value !== undefined &&
+                          field.value !== 0
+                            ? field.value.toString()
+                            : ""
+                        }
+                        onValueChange={(value) =>
+                          field.onChange(value ? parseInt(value) : 0)
+                        }
+                        triggerStyles="w-full min-w-0"
+                      />
                     ) : (
                       <Input
                         type="text"
@@ -326,12 +334,13 @@ export const WorkcardForm = ({
                     <FormLabel>ID на работна карта</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        type="text"
                         placeholder="ID на работна карта"
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value);
+                        }}
                         value={field.value ?? ""}
                       />
                     </FormControl>
@@ -350,7 +359,11 @@ export const WorkcardForm = ({
                     <FormLabel>Код на действие</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value ? field.value.toString() : ""}
+                      value={
+                        field.value !== null && field.value !== undefined
+                          ? field.value.toString()
+                          : ""
+                      }
                     >
                       <FormControl>
                         <SelectTrigger className="w-full min-w-0">
@@ -385,8 +398,16 @@ export const WorkcardForm = ({
                     {workcardDetails?.equipments &&
                     workcardDetails?.equipments.length > 0 ? (
                       <Select
-                        onValueChange={field.onChange}
-                        value={`${field.value}`}
+                        onValueChange={(value) =>
+                          field.onChange(parseInt(value) || 0)
+                        }
+                        value={
+                          field.value !== null &&
+                          field.value !== undefined &&
+                          field.value !== 0
+                            ? field.value.toString()
+                            : ""
+                        }
                       >
                         <FormControl>
                           <SelectTrigger className="w-full min-w-0">
@@ -398,7 +419,7 @@ export const WorkcardForm = ({
                             ({ EquipmentName, Id }) => (
                               <SelectItem
                                 key={`${EquipmentName}`}
-                                value={`${Id}`}
+                                value={Id.toString()}
                                 className="truncate"
                               >
                                 {EquipmentName}
@@ -424,58 +445,18 @@ export const WorkcardForm = ({
             <div className="flex w-full flex-col gap-2 md:col-span-2 lg:col-span-2">
               <Label>Описание</Label>
               {workcardDetails?.notes && workcardDetails.notes.length > 0 ? (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      type="button"
-                      className={cn(
-                        "max-0 w-full justify-between truncate font-normal",
-                        !form.getValues().Note && "text-muted-foreground",
-                      )}
-                    >
-                      {"Често срещани причини"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="max-h-[400px] w-[200px] min-w-0 p-0 lg:w-[375px]"
-                    align="start"
-                    side="bottom"
-                  >
-                    <Command>
-                      <CommandInput
-                        placeholder="Търси причина..."
-                        className="h-9"
-                      />
-                      <CommandList>
-                        <CommandEmpty>Няма намерени резултати.</CommandEmpty>
-                        <CommandGroup>
-                          {workcardDetails.notes.map((note, idx) => (
-                            <CommandItem
-                              value={note}
-                              key={`${note}-${idx}`}
-                              onSelect={() => {
-                                form.setValue("Note", note);
-                              }}
-                            >
-                              {note}
-                              <Check
-                                className={cn(
-                                  "ml-auto h-4 w-4",
-                                  note === form.getValues().Note
-                                    ? "opacity-100"
-                                    : "opacity-0",
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Combobox
+                  list={workcardDetails.notes.map((a) => ({
+                    label: a,
+                    value: a,
+                  }))}
+                  placeholderString="Често срещани причини"
+                  value={""}
+                  onValueChange={(value) => {
+                    form.setValue("Note", value);
+                  }}
+                  triggerStyles="w-full min-w-0"
+                />
               ) : (
                 <Input
                   type="text"
@@ -515,7 +496,7 @@ export const WorkcardForm = ({
               className="w-36"
               variant="outline"
               type="button"
-              onClick={() => form.reset()}
+              onClick={() => form.reset(defaultFormValues)}
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               Изчисти

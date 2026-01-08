@@ -4,6 +4,7 @@ import type {
   CreateOperatorInput,
   CreateZarabotkiInput,
   HermesOperator,
+  CreateWorkcardInput,
 } from "@/server/repositories/hermes";
 
 export const createEquipmentSchema = z.object({
@@ -57,7 +58,7 @@ export const createWorkcardSchema = z
     CodeAction: z
       .number({ required_error: "Въведете код на действие" })
       .nullable(),
-    WorkingCardId: z.number().nullable(),
+    WorkingCardId: z.string().nullable(),
     EqmtId: z.number().nullable(),
     StartTime: z.string({ required_error: "Въведете начален час" }).nullable(),
     EndTime: z.string({ required_error: "Въведете краен час" }).nullable(),
@@ -93,7 +94,7 @@ export const createWorkcardSchema = z
       message: "Крайният час трябва да е по-голям от началния час",
       path: ["EndTime"], // This will show the error on the EndTime field
     },
-  );
+  ) satisfies z.ZodSchema<CreateWorkcardInput>;
 
 // export const createZarabotkiSchema = z.object({
 //   Year: z.number(),

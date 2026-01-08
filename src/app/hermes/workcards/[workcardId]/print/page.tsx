@@ -85,7 +85,8 @@ export default function PrintWorkcardPage() {
         <span className="capitalize">{smena}</span>, в извършването на{" "}
         {codeAction} на автосамосвал с инв. № {workcard.EqmtId}, на{" "}
         {format(new Date(workcard.Date), "dd.MM.yyyy")} година, за времето от{" "}
-        {workcard.StartTime} до {workcard.EndTime} часа.
+        {format(new Date(workcard.StartTime || ""), "HH:mm")} до{" "}
+        {format(new Date(workcard.EndTime || ""), "HH:mm")} часа.
       </div>
 
       <div className="pt-12 text-center text-base">

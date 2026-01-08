@@ -12,14 +12,17 @@ import type { HermesWorkcard } from "@/server/repositories/hermes";
 
 interface RowActionsWorkcardsProps<TData> {
   row: Row<TData>;
-  actions: Record<"edit" | "print" | "delete", (workcard: HermesWorkcard) => void>;
+  actions: Record<
+    "edit" | "print" | "delete",
+    (workcard: HermesWorkcard) => void
+  >;
 }
 
 export function RowActionsWorkcards<TData extends HermesWorkcard>({
   row,
   actions,
 }: RowActionsWorkcardsProps<TData>) {
-  const workcard: HermesWorkcard = row.original;
+  const workcard = row.original;
 
   return (
     <DropdownMenu>
@@ -30,17 +33,23 @@ export function RowActionsWorkcards<TData extends HermesWorkcard>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => actions.edit(workcard)} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={() => actions.edit(workcard)}
+          className="cursor-pointer"
+        >
           <Edit className="mr-2 h-4 w-4" />
           Редактирай
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => actions.print(workcard)} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={() => actions.print(workcard)}
+          className="cursor-pointer"
+        >
           <Printer className="mr-2 h-4 w-4" />
           Отпечатай
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => actions.delete(workcard)}
-          className="cursor-pointer text-destructive"
+          className="text-destructive cursor-pointer"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Изтрий
@@ -49,4 +58,3 @@ export function RowActionsWorkcards<TData extends HermesWorkcard>({
     </DropdownMenu>
   );
 }
-

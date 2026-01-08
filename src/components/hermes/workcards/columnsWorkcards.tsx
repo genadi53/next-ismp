@@ -1,7 +1,10 @@
+"use client";
+
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../../table/columnHeader";
 import type { HermesWorkcard } from "@/server/repositories/hermes";
 import { RowActionsWorkcards } from "./rowActionsWorkcards";
+import { format } from "date-fns";
 
 export const workcardsColumns = ({
   actions,
@@ -12,7 +15,7 @@ export const workcardsColumns = ({
   >;
 }): ColumnDef<HermesWorkcard>[] => [
   {
-    accessorKey: "ID",
+    accessorKey: "Id",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -30,16 +33,30 @@ export const workcardsColumns = ({
         haveColumnFilter={false}
       />
     ),
+    cell: ({ row }) => {
+      const date: Date = row.getValue("Date");
+      return (
+        <div className="text-sm">
+          {date && new Date(date).toLocaleDateString("bg-BG")}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "StartTime",
     header: "Време начало-край",
     cell: ({ row }) => {
-      const { StartTime, EndTime } = row.original;
+      console.log(row);
+      const StartTime: Date | null = row.original.StartTime;
+      const EndTime: Date | null = row.original.EndTime;
+
+      if (!StartTime || !EndTime) return <div className="text-base">-</div>;
 
       return (
         <div className="">
-          <span className="text-base">{`${StartTime} - ${EndTime}`}</span>
+          {
+            <span className="text-base">{`${format(new Date(StartTime), "HH:mm")} - ${format(new Date(EndTime), "HH:mm")}`}</span>
+          }
         </div>
       );
     },

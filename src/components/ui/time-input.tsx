@@ -14,6 +14,99 @@ interface TimeInputProps {
   id?: string;
 }
 
+/**
+ * Parses a time value that could be a date string, Date object, or HH:mm format string
+ * Returns HH:mm format or empty string
+ *
+ * IMPORTANT: This function extracts time without timezone conversion to avoid
+ * UTC vs local time issues (e.g., 11:00 UTC becoming 13:00 in UTC+2)
+ */
+const parseTimeValue = (value: string | Date | null | undefined): string => {
+  if (!value) return "";
+
+  // If it's a Date object, extract hours and minutes directly (local time)
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return "";
+    const hours = value.getHours();
+    const minutes = value.getMinutes();
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+  }
+
+  // Ensure we're working with a string from this point
+  if (typeof value !== "string") {
+    // Try to convert to string if possible
+    try {
+      value = String(value);
+    } catch {
+      return "";
+    }
+  }
+
+  // If it's already in HH:mm or HH:mm:ss format, validate and return it
+  const hhmmPattern = /^\d{1,2}:\d{1,2}(:\d{1,2})?$/;
+  if (hhmmPattern.test(value)) {
+    const parts = value.split(":");
+    if (parts.length >= 2) {
+      const hours = Number(parts[0]);
+      const minutes = Number(parts[1]);
+      if (
+        !isNaN(hours) &&
+        !isNaN(minutes) &&
+        hours >= 0 &&
+        hours <= 23 &&
+        minutes >= 0 &&
+        minutes <= 59
+      ) {
+        return `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}`;
+      }
+    }
+  }
+
+  // Try to extract time from ISO date string WITHOUT timezone conversion
+  // This handles formats like "2024-01-08T11:00:00Z" or "2024-01-08T11:00:00.000Z"
+  // We extract the time portion directly from the string, not via Date object
+  const isoTimeMatch = value.match(/T(\d{2}):(\d{2})/);
+  if (isoTimeMatch) {
+    const hours = Number(isoTimeMatch[1]);
+    const minutes = Number(isoTimeMatch[2]);
+    if (
+      !isNaN(hours) &&
+      !isNaN(minutes) &&
+      hours >= 0 &&
+      hours <= 23 &&
+      minutes >= 0 &&
+      minutes <= 59
+    ) {
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    }
+  }
+
+  // Try to extract time from SQL Server datetime format "YYYY-MM-DD HH:mm:ss"
+  const sqlTimeMatch = value.match(/\d{4}-\d{2}-\d{2}\s+(\d{2}):(\d{2})/);
+  if (sqlTimeMatch) {
+    const hours = Number(sqlTimeMatch[1]);
+    const minutes = Number(sqlTimeMatch[2]);
+    if (
+      !isNaN(hours) &&
+      !isNaN(minutes) &&
+      hours >= 0 &&
+      hours <= 23 &&
+      minutes >= 0 &&
+      minutes <= 59
+    ) {
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    }
+  }
+
+  return "";
+};
+
 export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
   (
     {
@@ -27,12 +120,23 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
     },
     _ref,
   ) => {
-    const [displayValue, setDisplayValue] = useState(value);
+    const [displayValue, setDisplayValue] = useState(() =>
+      parseTimeValue(value),
+    );
     const inputRef = useRef<HTMLInputElement>(null);
+    // Use a ref to track the current value for keydown handler to avoid stale closures
+    const displayValueRef = useRef(displayValue);
 
     useEffect(() => {
-      setDisplayValue(value);
+      const parsed = parseTimeValue(value);
+      setDisplayValue(parsed);
+      displayValueRef.current = parsed;
     }, [value]);
+
+    // Keep ref in sync with state
+    useEffect(() => {
+      displayValueRef.current = displayValue;
+    }, [displayValue]);
 
     const formatTime = (input: string): string => {
       // Remove all non-numeric characters
@@ -52,13 +156,15 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
     const validateTime = (time: string): boolean => {
       if (!time || time === "") return true;
 
-      console.log(time);
+      const parts = time.split(":");
+      if (parts.length !== 2) return false;
 
-      const [_hours, _minutes] = time.split(":").map(Number);
+      const hours = Number(parts[0]);
+      const minutes = Number(parts[1]);
 
-      // if (isNaN(hours) || isNaN(minutes)) return false;
-      // if (hours < 0 || hours > 23) return false;
-      // if (minutes < 0 || minutes > 59) return false;
+      if (isNaN(hours) || isNaN(minutes)) return false;
+      if (hours < 0 || hours > 23) return false;
+      if (minutes < 0 || minutes > 59) return false;
 
       return true;
     };
@@ -68,6 +174,7 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
       const formatted = formatTime(input);
 
       setDisplayValue(formatted);
+      displayValueRef.current = formatted;
 
       if (validateTime(formatted) && onChange) {
         onChange(formatted);
@@ -76,12 +183,14 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
 
     const handleBlur = () => {
       if (!validateTime(displayValue)) {
-        setDisplayValue(value); // Revert to original value if invalid
+        const reverted = parseTimeValue(value);
+        setDisplayValue(reverted); // Revert to original value if invalid
+        displayValueRef.current = reverted;
         return;
       }
 
       // Handle various incomplete formats and auto-complete them
-      if (displayValue && displayValue.trim() !== "") {
+      if (displayValue && displayValue !== "") {
         let formatted = displayValue;
 
         // If no colon, treat as hours and add ":00"
@@ -96,13 +205,16 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
         }
         // If has colon but incomplete minutes
         else {
-          const [hours, minutes] = displayValue.split(":");
-          const paddedHours = hours?.padStart(2, "0");
-          const paddedMinutes = minutes ? minutes.padEnd(2, "0") : "00";
+          const parts = displayValue.split(":");
+          const hours = parts[0] || "00";
+          const minutes = parts[1] || "00";
+          const paddedHours = hours.padStart(2, "0");
+          const paddedMinutes = minutes.padStart(2, "0");
           formatted = `${paddedHours}:${paddedMinutes}`;
         }
 
         setDisplayValue(formatted);
+        displayValueRef.current = formatted;
         if (onChange) {
           onChange(formatted);
         }
@@ -118,13 +230,18 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
       // Allow numbers only
       if (!/[0-9]/.test(e.key)) {
         e.preventDefault();
+        return;
       }
 
-      // Auto-insert colon after 2 digits
-      if (displayValue.length === 2 && /[0-9]/.test(e.key)) {
+      // Use ref to get the current value (avoids stale closure issues)
+      const currentValue = displayValueRef.current;
+
+      // Auto-insert colon after 2 digits - only if we have exactly 2 digits (no colon yet)
+      if (currentValue.length === 2 && !currentValue.includes(":")) {
         e.preventDefault();
-        const newValue = `${displayValue}:${e.key}`;
+        const newValue = `${currentValue}:${e.key}`;
         setDisplayValue(newValue);
+        displayValueRef.current = newValue;
         if (onChange) {
           onChange(newValue);
         }
