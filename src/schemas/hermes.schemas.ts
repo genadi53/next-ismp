@@ -7,18 +7,28 @@ import type {
 } from "@/server/repositories/hermes";
 
 export const createEquipmentSchema = z.object({
-  DT_smetka: z.number(),
-  Obekt: z.string(),
-  DT_Priz1_ceh: z.string(),
-  DT_Priz2_kod_zveno: z.string(),
-  DT_Priz3_kod_eqmt: z.string(),
-  EqmtName: z.string().min(1, "Equipment name is required"),
-  EqmtGroupName: z.string(),
-  PriceMinnaMasa: z.number().nullable(),
-  PriceShists: z.number().nullable(),
-  PriceGrano: z.number().nullable(),
-  DspEqmt: z.string().nullable(),
-  Active: z.boolean().nullable(),
+  DT_smetka: z.number({ required_error: "Въведете сметка" }),
+  Obekt: z.string({ required_error: "Невалиден обект" }).min(1),
+  DT_Priz1_ceh: z.string({ required_error: "Невалиден отдел" }).min(1),
+  DT_Priz2_kod_zveno: z.string({ required_error: "Невалидно звено" }).min(1),
+  DT_Priz3_kod_eqmt: z
+    .string({ required_error: "Въведете код на оборудване" })
+    .min(1),
+  EqmtName: z
+    .string({ required_error: "Въведете име на оборудване" })
+    .min(2, { message: "Името на оборудване е твърде кратко" }),
+  EqmtGroupName: z.string({ required_error: "Невалидна група" }).min(1),
+  PriceMinnaMasa: z.number().min(0).optional(),
+  PriceShists: z.number().min(0).optional(),
+  PriceGrano: z.number().min(0).optional(),
+  //   Flag_new: z.number().min(0).max(1).optional(),
+  //   Flag_brak: z.number().min(0).max(1).optional(),
+  DspEqmt: z.string().min(0).optional(),
+  Active: z
+    .number({ required_error: "Изберете стойност" })
+    .min(0)
+    .max(1)
+    .optional(),
 }) satisfies z.ZodType<CreateEquipmentInput>;
 
 export const createOperatorSchema = z.object({
@@ -85,13 +95,24 @@ export const createWorkcardSchema = z
     },
   );
 
+// export const createZarabotkiSchema = z.object({
+//   Year: z.number(),
+//   Month: z.number().min(1).max(12),
+//   Department: z.string(),
+//   Zveno: z.string(),
+//   Machine: z.string(),
+//   Indicator: z.string(),
+//   Indicator_Quantity: z.number().nullable(),
+//   Total_Sum: z.number().nullable(),
+// }) satisfies z.ZodType<CreateZarabotkiInput>;
+
 export const createZarabotkiSchema = z.object({
-  Year: z.number(),
-  Month: z.number().min(1).max(12),
-  Department: z.string(),
-  Zveno: z.string(),
-  Machine: z.string(),
-  Indicator: z.string(),
-  Indicator_Quantity: z.number().nullable(),
-  Total_Sum: z.number().nullable(),
+  Година: z.number(),
+  Месец: z.number().min(1).max(12),
+  Цех: z.string(),
+  Звено: z.string(),
+  Код_на_машина: z.string(),
+  Показател: z.string(),
+  Количество_показател: z.number().nullable(),
+  Общо_сума: z.number().nullable(),
 }) satisfies z.ZodType<CreateZarabotkiInput>;

@@ -21,64 +21,68 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { HermesEquipment, CreateEquipmentInput } from "@/server/repositories/hermes";
+import type {
+  HermesEquipment,
+  CreateEquipmentInput,
+} from "@/server/repositories/hermes";
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import { createEquipmentSchema } from "@/schemas/hermes.schemas";
-
-// Constants - these should ideally be in a separate constants file
-const HermesOperatorDepartment = ["ЦД", "ЦЕ", "ЦОП", "ЦТ"];
-const HermesEqmtGroupName = [
-  "Багер",
-  "Камион",
-  "Булдозер",
-  "Вибратор",
-  "Други",
-];
-const HermesZvena: Record<string, string> = {
-  "01": "Добив",
-  "02": "Транспорт",
-  "03": "Складиране",
-};
+import {
+  HermesEqmtGroupName,
+  HermesOperatorDepartment,
+  HermesZvena,
+} from "@/lib/constants";
+import { logError } from "@/lib/logger/logger";
 
 export const EquipmentForm = ({
   equipmentToEdit,
   onSuccess,
 }: {
-  equipmentToEdit?: HermesEquipment;
+  equipmentToEdit?: HermesEquipment | null;
   onSuccess?: () => void;
 }) => {
   const utils = api.useUtils();
 
   const createMutation = api.hermes.equipments.create.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Оборудването е успешно създадено.",
+        variant: "default",
       });
       utils.hermes.equipments.getAll.invalidate();
       form.reset();
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Грешка", {
-        description: error.message || "Възникна грешка при създаването.",
+      logError("EquipmentForm CreateError", error);
+      toast({
+        title: "Грешка",
+        description: "Възникна грешка при създаването.",
+        variant: "destructive",
       });
     },
   });
 
   const updateMutation = api.hermes.equipments.update.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Оборудването е успешно обновено.",
+        variant: "default",
       });
       utils.hermes.equipments.getAll.invalidate();
       form.reset();
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Грешка", {
-        description: error.message || "Възникна грешка при обновяването.",
+      logError("EquipmentForm UpdateError", error);
+      toast({
+        title: "Грешка",
+        description: "Възникна грешка при обновяването.",
+        variant: "destructive",
       });
     },
   });
@@ -93,11 +97,11 @@ export const EquipmentForm = ({
       DT_Priz3_kod_eqmt: "",
       EqmtName: "",
       EqmtGroupName: "",
-      PriceMinnaMasa: null,
-      PriceShists: null,
-      PriceGrano: null,
-      DspEqmt: null,
-      Active: null,
+      PriceMinnaMasa: 0,
+      PriceShists: 0,
+      PriceGrano: 0,
+      DspEqmt: "",
+      Active: 0,
     },
   });
 
@@ -105,17 +109,17 @@ export const EquipmentForm = ({
     if (equipmentToEdit) {
       form.reset({
         DT_smetka: equipmentToEdit.DT_smetka,
-        Obekt: equipmentToEdit.Obekt,
-        DT_Priz1_ceh: equipmentToEdit.DT_Priz1_ceh,
-        DT_Priz2_kod_zveno: equipmentToEdit.DT_Priz2_kod_zveno,
-        DT_Priz3_kod_eqmt: equipmentToEdit.DT_Priz3_kod_eqmt,
-        EqmtName: equipmentToEdit.EqmtName,
-        EqmtGroupName: equipmentToEdit.EqmtGroupName,
-        PriceMinnaMasa: equipmentToEdit.PriceMinnaMasa,
-        PriceShists: equipmentToEdit.PriceShists,
-        PriceGrano: equipmentToEdit.PriceGrano,
-        DspEqmt: equipmentToEdit.DspEqmt,
-        Active: equipmentToEdit.Active,
+        Obekt: equipmentToEdit.Obekt ?? "",
+        DT_Priz1_ceh: (equipmentToEdit.DT_Priz1_ceh ?? "").trim(),
+        DT_Priz2_kod_zveno: (equipmentToEdit.DT_Priz2_kod_zveno ?? "").trim(),
+        DT_Priz3_kod_eqmt: equipmentToEdit.DT_Priz3_kod_eqmt ?? "",
+        EqmtName: equipmentToEdit.EqmtName ?? "",
+        EqmtGroupName: (equipmentToEdit.EqmtGroupName ?? "").trim(),
+        PriceMinnaMasa: equipmentToEdit.PriceMinnaMasa ?? 0,
+        PriceShists: equipmentToEdit.PriceShists ?? 0,
+        PriceGrano: equipmentToEdit.PriceGrano ?? 0,
+        DspEqmt: equipmentToEdit.DspEqmt ?? "",
+        Active: equipmentToEdit.Active ?? 0,
       });
     } else {
       form.reset();
@@ -134,9 +138,13 @@ export const EquipmentForm = ({
   }
 
   return (
-    <div className="max-w-2xl rounded-xl p-4">
+    <div className="-mt-4 max-w-2xl rounded-xl px-4 pb-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          key={equipmentToEdit?.Id ?? "new"}
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <div className="grid w-full grid-cols-2 gap-4 py-2.5 md:grid-cols-3">
             <div className="col-span-2 md:col-span-3">
               <FormField
@@ -182,31 +190,34 @@ export const EquipmentForm = ({
               <FormField
                 control={form.control}
                 name="DT_Priz2_kod_zveno"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Код Звено</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full min-w-0">
-                          <SelectValue placeholder="Код звено" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(HermesZvena).map(
-                          ([zvenoNumber, zveno]) => (
-                            <SelectItem value={zvenoNumber} key={zvenoNumber}>
-                              {zvenoNumber} - {zveno}
-                            </SelectItem>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const selectValue = String(field.value ?? "");
+                  return (
+                    <FormItem>
+                      <FormLabel>Код Звено</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={selectValue}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full min-w-0">
+                            <SelectValue placeholder="Код звено" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.entries(HermesZvena).map(
+                            ([zvenoNumber, zveno]) => (
+                              <SelectItem value={zvenoNumber} key={zvenoNumber}>
+                                {zvenoNumber} - {zveno}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -214,29 +225,32 @@ export const EquipmentForm = ({
               <FormField
                 control={form.control}
                 name="EqmtGroupName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Група</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full min-w-0">
-                          <SelectValue placeholder="Група" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {HermesEqmtGroupName.map((group) => (
-                          <SelectItem value={group} key={group}>
-                            {group}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const selectValue = String(field.value ?? "");
+                  return (
+                    <FormItem>
+                      <FormLabel>Група</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={selectValue}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full min-w-0">
+                            <SelectValue placeholder="Група" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {HermesEqmtGroupName.map((group) => (
+                            <SelectItem value={group} key={group}>
+                              {group}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -265,29 +279,32 @@ export const EquipmentForm = ({
               <FormField
                 control={form.control}
                 name="DT_Priz1_ceh"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Цех</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full min-w-0">
-                          <SelectValue placeholder="Цех" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {HermesOperatorDepartment.map((dept) => (
-                          <SelectItem value={dept} key={dept}>
-                            {dept}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const selectValue = String(field.value ?? "");
+                  return (
+                    <FormItem>
+                      <FormLabel>Цех</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={selectValue}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full min-w-0">
+                            <SelectValue placeholder="Цех" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {HermesOperatorDepartment.map((dept) => (
+                            <SelectItem value={dept} key={dept}>
+                              {dept}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -349,8 +366,10 @@ export const EquipmentForm = ({
                     </div>
                     <FormControl>
                       <Checkbox
-                        checked={field.value || false}
-                        onCheckedChange={field.onChange}
+                        checked={field.value === 1 ? true : false}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? 1 : 0)
+                        }
                       />
                     </FormControl>
                   </FormItem>

@@ -1,5 +1,4 @@
 import AppLayout from "@/components/AppLayout";
-import { Container } from "@/components/Container";
 import { api, HydrateClient } from "@/trpc/server";
 import { EquipmentsPageClient } from "./page-client";
 import { Suspense } from "react";
@@ -12,24 +11,19 @@ export default async function EquipmentsPage() {
   return (
     <HydrateClient>
       <AppLayout>
-        <Container
-          title="Управление на оборудване"
-          description="Добавяне на оборудване в системата Hermes"
+        <Suspense
+          fallback={
+            <div className="flex flex-col items-center justify-center py-12">
+              <LoadingSpinner
+                size="lg"
+                label="Зареждане на данни..."
+                showLabel
+              />
+            </div>
+          }
         >
-          <Suspense
-            fallback={
-              <div className="flex flex-col items-center justify-center py-12">
-                <LoadingSpinner
-                  size="lg"
-                  label="Зареждане на данни..."
-                  showLabel
-                />
-              </div>
-            }
-          >
-            <EquipmentsPageClient />
-          </Suspense>
-        </Container>
+          <EquipmentsPageClient />
+        </Suspense>
       </AppLayout>
     </HydrateClient>
   );

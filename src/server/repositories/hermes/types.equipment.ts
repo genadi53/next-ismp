@@ -10,10 +10,10 @@ export type HermesEquipment = {
   PriceMinnaMasa: number | null;
   PriceShists: number | null;
   PriceGrano: number | null;
-  Flag_new: boolean | null;
-  Flag_brak: boolean | null;
+  Flag_new: number | null;
+  Flag_brak: number | null;
   DspEqmt: string | null;
-  Active: boolean | null;
+  Active: number | null;
   lrd: Date | null;
 };
 
@@ -30,11 +30,9 @@ export type CreateEquipmentInput = {
   DT_Priz3_kod_eqmt: string;
   EqmtName: string;
   EqmtGroupName: string;
-  PriceMinnaMasa: number | null;
-  PriceShists: number | null;
-  PriceGrano: number | null;
-  DspEqmt: string | null;
-  Active: boolean | null;
+  PriceMinnaMasa?: number | undefined;
+  PriceShists?: number | undefined;
+  PriceGrano?: number | undefined;
+  DspEqmt?: string | undefined;
+  Active?: number | undefined;
 };
-
-

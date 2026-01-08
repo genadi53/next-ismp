@@ -9,7 +9,7 @@ export const equipmentColumns = ({
   actions: Record<"edit" | "delete", (equipment: HermesEquipment) => void>;
 }): ColumnDef<HermesEquipment>[] => [
   {
-    accessorKey: "ID",
+    accessorKey: "Id",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -18,7 +18,7 @@ export const equipmentColumns = ({
       />
     ),
     cell: ({ row }) => {
-      const ID: number | null = row.getValue("ID");
+      const ID: number | null = row.getValue("Id");
       const smetka: number | null = row.original.DT_smetka;
 
       return (

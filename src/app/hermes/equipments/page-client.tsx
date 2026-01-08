@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/trpc/react";
-import type { HermesEquipment } from "@/server/repositories/hermes";
+import type { HermesEquipment } from "@/server/repositories/hermes/types.equipment";
 import {
   Card,
   CardContent,
@@ -29,18 +29,17 @@ import {
 import { DataTableEquipment } from "@/components/hermes/equipment/tableEquipment";
 import { equipmentColumns } from "@/components/hermes/equipment/columnsEquipment";
 import { EquipmentForm } from "@/components/hermes/equipment/formEquipment";
+import { Container } from "@/components/Container";
 
 export function EquipmentsPageClient() {
   const [showForm, setShowForm] = useState(false);
-  const [equipmentToEdit, setEquipmentToEdit] = useState<
-    HermesEquipment | undefined
-  >(undefined);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [equipmentToEdit, setEquipmentToEdit] =
+    useState<HermesEquipment | null>(null);
   const [equipmentToDelete, setEquipmentToDelete] =
     useState<HermesEquipment | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [equipments] = api.hermes.equipments.getAll.useSuspenseQuery();
-
   const utils = api.useUtils();
   const deleteMutation = api.hermes.equipments.delete.useMutation({
     onSuccess: () => {
@@ -82,49 +81,52 @@ export function EquipmentsPageClient() {
   };
 
   const handleFormSuccess = () => {
-    setEquipmentToEdit(undefined);
+    setEquipmentToEdit(null);
     setShowForm(false);
   };
 
   return (
-    <>
-      {/* Header Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={() => {
-            if (showForm) {
-              setEquipmentToEdit(undefined);
-              setShowForm(false);
-            } else {
-              setEquipmentToEdit(undefined);
-              setShowForm(true);
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 100);
-            }
-          }}
-          variant={showForm ? "outline" : "ell"}
-          size="lg"
-          className={cn(
-            "gap-2 transition-colors duration-200",
-            showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
-          )}
-        >
-          {!showForm ? (
-            <>
-              <Plus className="h-5 w-5" />
-              <span>Добави Оборудване</span>
-            </>
-          ) : (
-            <>
-              <X className="h-5 w-5" />
-              <span>Затвори</span>
-            </>
-          )}
-        </Button>
-      </div>
-
+    <Container
+      title="Управление на оборудване"
+      description="Добавяне на оборудване в системата Hermes"
+      headerChildren={
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => {
+              if (showForm) {
+                setEquipmentToEdit(null);
+                setShowForm(false);
+              } else {
+                setEquipmentToEdit(null);
+                setShowForm(true);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }, 100);
+              }
+            }}
+            variant={showForm ? "outline" : "ell"}
+            size="lg"
+            className={cn(
+              "gap-2 transition-colors duration-200",
+              showForm &&
+                "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+            )}
+          >
+            {!showForm ? (
+              <>
+                <Plus className="h-5 w-5" />
+                <span>Добави Оборудване</span>
+              </>
+            ) : (
+              <>
+                <X className="h-5 w-5" />
+                <span>Затвори</span>
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
       {/* Form Section */}
       {showForm && (
         <Card className="mb-4 shadow-lg">
@@ -206,15 +208,15 @@ export function EquipmentsPageClient() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Сигурни ли сте, че искате да изтриете{" "}
+              {equipmentToDelete
+                ? `${equipmentToDelete.EqmtName}`
+                : "това оборудване"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Това действие не може да бъде отменено. Оборудването ще бъде
               изтрито перманентно.
-              {equipmentToDelete && (
-                <div className="bg-muted mt-2 rounded p-2">
-                  <strong>Оборудване:</strong> {equipmentToDelete.EqmtName}
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -230,6 +232,6 @@ export function EquipmentsPageClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </Container>
   );
 }
