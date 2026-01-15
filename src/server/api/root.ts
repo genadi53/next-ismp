@@ -12,6 +12,7 @@ import { reportsRouter } from "./routers/reports";
 import { geowlanRouter } from "./routers/geowlan";
 import { minePlanningRouter } from "./routers/mine-planning";
 import { pvrRouter } from "./routers/pvr";
+import { dashboardV2Router } from "./routers/dashboard_v2";
 
 /**
  * This is the primary router for your server.
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   geowlan: geowlanRouter,
   minePlanning: minePlanningRouter,
   pvr: pvrRouter,
+  dashboardV2: dashboardV2Router,
 });
 
 // export type definition of API

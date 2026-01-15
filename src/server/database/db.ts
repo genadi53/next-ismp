@@ -1,18 +1,24 @@
 import sql from "mssql";
 import mysql from "mysql2/promise";
 import { env } from "@/env";
-import { logError } from "@/lib/logger/logger";
+import { logger } from "@/server/logger";
 
 // =============================================================================
 // SQL Server Configuration & Pool
 // =============================================================================
 
-const sqlConfig: sql.config = {
-  server: env.SQL_SERVER,
-  database: env.SQL_DATABASE,
-  user: env.SQL_USER,
-  password: env.SQL_PASSWORD,
-  port: env.SQL_PORT,
+/**
+ * Type for selecting which SQL Server to use.
+ */
+export type SqlServer = "moddb" | "moddb2";
+
+// Primary SQL Server configuration
+const sqlConfigModdb: sql.config = {
+  server: env.SQL_SERVER_MODDB,
+  database: env.SQL_DATABASE_MODDB,
+  user: env.SQL_USER_MODDB,
+  password: env.SQL_PASSWORD_MODDB,
+  port: env.SQL_PORT_MODDB,
   options: {
     encrypt: false,
     trustServerCertificate: true,
@@ -24,18 +30,55 @@ const sqlConfig: sql.config = {
   },
 };
 
-// Global pool instance (lazy initialized)
-let sqlPool: sql.ConnectionPool | null = null;
+// Secondary SQL Server configuration (optional)
+const sqlConfigModdb2: sql.config | null = env.SQL_SERVER_MODDB2
+  ? {
+      server: env.SQL_SERVER_MODDB2,
+      database: env.SQL_DATABASE_MODDB2!,
+      user: env.SQL_USER_MODDB2!,
+      password: env.SQL_PASSWORD_MODDB2!,
+      port: env.SQL_PORT_MODDB2 ?? 1433,
+      options: {
+        encrypt: false,
+        trustServerCertificate: true,
+      },
+      pool: {
+        max: 10,
+        min: 0,
+        idleTimeoutMillis: 30000,
+      },
+    }
+  : null;
+
+// Global pool instances (lazy initialized)
+let sqlPoolPrimary: sql.ConnectionPool | null = null;
+let sqlPoolSecondary: sql.ConnectionPool | null = null;
 
 /**
- * Get the SQL Server connection pool.
+ * Get the SQL Server connection pool for the specified server.
  * Creates a new pool if one doesn't exist.
  */
-async function getSqlPool(): Promise<sql.ConnectionPool> {
-  if (!sqlPool) {
-    sqlPool = await new sql.ConnectionPool(sqlConfig).connect();
+async function getSqlPool(
+  server: SqlServer = "moddb2",
+): Promise<sql.ConnectionPool> {
+  if (server === "moddb") {
+    if (!sqlPoolPrimary) {
+      sqlPoolPrimary = await new sql.ConnectionPool(sqlConfigModdb).connect();
+    }
+    return sqlPoolPrimary;
+  } else {
+    if (!sqlConfigModdb2) {
+      throw new Error(
+        "Secondary SQL Server is not configured. Please set SQL_SERVER_2, SQL_DATABASE_2, SQL_USER_2, and SQL_PASSWORD_2 environment variables.",
+      );
+    }
+    if (!sqlPoolSecondary) {
+      sqlPoolSecondary = await new sql.ConnectionPool(
+        sqlConfigModdb2,
+      ).connect();
+    }
+    return sqlPoolSecondary;
   }
-  return sqlPool;
 }
 
 /**
@@ -43,12 +86,14 @@ async function getSqlPool(): Promise<sql.ConnectionPool> {
  *
  * @example
  * const users = await sqlQuery<User>("SELECT * FROM Users WHERE id = @id", { id: 1 });
+ * const usersSecondary = await sqlQuery<User>("SELECT * FROM Users WHERE id = @id", { id: 1 }, "secondary");
  */
 export async function sqlQuery<T = Record<string, unknown>>(
   query: string,
   params?: Record<string, unknown>,
+  server: SqlServer = "moddb2",
 ): Promise<T[]> {
-  const pool = await getSqlPool();
+  const pool = await getSqlPool(server);
   const request = pool.request();
 
   // Add parameters if provided
@@ -67,12 +112,14 @@ export async function sqlQuery<T = Record<string, unknown>>(
  *
  * @example
  * const user = await sqlQueryOne<User>("SELECT * FROM Users WHERE id = @id", { id: 1 });
+ * const userSecondary = await sqlQueryOne<User>("SELECT * FROM Users WHERE id = @id", { id: 1 }, "secondary");
  */
 export async function sqlQueryOne<T = Record<string, unknown>>(
   query: string,
   params?: Record<string, unknown>,
+  server: SqlServer = "moddb2",
 ): Promise<T | null> {
-  const results = await sqlQuery<T>(query, params);
+  const results = await sqlQuery<T>(query, params, server);
   return results[0] ?? null;
 }
 
@@ -85,11 +132,15 @@ export async function sqlQueryOne<T = Record<string, unknown>>(
  *   await request.query("INSERT INTO Users (name) VALUES (@name)", { name: "John" });
  *   await request.query("UPDATE Stats SET count = count + 1");
  * });
+ * await sqlTransaction(async (request) => {
+ *   await request.query("INSERT INTO Users (name) VALUES (@name)", { name: "John" });
+ * }, "secondary");
  */
 export async function sqlTransaction(
   fn: (request: sql.Request) => Promise<void>,
+  server: SqlServer = "moddb2",
 ): Promise<void> {
-  const pool = await getSqlPool();
+  const pool = await getSqlPool(server);
   const transaction = new sql.Transaction(pool);
 
   try {
@@ -189,7 +240,7 @@ export async function mysqlTransaction(
     try {
       connection.release();
     } catch (error) {
-      logError("[Database] Error releasing MySQL connection", error);
+      logger.error("[Database] Error releasing MySQL connection", error);
     }
   }
 }
@@ -203,13 +254,28 @@ export async function mysqlTransaction(
  * Call this during application shutdown.
  */
 export async function closeConnections(): Promise<void> {
-  if (sqlPool) {
+  if (sqlPoolPrimary) {
     try {
-      await sqlPool.close();
-      sqlPool = null;
+      await sqlPoolPrimary.close();
+      sqlPoolPrimary = null;
     } catch (error) {
-      logError("[Database] Error closing SQL Server connection pool", error);
-      sqlPool = null;
+      logger.error(
+        "[Database] Error closing primary SQL Server connection pool",
+        error,
+      );
+      sqlPoolPrimary = null;
+    }
+  }
+  if (sqlPoolSecondary) {
+    try {
+      await sqlPoolSecondary.close();
+      sqlPoolSecondary = null;
+    } catch (error) {
+      logger.error(
+        "[Database] Error closing secondary SQL Server connection pool",
+        error,
+      );
+      sqlPoolSecondary = null;
     }
   }
   if (mysqlPool) {
@@ -217,7 +283,7 @@ export async function closeConnections(): Promise<void> {
       await mysqlPool.end();
       mysqlPool = null;
     } catch (error) {
-      logError("[Database] Error closing MySQL connection pool", error);
+      logger.error("[Database] Error closing MySQL connection pool", error);
       mysqlPool = null;
     }
   }

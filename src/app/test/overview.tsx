@@ -51,6 +51,7 @@ import {
 import { GaugeChart } from "./charts";
 import { KPICard } from "./kpi-card";
 import { useDashboard } from "./store";
+import { api } from "@/trpc/react";
 
 // =============================================================================
 // TYPES
@@ -170,26 +171,7 @@ const QUEUE_SPOT_DATA = [
   { hour: "20:00", queue: 11, spot: 6 },
 ];
 
-const CYCLE_TIME_DATA = [
-  { truck: "T-001", cycleTime: 24.5, spotTime: 5.2, queueTime: 3.1 },
-  { truck: "T-002", cycleTime: 28.1, spotTime: 6.5, queueTime: 4.8 },
-  { truck: "T-003", cycleTime: 0, spotTime: 0, queueTime: 0 },
-  { truck: "T-004", cycleTime: 26.3, spotTime: 5.8, queueTime: 3.5 },
-  { truck: "T-005", cycleTime: 25.8, spotTime: 5.5, queueTime: 3.2 },
-  { truck: "T-006", cycleTime: 27.2, spotTime: 6.1, queueTime: 4.2 },
-  { truck: "T-007", cycleTime: 23.9, spotTime: 4.9, queueTime: 2.8 },
-  { truck: "T-008", cycleTime: 29.4, spotTime: 7.2, queueTime: 5.1 },
-  { truck: "T-009", cycleTime: 26.7, spotTime: 6.0, queueTime: 3.8 },
-  { truck: "T-010", cycleTime: 25.1, spotTime: 5.3, queueTime: 3.0 },
-  { truck: "T-011", cycleTime: 28.8, spotTime: 6.8, queueTime: 4.9 },
-  { truck: "T-012", cycleTime: 24.2, spotTime: 5.0, queueTime: 2.9 },
-  { truck: "T-013", cycleTime: 27.5, spotTime: 6.3, queueTime: 4.1 },
-  { truck: "T-014", cycleTime: 26.0, spotTime: 5.7, queueTime: 3.6 },
-  { truck: "T-015", cycleTime: 25.4, spotTime: 5.4, queueTime: 3.3 },
-  { truck: "T-016", cycleTime: 28.3, spotTime: 6.6, queueTime: 4.7 },
-  { truck: "T-017", cycleTime: 24.8, spotTime: 5.1, queueTime: 3.0 },
-  { truck: "T-018", cycleTime: 27.9, spotTime: 6.4, queueTime: 4.5 },
-];
+// CYCLE_TIME_DATA is now fetched from the database via tRPC
 
 const PAYLOAD_DATA = [
   { truck: "T-001", payload: 185 },
@@ -271,6 +253,12 @@ export function Sheet1Overview({
     setOverviewShiftPreset,
   } = overviewSheet;
 
+  // Fetch cycle time data from the database
+  const { data: cycleTimeData = [] } =
+    api.dashboardV2.trucks.getCycleTimes.useQuery({
+      period: overviewDatePreset,
+    });
+
   const cycleMetricConfig: Record<
     CycleMetricKey,
     { label: string; color: string }
@@ -345,7 +333,7 @@ export function Sheet1Overview({
         />
         <KPICard
           title="Руда (т)"
-          value={KPI_DATA.oreTonnes.value.toLocaleString()}
+          value={KPI_DATA.oreTonnes.value}
           unit="т/ден"
           plan={12255}
           planUnit="т/ден"
@@ -356,7 +344,7 @@ export function Sheet1Overview({
         />
         <KPICard
           title="Откривка (м3)"
-          value={KPI_DATA.oreTonnes.value.toLocaleString()}
+          value={KPI_DATA.oreTonnes.value}
           unit="м3/ден"
           plan={25500}
           planUnit="м3/ден"
@@ -367,11 +355,11 @@ export function Sheet1Overview({
         />
         <KPICard
           title="Извозен материал"
-          value={KPI_DATA.materialMoved.value.toLocaleString()}
+          value={KPI_DATA.materialMoved.value}
           unit="т/ден"
           plan={45200}
           planUnit="м3/ден"
-          delta={`+${KPI_DATA.materialMoved.delta.toLocaleString()}`}
+          delta={`+${KPI_DATA.materialMoved.delta}`}
           trend={KPI_DATA.materialMoved.trend}
           sparkline={KPI_DATA.materialMoved.sparkline}
           icon={Truck}
@@ -533,7 +521,7 @@ export function Sheet1Overview({
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
-              data={CYCLE_TIME_DATA.filter((d) => d.cycleTime > 0)}
+              data={cycleTimeData.filter((d) => d.cycleTime > 0)}
               barCategoryGap="40%"
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />

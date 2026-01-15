@@ -8,12 +8,19 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
-    // SQL Server connection
-    SQL_SERVER: z.string().min(1),
-    SQL_DATABASE: z.string().min(1),
-    SQL_USER: z.string().min(1),
-    SQL_PASSWORD: z.string().min(1),
-    SQL_PORT: z.coerce.number().default(1433),
+    // SQL Server connection (MODDB)
+    SQL_SERVER_MODDB: z.string().min(1),
+    SQL_DATABASE_MODDB: z.string().min(1),
+    SQL_USER_MODDB: z.string().min(1),
+    SQL_PASSWORD_MODDB: z.string().min(1),
+    SQL_PORT_MODDB: z.coerce.number().default(1433),
+
+    // SQL Server connection (MODDB2)
+    SQL_SERVER_MODDB2: z.string().min(1).optional(),
+    SQL_DATABASE_MODDB2: z.string().min(1).optional(),
+    SQL_USER_MODDB2: z.string().min(1).optional(),
+    SQL_PASSWORD_MODDB2: z.string().min(1).optional(),
+    SQL_PORT_MODDB2: z.coerce.number().default(1433).optional(),
     // MySQL connection
     MYSQL_HOST: z.string().min(1),
     MYSQL_DATABASE: z.string().min(1),
@@ -37,12 +44,19 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    // SQL Server
-    SQL_SERVER: process.env.SQL_SERVER,
-    SQL_DATABASE: process.env.SQL_DATABASE,
-    SQL_USER: process.env.SQL_USER,
-    SQL_PASSWORD: process.env.SQL_PASSWORD,
-    SQL_PORT: process.env.SQL_PORT,
+    // SQL Server (MODDB)
+    SQL_SERVER_MODDB: process.env.SQL_SERVER_MODDB,
+    SQL_DATABASE_MODDB: process.env.SQL_DATABASE_MODDB,
+    SQL_USER_MODDB: process.env.SQL_USER_MODDB,
+    SQL_PASSWORD_MODDB: process.env.SQL_PASSWORD_MODDB,
+    SQL_PORT_MODDB: process.env.SQL_PORT_MODDB,
+
+    // SQL Server (MODDB2)
+    SQL_SERVER_MODDB2: process.env.SQL_SERVER_MODDB2,
+    SQL_DATABASE_MODDB2: process.env.SQL_DATABASE_MODDB2,
+    SQL_USER_MODDB2: process.env.SQL_USER_MODDB2,
+    SQL_PASSWORD_MODDB2: process.env.SQL_PASSWORD_MODDB2,
+    SQL_PORT_MODDB2: process.env.SQL_PORT_MODDB2,
     // MySQL
     MYSQL_HOST: process.env.MYSQL_HOST,
     MYSQL_DATABASE: process.env.MYSQL_DATABASE,
