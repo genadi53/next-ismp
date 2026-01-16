@@ -1,8 +1,7 @@
-import { sqlQuery } from "@/server/database/db";
+import { sqlQuery, sqlQueryOne } from "@/server/database/db";
 
 /**
- * Get the average cycle/spot/queue time for truck.
- * The double avg is for more accurate results from the shift paths.
+ * Get the shift ID range for a given period.
  */
 export async function getShiftIdsForPeriod(
   period: "current" | "today" | "yesterday" | "month",
@@ -60,4 +59,37 @@ export async function getShiftIdsForPeriod(
         "moddb",
       );
   }
+}
+
+/**
+ * Get all shift IDs.
+ */
+export async function getAllShifts(): Promise<
+  { ShiftId: number; FullShiftName: string }[]
+> {
+  return sqlQuery<{ ShiftId: number; FullShiftName: string }>(
+    `
+    SELECT ShiftId, FullShiftName
+    FROM [ELLOperational].common.shiftinfo
+    ORDER BY ShiftId DESC
+    `,
+    undefined,
+    "moddb",
+  );
+}
+
+/**
+ * Get the current shift ID (MAX ShiftId for today's date).
+ */
+export async function getCurrentShiftId(): Promise<number | null> {
+  const result = await sqlQueryOne<{ ShiftId: number }>(
+    `
+    SELECT MAX(ShiftId) as ShiftId
+    FROM [ELLOperational].common.shiftinfo
+    WHERE ShiftStartDate = CAST(GETDATE() as date)
+    `,
+    undefined,
+    "moddb",
+  );
+  return result?.ShiftId ?? null;
 }

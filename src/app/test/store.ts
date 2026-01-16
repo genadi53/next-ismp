@@ -25,11 +25,11 @@ type MiningSheetId = 1 | 2 | 3 | 4;
 interface MiningDashboardOverviewSheetState {
   overviewGranularity: MiningGranularity;
   setOverviewGranularity: (granularity: MiningGranularity) => void;
-  overviewDatePreset: "today" | "yesterday" | "month";
-  setOverviewDatePreset: (preset: "today" | "yesterday" | "month") => void;
-  overviewShiftPreset: "shift1" | "shift2" | "night" | "all";
-  setOverviewShiftPreset: (
-    preset: "shift1" | "shift2" | "night" | "all",
+  overviewStartShiftId: number | null;
+  overviewEndShiftId: number | null;
+  setOverviewShiftIds: (
+    startShiftId: number | null,
+    endShiftId: number | null,
   ) => void;
 }
 
@@ -160,25 +160,16 @@ export const useDashboard = create<DashboardStore>((set) => ({
             },
           },
         })),
-      overviewDatePreset: "today",
-      setOverviewDatePreset: (preset) =>
+      overviewStartShiftId: null,
+      overviewEndShiftId: null,
+      setOverviewShiftIds: (startShiftId, endShiftId) =>
         set((state) => ({
           miningDashboard: {
             ...state.miningDashboard,
             overviewSheet: {
               ...state.miningDashboard.overviewSheet,
-              overviewDatePreset: preset,
-            },
-          },
-        })),
-      overviewShiftPreset: "shift1",
-      setOverviewShiftPreset: (preset) =>
-        set((state) => ({
-          miningDashboard: {
-            ...state.miningDashboard,
-            overviewSheet: {
-              ...state.miningDashboard.overviewSheet,
-              overviewShiftPreset: preset,
+              overviewStartShiftId: startShiftId,
+              overviewEndShiftId: endShiftId,
             },
           },
         })),

@@ -22,6 +22,7 @@ const sqlConfigModdb: sql.config = {
   options: {
     encrypt: false,
     trustServerCertificate: true,
+    requestTimeout: 60000, // Set request timeout to 60 seconds (complex queries can take longer, especially over VPN)
   },
   pool: {
     max: 10,
@@ -41,6 +42,7 @@ const sqlConfigModdb2: sql.config | null = env.SQL_SERVER_MODDB2
       options: {
         encrypt: false,
         trustServerCertificate: true,
+        requestTimeout: 60000, // Set request timeout to 60 seconds (complex queries can take longer, especially over VPN)
       },
       pool: {
         max: 10,
@@ -99,7 +101,17 @@ export async function sqlQuery<T = Record<string, unknown>>(
   // Add parameters if provided
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      request.input(key, value);
+      // Explicitly type numeric parameters to avoid parameter sniffing issues
+      if (typeof value === "number") {
+        // Use BigInt for numbers outside int range, otherwise use Int
+        if (value > 2147483647 || value < -2147483648) {
+          request.input(key, sql.BigInt, value);
+        } else {
+          request.input(key, sql.Int, value);
+        }
+      } else {
+        request.input(key, value);
+      }
     }
   }
 
