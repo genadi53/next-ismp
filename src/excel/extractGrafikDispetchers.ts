@@ -14,8 +14,16 @@ export const extractGrafikDispetchers = (
       const workbook = XLSX.read(e.target?.result, { type: "binary" });
       const countSheets = workbook.SheetNames.length;
       // console.log(countSheets, workbook.SheetNames[countSheets - 1]);
-      const sheetName = workbook.SheetNames[countSheets - 1];
+      const sheetName = workbook.SheetNames[countSheets - 1] ?? workbook.SheetNames[0];
+      if (!sheetName) {
+        reject(new Error("No worksheet found in the uploaded Excel file."));
+        return;
+      }
       const worksheet = workbook.Sheets[sheetName];
+      if (!worksheet) {
+        reject(new Error("No worksheet found in the uploaded Excel file."));
+        return;
+      }
 
       // Find bounds
       let minRow = Infinity;
@@ -108,9 +116,9 @@ export const extractGrafikDispetchers = (
             const address = XLSX.utils.encode_cell({ r: row, c: col });
             const dayValue = worksheet[address]?.v;
 
-            if (dayValue === 1 || dayValue === -2) {
-              dataMap.set(header, dayValue === 1 ? 1 : 2);
-            }
+              if (dayValue === 1 || dayValue === -2 || dayValue === 11 || dayValue === -22) {
+                dataMap.set(header, dayValue === 1 ? 1 : dayValue === -2 ? 2 : dayValue === 11 ? 11 : 22);
+              }
           }
 
           const orderedData: Record<string, DayShift> =

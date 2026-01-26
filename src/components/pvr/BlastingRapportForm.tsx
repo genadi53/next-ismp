@@ -37,7 +37,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
 import React from "react";
 import {
   Popover,
@@ -56,7 +55,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import type { CreateBlastReportInput } from "@/server/repositories/pvr";
 
 const toOneString = (strArray: string[]) => {
@@ -67,42 +66,47 @@ const toOneString = (strArray: string[]) => {
   );
 };
 
+const getDefaultFormValues = (): BlastinReportFormData => ({
+  ShiftDate: new Date(),
+  VP_num: 0,
+  Horiz: 0,
+  site_conditon: "",
+  quality_do_1m: -1,
+  quality_nad_1m: -1,
+  quality_zone_prosip: -1,
+  water_presence_drilling: -1,
+  water_presence_fueling: -1,
+  ANFO: -1,
+  E1100: -1,
+  E3400: -1,
+  non_retaining: -1,
+  quality_explosive: "",
+  quality_zatapka: -1,
+  smoke_presence: [] as SmokePresence[],
+  scattering: "",
+  presence_negabarit: "",
+  state_blast_material: [] as StateBlastMaterial[],
+  state_blast_site_after: [] as StateBlastSiteAfter[],
+  non_blasted_num: -1,
+  Initiate: "",
+});
+
 export function BlastingRapportForm() {
   const utils = api.useUtils();
   const { mutateAsync: createRapport, isPending: isCreating } =
     api.pvr.raport.create.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Рапортът е успешно създаден.",
         });
         utils.pvr.raport.getAll.invalidate();
-        form.reset({
-          ShiftDate: new Date(),
-          VP_num: 0,
-          Horiz: 0,
-          site_conditon: "",
-          quality_do_1m: -1,
-          quality_nad_1m: -1,
-          quality_zone_prosip: -1,
-          water_presence_drilling: -1,
-          water_presence_fueling: -1,
-          ANFO: -1,
-          E1100: -1,
-          E3400: -1,
-          non_retaining: -1,
-          quality_explosive: "",
-          quality_zatapka: -1,
-          smoke_presence: [] as SmokePresence[],
-          scattering: "",
-          presence_negabarit: "",
-          state_blast_material: [] as StateBlastMaterial[],
-          state_blast_site_after: [] as StateBlastSiteAfter[],
-          non_blasted_num: -1,
-          Initiate: "",
-        });
+        form.reset(getDefaultFormValues());
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при създаване на записа. Опитайте отново, или се обадете на администратор.",
@@ -110,34 +114,12 @@ export function BlastingRapportForm() {
       },
     });
 
-  const [_fuelingError, setFuelingError] = useState<string | null>(null);
 
   const form = useForm<BlastinReportFormData>({
     resolver: zodResolver(blastingRapportSchema),
-    defaultValues: {
-      ShiftDate: new Date(),
-      VP_num: 0,
-      Horiz: 0,
-      site_conditon: "",
-      quality_do_1m: -1,
-      quality_nad_1m: -1,
-      quality_zone_prosip: -1,
-      water_presence_drilling: -1,
-      water_presence_fueling: -1,
-      ANFO: -1,
-      E1100: -1,
-      E3400: -1,
-      non_retaining: -1,
-      quality_explosive: "",
-      quality_zatapka: -1,
-      smoke_presence: [] as SmokePresence[],
-      scattering: "",
-      presence_negabarit: "",
-      state_blast_material: [] as StateBlastMaterial[],
-      state_blast_site_after: [] as StateBlastSiteAfter[],
-      non_blasted_num: -1,
-      Initiate: "",
-    },
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: getDefaultFormValues(),
   });
 
   const onSubmit = async (data: BlastinReportFormData) => {
@@ -177,21 +159,21 @@ export function BlastingRapportForm() {
   };
 
   // Watch fueling values for validation
-  const ANFO = form.watch("ANFO") || 0;
-  const E1100 = form.watch("E1100") || 0;
-  const E3400 = form.watch("E3400") || 0;
+  const ANFO = form.watch("ANFO");
+  const E1100 = form.watch("E1100");
+  const E3400 = form.watch("E3400");
 
-  // Check fueling validation
-  const fuelingSum = ANFO + E1100 + E3400;
-
-  // Update error message
+  // Trigger validation when fueling values change
   React.useEffect(() => {
-    if (fuelingSum > 132) {
-      setFuelingError("Невалидно въведени параметри за Зареждане");
-    } else {
-      setFuelingError(null);
+    // Only validate if at least one field has a valid value (not -1 or undefined)
+    if (
+      (ANFO !== undefined && ANFO !== -1) ||
+      (E1100 !== undefined && E1100 !== -1) ||
+      (E3400 !== undefined && E3400 !== -1)
+    ) {
+      form.trigger(["ANFO", "E1100", "E3400"]);
     }
-  }, [fuelingSum]);
+  }, [ANFO, E1100, E3400, form]);
 
   return (
     <Card className="w-full shadow-lg">
@@ -201,7 +183,7 @@ export function BlastingRapportForm() {
           Попълнете всички полета за създаване на рапорт
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-12">
@@ -698,6 +680,11 @@ export function BlastingRapportForm() {
                   <h4 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Зареждане
                   </h4>
+                  {form.formState.errors.E3400 && (
+                    <p className="mb-2 text-sm text-destructive">
+                      {form.formState.errors.E3400.message}
+                    </p>
+                  )}
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-6">
                     <div className="col-span-1 lg:col-span-2">
                       <FormField
@@ -1049,32 +1036,7 @@ export function BlastingRapportForm() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() =>
-                  form.reset({
-                    ShiftDate: new Date(),
-                    VP_num: 0,
-                    Horiz: 0,
-                    site_conditon: "",
-                    quality_do_1m: -1,
-                    quality_nad_1m: -1,
-                    quality_zone_prosip: -1,
-                    water_presence_drilling: -1,
-                    water_presence_fueling: -1,
-                    ANFO: -1,
-                    E1100: -1,
-                    E3400: -1,
-                    non_retaining: -1,
-                    quality_explosive: "",
-                    quality_zatapka: -1,
-                    smoke_presence: [] as SmokePresence[],
-                    scattering: "",
-                    presence_negabarit: "",
-                    state_blast_material: [] as StateBlastMaterial[],
-                    state_blast_site_after: [] as StateBlastSiteAfter[],
-                    non_blasted_num: -1,
-                    Initiate: "",
-                  })
-                }
+                onClick={() => form.reset(getDefaultFormValues())}
                 className="gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -1092,6 +1054,13 @@ export function BlastingRapportForm() {
             </div>
           </form>
         </Form>
+        {form.formState.errors && (
+          <div className="mt-4 text-red-500">
+            {Object.values(form.formState.errors).map((error) => (
+              <p key={error.message}>{error.message}</p>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -33,7 +33,8 @@ import type { CreateDispatcherScheduleInput } from "@/server/repositories/dispat
 import { monthNamesBG } from "@/types/global.types";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
+import { Container } from "@/components/Container";
 
 export function SchedulePageClient() {
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -51,16 +52,18 @@ export function SchedulePageClient() {
     api.dispatcher.schedule.create.useMutation({
       onSuccess: () => {
         utils.dispatcher.schedule.getAll.invalidate();
-        toast.success("Успешно записан график", {
-          description: `Графикът за месец ${
-            date ? monthNamesBG[date.getMonth() + 1] : ""
-          } е записан успешно.`,
+        toast({
+          title: "Успешно записан график",
+          description: `Графикът за месец ${date ? monthNamesBG[date.getMonth() + 1] : ""
+            } е записан успешно.`,
         });
         handleReset();
       },
       onError: (error) => {
-        toast.error("Грешка при обработка", {
+        toast({
+          title: "Грешка при обработка",
           description: error.message || "Възникна грешка при записване.",
+          variant: "destructive",
         });
       },
     });
@@ -78,16 +81,20 @@ export function SchedulePageClient() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете файл.",
+        variant: "destructive",
       });
     }
 
     // Check if it's an Excel file
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description:
           "Невалиден файл. Моля, изберете Excel файл (.xlsx или .xls)",
+        variant: "destructive",
       });
     }
 
@@ -99,15 +106,19 @@ export function SchedulePageClient() {
     setIsProcessing(true);
     if (!date) {
       setIsProcessing(false);
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете дата.",
+        variant: "destructive",
       });
     }
 
     if (!file) {
       handleReset();
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете файл.",
+        variant: "destructive",
       });
     }
 
@@ -126,7 +137,7 @@ export function SchedulePageClient() {
         const Name = entry.name;
         const LoginName =
           DispatcherSystemNames[
-            dispatcherID as keyof typeof DispatcherSystemNames
+          dispatcherID as keyof typeof DispatcherSystemNames
           ];
 
         // Skip entries where LoginName is not found in the mapping
@@ -153,23 +164,28 @@ export function SchedulePageClient() {
 
       if (grafik.length === 0) {
         handleReset();
-        return toast.error("Грешка при обработка", {
+        return toast({
+          title: "Грешка при обработка",
           description:
             "Не са намерени валидни данни за обработка. Моля, проверете дали всички диспечери имат съответствие в системата.",
+          variant: "destructive",
         });
       }
 
       setMonthGrafik(grafik);
 
-      toast.success("Успешно обработен файл", {
+      toast({
+        title: "Успешно обработен файл",
         description: `Файлът "${file.name}" е обработен успешно.`,
       });
     } catch (error) {
       console.error("Error processing file:", error);
       handleReset();
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description:
           "Възникна грешка при обработката на файла. Моля, проверете дали файлът е валиден и има правилната структура.",
+        variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
@@ -197,7 +213,10 @@ export function SchedulePageClient() {
   };
 
   return (
-    <>
+    <Container
+      title="График на диспечери"
+      description="Качете Excel файл за обработка"
+    >
       <div className="flex max-w-lg flex-col gap-4">
         <Popover>
           <PopoverTrigger asChild>
@@ -267,7 +286,7 @@ export function SchedulePageClient() {
         <div className="flex w-lg flex-row items-center gap-4">
           <Button
             className="w-24"
-            variant={"default"}
+            variant={"ell"}
             type="submit"
             disabled={!fileName || isProcessing}
             onClick={async (e) => {
@@ -293,7 +312,7 @@ export function SchedulePageClient() {
 
           <Button
             className="w-24"
-            variant={"default"}
+            variant={"success"}
             type="button"
             disabled={isProcessing || monthGrafik?.length <= 0}
             onClick={async (e) => {
@@ -334,6 +353,6 @@ export function SchedulePageClient() {
           </Table>
         )}
       </div>
-    </>
+    </Container>
   );
 }

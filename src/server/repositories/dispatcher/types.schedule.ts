@@ -16,7 +16,7 @@ export type CreateDispatcherScheduleInput = {
   LoginName: string | null;
 };
 
-export type DayShift = 1 | 2;
+export type DayShift = 1 | 2 | 11 | 22;
 
 export type ExtractedGrafikRow = {
   id: string | undefined;

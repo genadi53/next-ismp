@@ -4,7 +4,7 @@ import {
   getBlastReports,
   createBlastReport,
   updateBlastReport,
-} from "@/server/repositories/pvr/raport.repositry";
+} from "@/server/repositories/pvr/raport.repository";
 
 const createBlastReportSchema = z.object({
   ShiftDate: z.string().nullable(),
@@ -66,4 +66,3 @@ export const raportRouter = createTRPCRouter({
       return { success: true, message: "Blast report updated successfully" };
     }),
 });
-
