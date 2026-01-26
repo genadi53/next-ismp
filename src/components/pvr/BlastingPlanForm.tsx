@@ -3,7 +3,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { bg } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 
@@ -59,6 +59,26 @@ export function BlastingPlanForm({
   onCancel,
   isLoading = false,
 }: BlastingPlanFormProps) {
+  // Convert date from dd.mm.yyyy (SQL format 104) to yyyy-MM-dd
+  const convertDateFormat = (dateString: string | null | undefined): string => {
+    if (!dateString) return "";
+    try {
+      // Try to parse dd.mm.yyyy format
+      const parsedDate = parse(dateString, "dd.MM.yyyy", new Date());
+      if (isNaN(parsedDate.getTime())) {
+        // If parsing fails, try to parse as yyyy-MM-dd (already in correct format)
+        const altParsed = new Date(dateString);
+        if (isNaN(altParsed.getTime())) {
+          return "";
+        }
+        return format(altParsed, "yyyy-MM-dd");
+      }
+      return format(parsedDate, "yyyy-MM-dd");
+    } catch {
+      return "";
+    }
+  };
+
   const form = useForm<BlastingPlanDataType>({
     resolver: zodResolver(blastingPlanSchema),
     defaultValues: {
@@ -85,13 +105,13 @@ export function BlastingPlanForm({
     if (editingPlan) {
       isInitializingRef.current = true;
       form.reset({
-        date: editingPlan.OperDate || "",
+        date: convertDateFormat(editingPlan.OperDate),
         BlastingField: editingPlan.BlastingField || "",
         Horiz1: editingPlan.Horizont1 || "",
         Horiz2: editingPlan.Horizont2 || "",
         Drill:
-          typeof editingPlan.Drill === "string" && editingPlan.Drill
-            ? editingPlan.Drill.split(",").filter(Boolean)
+          editingPlan.Drill && typeof editingPlan.Drill === "string"
+            ? editingPlan.Drill.split("_").filter(Boolean)
             : [],
         TypeBlast:
           (editingPlan.TypeBlast as
@@ -105,10 +125,10 @@ export function BlastingPlanForm({
         Disabled: editingPlan.Disabled ? 1 : 0,
         Note: editingPlan.Note || "",
       });
-      // Reset the flag after a short delay to allow the form to settle
+      // Reset the flag after a delay to allow the form to settle and prevent TypeBlast effect from clearing values
       setTimeout(() => {
         isInitializingRef.current = false;
-      }, 0);
+      }, 100);
     } else {
       form.reset({
         date: "",
@@ -133,6 +153,11 @@ export function BlastingPlanForm({
       return;
     }
 
+    // Don't clear values if we have an editingPlan (user is editing, not creating new)
+    if (editingPlan) {
+      return;
+    }
+
     if (watchedTypeBlast === "Проби" && watchedDate) {
       const probiText = `Проби за дата ${watchedDate}`;
       form.setValue("BlastingField", probiText);
@@ -146,7 +171,7 @@ export function BlastingPlanForm({
       form.setValue("BlastingField", "");
       form.setValue("Note", "");
     }
-  }, [watchedTypeBlast, watchedDate, form]);
+  }, [watchedTypeBlast, watchedDate, form, editingPlan]);
 
   const handleSubmit = async (data: BlastingPlanDataType) => {
     try {
@@ -288,7 +313,7 @@ export function BlastingPlanForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 items-start">
               <FormField
                 control={form.control}
                 name="Drill"
@@ -297,32 +322,35 @@ export function BlastingPlanForm({
                     <FormLabel>
                       Сонда <span className="text-red-500">*</span>
                     </FormLabel>
-                    <Select value="" onValueChange={addDrill}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Изберете сонда" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DRILLS_TYPES.map((drill) => (
-                          <SelectItem key={drill} value={drill}>
-                            {drill} {field.value.includes(drill) ? "✓" : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {field.value.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {field.value.map((drill, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="cursor-pointer"
-                            onClick={() => removeDrill(index)}
-                          >
-                            {drill} ({DRILL_SIZES[drill as DrillType]}mm) ×
-                          </Badge>
-                        ))}
+                    <div className="flex flex-col">
+                      <div className="shrink-0">
+                        <Select value="" onValueChange={addDrill}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Изберете сонда" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DRILLS_TYPES.map((drill) => (
+                              <SelectItem key={drill} value={drill}>
+                                {drill} {field.value.includes(drill) ? "✓" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {field.value.length > 0 &&
+                          field.value.map((drill, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="cursor-pointer"
+                              onClick={() => removeDrill(index)}
+                            >
+                              {drill} ({DRILL_SIZES[drill as DrillType]}mm) ×
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
