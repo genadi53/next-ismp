@@ -29,6 +29,7 @@ import {
 import { assetsColumns } from "@/components/dma/assets/columnsAssets";
 import { AssetsForm } from "@/components/dma/assets/formAssets";
 import { DataTableAssets } from "@/components/dma/assets/tableAssets";
+import { Container } from "@/components/Container";
 
 export function AssetsPageClient() {
   const [showForm, setShowForm] = useState(false);
@@ -88,42 +89,47 @@ export function AssetsPageClient() {
   };
 
   return (
-    <>
-      {/* Header Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={() => {
-            if (showForm) {
-              handleCancelEdit();
-            } else {
-              setAssetToEdit(null);
-              setShowForm(true);
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 100);
-            }
-          }}
-          variant={showForm ? "outline" : "ell"}
-          size="lg"
-          className={cn(
-            "gap-2 transition-colors duration-200",
-            showForm &&
-            "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
-          )}
-        >
-          {!showForm ? (
-            <>
-              <Plus className="h-5 w-5" />
-              <span>Нов актив</span>
-            </>
-          ) : (
-            <>
-              <X className="h-5 w-5" />
-              <span>Затвори</span>
-            </>
-          )}
-        </Button>
-      </div>
+    <Container
+      title="Активи"
+      description="Управление и преглед на всички активи"
+      headerChildren={
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => {
+              if (showForm) {
+                handleCancelEdit();
+              } else {
+                setAssetToEdit(null);
+                setShowForm(true);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }, 100);
+              }
+            }}
+            variant={showForm ? "outline" : "ell"}
+            size="lg"
+            className={cn(
+              "gap-2 transition-colors duration-200",
+              showForm &&
+              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+            )}
+          >
+            {!showForm ? (
+              <>
+                <Plus className="h-5 w-5" />
+                <span>Нов актив</span>
+              </>
+            ) : (
+              <>
+                <X className="h-5 w-5" />
+                <span>Затвори</span>
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
+
 
       {showForm && (
         <Card className="mb-4 shadow-lg">
@@ -224,6 +230,6 @@ export function AssetsPageClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </Container>
   );
 }

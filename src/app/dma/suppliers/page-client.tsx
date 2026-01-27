@@ -11,43 +11,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { suppliersColumns } from "@/components/dma/suppliers/columnsSuppliers";
+import { SuppliersForm } from "@/components/dma/suppliers/formSuppliers";
+import { DataTableSuppliers } from "@/components/dma/suppliers/tableSuppliers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, X, Building2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { toast } from "sonner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnFiltersState,
-  type SortingState,
-} from "@tanstack/react-table";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { DataTablePagination } from "@/components/table/tablePagination";
+import { NoResults } from "@/components/NoResults";
+import { toast } from "@/components/ui/toast";
+import { Container } from "@/components/Container";
 
 export function SuppliersPageClient() {
+  const [suppliers] = api.dma.suppliers.getAll.useSuspenseQuery(undefined);
+  const utils = api.useUtils()
+
   const [showForm, setShowForm] = useState(false);
   const [supplierToEdit, setSupplierToEdit] = useState<DmaSupplier | undefined>(
     undefined,
   );
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
 
-  const [suppliers] = api.dma.suppliers.getAll.useSuspenseQuery(undefined);
 
   const handleEdit = (supplier: DmaSupplier) => {
     setSupplierToEdit(supplier);
@@ -59,7 +41,10 @@ export function SuppliersPageClient() {
 
   const handleDelete = (supplier: DmaSupplier) => {
     console.log(supplier);
-    toast.info("Функционалността за изтриване ще бъде добавена скоро");
+    toast({
+      title: "Функционалността за изтриване ще бъде добавена скоро",
+      description: "",
+    });
   };
 
   const handleCancelEdit = () => {
@@ -67,66 +52,48 @@ export function SuppliersPageClient() {
     setShowForm(false);
   };
 
-  const table = useReactTable({
-    data: suppliers,
-    columns: suppliersColumns({
-      actions: {
-        edit: handleEdit,
-        delete: handleDelete,
-      },
-    }),
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: "includesString",
-    state: {
-      sorting,
-      columnFilters,
-      globalFilter,
-    },
-  });
-
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={() => {
-            if (showForm) {
-              handleCancelEdit();
-            } else {
-              setSupplierToEdit(undefined);
-              setShowForm(true);
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 100);
-            }
-          }}
-          variant={showForm ? "outline" : "ell"}
-          size="lg"
-          className={cn(
-            "gap-2 transition-colors duration-200",
-            showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
-          )}
-        >
-          {!showForm ? (
-            <>
-              <Plus className="h-5 w-5" />
-              <span>Нов доставчик</span>
-            </>
-          ) : (
-            <>
-              <X className="h-5 w-5" />
-              <span>Затвори</span>
-            </>
-          )}
-        </Button>
-      </div>
+    <Container
+      title="Доставчици"
+      description="Управление и преглед на всички доставчици"
 
+      headerChildren={
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => {
+              if (showForm) {
+                handleCancelEdit();
+              } else {
+                setSupplierToEdit(undefined);
+                setShowForm(true);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }, 100);
+              }
+            }}
+            variant={showForm ? "outline" : "ell"}
+            size="lg"
+            className={cn(
+              "gap-2 transition-colors duration-200",
+              showForm &&
+              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+            )}
+          >
+            {!showForm ? (
+              <>
+                <Plus className="h-5 w-5" />
+                <span>Нов доставчик</span>
+              </>
+            ) : (
+              <>
+                <X className="h-5 w-5" />
+                <span>Затвори</span>
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
       {showForm && (
         <Card className="mb-4 shadow-lg">
           <CardHeader className="border-b">
@@ -153,11 +120,14 @@ export function SuppliersPageClient() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground">
-              Формата за създаване/редактиране на доставчици ще бъде
-              имплементирана в следващ етап.
-            </p>
+          <CardContent>
+            <SuppliersForm
+              supplierToEdit={supplierToEdit ?? null}
+              onFormSubmit={() => {
+                utils.dma.suppliers.getAll.invalidate();
+                handleCancelEdit();
+              }}
+            />
           </CardContent>
         </Card>
       )}
@@ -182,86 +152,27 @@ export function SuppliersPageClient() {
           </CardHeader>
           <CardContent>
             {suppliers && suppliers.length === 0 && (
-              <div className="py-12 text-center">
-                <Building2 className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                <h3 className="mb-2 text-lg font-semibold">Няма доставчици</h3>
-                <p className="text-muted-foreground">
-                  Все още няма добавени доставчици.
-                </p>
-              </div>
+              <NoResults
+                icon={<Building2 className="text-ell-primary/50 size-12" />}
+                title="Няма доставчици"
+                description="Все още няма добавени доставчици."
+              />
             )}
 
             {suppliers && suppliers.length > 0 && (
-              <div className="w-full space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative max-w-md flex-1">
-                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                    <Input
-                      placeholder="Търсене във всички полета..."
-                      value={globalFilter ?? ""}
-                      onChange={(event) => setGlobalFilter(event.target.value)}
-                      className="pr-9 pl-9"
-                    />
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-lg border">
-                  <Table>
-                    <TableHeader className="bg-muted/50">
-                      {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                          {headerGroup.headers.map((header) => (
-                            <TableHead
-                              key={header.id}
-                              className="font-semibold"
-                            >
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext(),
-                                  )}
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableHeader>
-                    <TableBody>
-                      {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map((row) => (
-                          <TableRow
-                            key={row.id}
-                            className="hover:bg-muted/50 transition-colors"
-                          >
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell key={cell.id} className="text-sm">
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext(),
-                                )}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={table.getAllColumns().length}>
-                            <div className="text-muted-foreground py-8 text-center">
-                              Няма намерени доставчици
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-                <DataTablePagination table={table} />
-              </div>
+              <DataTableSuppliers
+                columns={suppliersColumns({
+                  actions: {
+                    edit: handleEdit,
+                    delete: handleDelete,
+                  },
+                })}
+                data={suppliers}
+              />
             )}
           </CardContent>
         </Card>
       )}
-    </>
+    </Container>
   );
 }
-
-export default SuppliersPageClient;

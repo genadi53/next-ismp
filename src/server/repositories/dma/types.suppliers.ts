@@ -10,5 +10,11 @@ export type DmaSupplier = {
 export type CreateDmaSupplierInput = {
   Supplier: string;
   SupplierDesc: string | null;
+  CreatedFrom: string | null;
 };
 
+export type UpdateDmaSupplierInput = {
+  Supplier: string;
+  SupplierDesc: string | null;
+  LastUpdatedFrom: string | null;
+};
