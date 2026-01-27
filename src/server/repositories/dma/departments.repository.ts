@@ -36,13 +36,16 @@ export async function createDmaDepartment(
     request.input("DepMolDuty", input.DepMolDuty);
     request.input("DeptApproval", input.DeptApproval);
     request.input("DeptApprovalDuty", input.DeptApprovalDuty);
+    request.input("CreatedFrom", input.CreatedFrom);
     request.input("DepartmentDesc", input.DepartmentDesc);
 
     await request.query(`
       INSERT INTO [ISMP].[dma].[Departments] (
-        [Department], [DepMol], [DepMolDuty], [DeptApproval], [DeptApprovalDuty], [DepartmentDesc]
+        [Department], [DepMol], [DepMolDuty], [DeptApproval],
+         [DeptApprovalDuty], [DepartmentDesc], [CreatedFrom]
       )
-      VALUES (@Department, @DepMol, @DepMolDuty, @DeptApproval, @DeptApprovalDuty, @DepartmentDesc)
+      VALUES (@Department, @DepMol, @DepMolDuty, @DeptApproval,
+       @DeptApprovalDuty, @DepartmentDesc, @CreatedFrom)
     `);
   });
 }
@@ -62,6 +65,7 @@ export async function updateDmaDepartment(
     request.input("DeptApproval", input.DeptApproval);
     request.input("DeptApprovalDuty", input.DeptApprovalDuty);
     request.input("DepartmentDesc", input.DepartmentDesc);
+    request.input("LastUpdatedFrom", input.LastUpdatedFrom);
     request.input("active", input.active);
 
     await request.query(`
@@ -70,11 +74,26 @@ export async function updateDmaDepartment(
           [DepMol] = @DepMol,
           [DepMolDuty] = @DepMolDuty,
           [DeptApproval] = @DeptApproval,
-          [DeptApprovalDuty] = @DeptApprovalDuty,
+          [LastUpdatedFrom] = @LastUpdatedFrom,
           [DepartmentDesc] = @DepartmentDesc,
+          [DeptApprovalDuty] = @DeptApprovalDuty,
           [active] = @active
+      WHERE Id = @id
+    `);  
+  });
+}
+
+/**
+ * Delete DMA department.
+ */
+export async function deleteDmaDepartment(
+  id: number,
+): Promise<void> {
+  await sqlTransaction(async (request) => {
+    request.input("id", id);
+    await request.query(`
+      DELETE FROM [ISMP].[dma].[Departments] 
       WHERE Id = @id
     `);
   });
 }
-

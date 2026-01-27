@@ -57,3 +57,18 @@ export async function updateDmaSupplier(
   });
 }
 
+/**
+ * Deleta DMA supplier.
+ */
+export async function deleteDmaSupplier(
+  id: number,
+): Promise<void> {
+  await sqlTransaction(async (request) => {
+    request.input("id", id);
+
+    await request.query(`
+      DELETE FROM [ISMP].[dma].[Suppliers]
+      WHERE ID = @id
+    `);
+  });
+}

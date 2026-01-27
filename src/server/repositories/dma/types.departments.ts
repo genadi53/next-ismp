@@ -18,9 +18,11 @@ export type CreateDmaDepartmentInput = {
   DeptApproval: string | null;
   DeptApprovalDuty: string | null;
   DepartmentDesc: string | null;
+  CreatedFrom: string | null;
 };
 
-export type UpdateDmaDepartmentInput = CreateDmaDepartmentInput & {
+export type UpdateDmaDepartmentInput = Omit<CreateDmaDepartmentInput, "CreatedFrom"> & {
   active: boolean | null;
+  LastUpdatedFrom: string | null;
 };
 

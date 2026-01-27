@@ -22,8 +22,24 @@ import { toast } from "@/components/ui/toast";
 import { Container } from "@/components/Container";
 
 export function SuppliersPageClient() {
+  const utils = api.useUtils();
   const [suppliers] = api.dma.suppliers.getAll.useSuspenseQuery(undefined);
-  const utils = api.useUtils()
+  const deleteSupplierMutation = api.dma.suppliers.delete.useMutation({
+    onSuccess: () => {
+      utils.dma.suppliers.getAll.invalidate();
+      toast({
+        title: "Успешно",
+        description: "Доставчикът е изтрит успешно.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Грешка",
+        description: error.message || "Възникна грешка при изтриването на доставчика.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const [showForm, setShowForm] = useState(false);
   const [supplierToEdit, setSupplierToEdit] = useState<DmaSupplier | undefined>(
@@ -40,11 +56,7 @@ export function SuppliersPageClient() {
   };
 
   const handleDelete = (supplier: DmaSupplier) => {
-    console.log(supplier);
-    toast({
-      title: "Функционалността за изтриване ще бъде добавена скоро",
-      description: "",
-    });
+    deleteSupplierMutation.mutate({ id: supplier.Id })
   };
 
   const handleCancelEdit = () => {
