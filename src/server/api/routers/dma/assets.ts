@@ -14,6 +14,7 @@ const createAssetSchema = z.object({
   Model: z.string().nullable(),
   EdPrice: z.number().nullable(),
   Description: z.string().nullable(),
+  Currency: z.string().nullable(),
   CreatedFrom: z.string().nullable().default(null),
 });
 
@@ -23,6 +24,7 @@ const updateAssetSchema = z.object({
   Model: z.string().nullable(),
   EdPrice: z.number().nullable(),
   Description: z.string().nullable(),
+  Currency: z.string().nullable(),
   LastUpdatedFrom: z.string().nullable().default(null),
 });
 

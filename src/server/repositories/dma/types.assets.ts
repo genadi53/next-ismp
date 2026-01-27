@@ -1,11 +1,12 @@
 export type DmaAsset = {
   Id: number;
   Name: string;
+  Currency: string | null;
   Marka: string | null;
   Model: string | null;
   EdPrice: number | null;
   Description: string | null;
-  lrd: Date | null;
+  lrd: string | null;
   CreatedFrom: string | null;
   LastUpdatedFrom: string | null;
 };
@@ -15,6 +16,7 @@ export type CreateDmaAssetInput = {
   Marka: string | null;
   Model: string | null;
   EdPrice: number | null;
+  Currency: string | null;
   Description: string | null;
   CreatedFrom: string | null;
 };
@@ -24,6 +26,7 @@ export type UpdateDmaAssetInput = {
   Marka: string | null;
   Model: string | null;
   EdPrice: number | null;
+  Currency: string | null;
   Description: string | null;
   LastUpdatedFrom: string | null;
 };

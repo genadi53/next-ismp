@@ -56,7 +56,7 @@ const SITE_CONFIG = {
     {
       group: "Отчети",
       title: "Отчети Тест",
-      path: "/reports/test",
+      path: "/test",
     },
     { group: "Отчети", title: "Бюлетин", path: "/reports/buletin" },
     { group: "Отчети", title: "Дашборд", path: "/reports/dashboards-new" },

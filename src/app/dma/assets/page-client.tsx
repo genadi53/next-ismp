@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, Package } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { assetsColumns } from "@/components/dma/assets/columnsAssets";
-import { Container } from "@/components/Container";
+import { AssetsForm } from "@/components/dma/assets/formAssets";
 import { DataTableAssets } from "@/components/dma/assets/tableAssets";
 
 export function AssetsPageClient() {
@@ -41,15 +41,18 @@ export function AssetsPageClient() {
 
   const deleteMutation = api.dma.assets.delete.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Активът е изтрит успешно.",
       });
       utils.dma.assets.getAll.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description:
           error.message || "Възникна грешка при изтриването на актива.",
+        variant: "destructive",
       });
     },
   });
@@ -85,46 +88,43 @@ export function AssetsPageClient() {
   };
 
   return (
-    <Container
-      title="Активи"
-      description="Управление и преглед на всички активи"
-      headerChildren={
-        <div className="mb-4 flex justify-end">
-          <Button
-            onClick={() => {
-              if (showForm) {
-                handleCancelEdit();
-              } else {
-                setAssetToEdit(null);
-                setShowForm(true);
-                setTimeout(() => {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }, 100);
-              }
-            }}
-            variant={showForm ? "outline" : "ell"}
-            size="lg"
-            className={cn(
-              "gap-2 transition-colors duration-200",
-              showForm &&
-                "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
-            )}
-          >
-            {!showForm ? (
-              <>
-                <Plus className="h-5 w-5" />
-                <span>Нов актив</span>
-              </>
-            ) : (
-              <>
-                <X className="h-5 w-5" />
-                <span>Затвори</span>
-              </>
-            )}
-          </Button>
-        </div>
-      }
-    >
+    <>
+      {/* Header Button */}
+      <div className="mb-4 flex justify-end">
+        <Button
+          onClick={() => {
+            if (showForm) {
+              handleCancelEdit();
+            } else {
+              setAssetToEdit(null);
+              setShowForm(true);
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }, 100);
+            }
+          }}
+          variant={showForm ? "outline" : "ell"}
+          size="lg"
+          className={cn(
+            "gap-2 transition-colors duration-200",
+            showForm &&
+            "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+          )}
+        >
+          {!showForm ? (
+            <>
+              <Plus className="h-5 w-5" />
+              <span>Нов актив</span>
+            </>
+          ) : (
+            <>
+              <X className="h-5 w-5" />
+              <span>Затвори</span>
+            </>
+          )}
+        </Button>
+      </div>
+
       {showForm && (
         <Card className="mb-4 shadow-lg">
           <CardHeader className="border-b">
@@ -149,11 +149,14 @@ export function AssetsPageClient() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground">
-              Формата за създаване/редактиране на активи ще бъде имплементирана
-              в следващ етап.
-            </p>
+          <CardContent>
+            <AssetsForm
+              assetToEdit={assetToEdit}
+              onFormSubmit={() => {
+                utils.dma.assets.getAll.invalidate();
+                handleCancelEdit();
+              }}
+            />
           </CardContent>
         </Card>
       )}
@@ -204,13 +207,8 @@ export function AssetsPageClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
             <AlertDialogDescription>
-              Това действие не може да бъде отменено. Активът ще бъде изтрит
+              Това действие не може да бъде отменено. Активът {assetToDelete?.Name ?? null} ще бъде изтрит
               перманентно.
-              {assetToDelete && (
-                <div className="bg-muted mt-2 rounded p-2">
-                  <strong>Актив:</strong> {assetToDelete.Name}
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -226,8 +224,6 @@ export function AssetsPageClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Container>
+    </>
   );
 }
-
-export default AssetsPageClient;

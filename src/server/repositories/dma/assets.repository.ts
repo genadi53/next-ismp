@@ -16,8 +16,9 @@ export async function getAllDmaAssets(): Promise<DmaAsset[]> {
            [Marka],
            [Model],
            [EdPrice],
+           [Currency],
            [Description],
-           [lrd],
+           CONVERT(NVARCHAR, [lrd], 120) AS [lrd],
            [CreatedFrom],
            [LastUpdatedFrom]
     FROM [ISMP].[dma].[Components]
@@ -34,14 +35,15 @@ export async function createDmaAsset(input: CreateDmaAssetInput): Promise<void> 
     request.input("Marka", input.Marka);
     request.input("Model", input.Model);
     request.input("EdPrice", input.EdPrice);
+    request.input("Currency", input.Currency);
     request.input("Description", input.Description);
     request.input("CreatedFrom", input.CreatedFrom);
 
     await request.query(`
       INSERT INTO [ISMP].[dma].[Components] (
-        [Name], [Marka], [Model], [EdPrice], [Description], [CreatedFrom]
+        [Name], [Marka], [Model], [EdPrice], [Currency], [Description], [CreatedFrom], [lrd]
       )
-      VALUES (@Name, @Marka, @Model, @EdPrice, @Description, @CreatedFrom)
+      VALUES (@Name, @Marka, @Model, @EdPrice, @Currency, @Description, @CreatedFrom, GETDATE())
     `);
   });
 }
@@ -59,6 +61,7 @@ export async function updateDmaAsset(
     request.input("Marka", input.Marka);
     request.input("Model", input.Model);
     request.input("EdPrice", input.EdPrice);
+    request.input("Currency", input.Currency);
     request.input("Description", input.Description);
     request.input("LastUpdatedFrom", input.LastUpdatedFrom);
 
@@ -68,7 +71,9 @@ export async function updateDmaAsset(
           [Marka] = @Marka,
           [Model] = @Model,
           [EdPrice] = @EdPrice,
+          [Currency] = @Currency,
           [Description] = @Description,
+          [lrd] = GETDATE(),
           [LastUpdatedFrom] = @LastUpdatedFrom
       WHERE Id = @id
     `);
