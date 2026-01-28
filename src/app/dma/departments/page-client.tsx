@@ -26,7 +26,7 @@ export function DepartmentsPageClient() {
   const [departments] = api.dma.departments.getAll.useSuspenseQuery(undefined);
   const deleteDepartment = api.dma.departments.delete.useMutation({
     onSuccess: () => {
-      utils.dma.departments.getAll.invalidate();
+      void utils.dma.departments.getAll.invalidate();
       toast({
         title: "Успешно изтриване",
         description: "Дирекцията беше успешно изтрита.",
@@ -120,7 +120,7 @@ export function DepartmentsPageClient() {
               <DepartmentsForm
                 departmentToEdit={departmentToEdit ?? null}
                 onFormSubmit={() => {
-                  utils.dma.departments.getAll.invalidate();
+                  void utils.dma.departments.getAll.invalidate();
                   setShowForm(false);
                   setDepartmentToEdit(undefined);
                 }}
@@ -163,12 +163,14 @@ export function DepartmentsPageClient() {
                 />
               )}
 
-              {departments && departments.length > 0 && (
+              {departments?.length > 0 && (
                 <DataTableDepartments
                   columns={departmentsColumns({
                     actions: {
                       edit: handleEdit,
-                      delete: handleDelete,
+                      delete: (department) => {
+                        void handleDelete(department);
+                      },
                     },
                   })}
                   data={departments}

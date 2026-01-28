@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DocumentFormWrapper } from "@/components/dma/documents/DocumentFormWrapper";
 import { DataTableDocuments } from "@/components/dma/documents/tableDocuments";
 import { columnsDocuments } from "@/components/dma/documents/columnsDocuments";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, FileText } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,15 +44,18 @@ export function DocumentsPageClient() {
   const utils = api.useUtils();
   const deleteMutation = api.dma.documents.delete.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Документът е изтрит успешно.",
       });
-      utils.dma.documents.getAll.invalidate();
+      void utils.dma.documents.getAll.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description:
           error.message || "Възникна грешка при изтриването на документа.",
+        variant: "destructive",
       });
     },
   });
@@ -92,7 +96,7 @@ export function DocumentsPageClient() {
           className={cn(
             "gap-2 transition-all duration-300 ease-in-out",
             showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+            "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
           )}
         >
           {!showForm ? (
@@ -113,23 +117,20 @@ export function DocumentsPageClient() {
         </Button>
       </div>
 
-      {/* Form Section - placeholder for now */}
-      {showForm && (
-        <Card className="animate-in fade-in slide-in-from-top-4 mb-4 shadow-lg duration-500">
-          <CardHeader className="border-b">
-            <CardTitle className="text-xl">Нов документ</CardTitle>
-            <CardDescription>
-              Формата за създаване на документ ще бъде добавена скоро
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground">
-              Функционалността за създаване на документи ще бъде имплементирана
-              в следващ етап.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Form Section */}
+      <div className="mb-4">
+        <DocumentFormWrapper
+          showForm={showForm}
+          documentToEdit={undefined}
+          handleFormSubmit={(documentId) => {
+            void utils.dma.documents.getAll.invalidate();
+            setShowForm(false);
+            if (documentId != null) {
+              router.push(`/dma/documents/${documentId}`);
+            }
+          }}
+        />
+      </div>
 
       {/* Table Section */}
       {!showForm && (
@@ -151,7 +152,7 @@ export function DocumentsPageClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {documents && documents.length === 0 && (
+            {documents?.length === 0 && (
               <NoResults
                 title="Няма намерени документи"
                 description="Опитайте отново или се свържете с администратор."
@@ -159,7 +160,7 @@ export function DocumentsPageClient() {
               />
             )}
 
-            {documents && documents.length > 0 && (
+            {documents?.length > 0 && (
               <DataTableDocuments
                 columns={columnsDocuments({
                   actions: {
@@ -181,13 +182,8 @@ export function DocumentsPageClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
             <AlertDialogDescription>
-              Това действие не може да бъде отменено. Документът ще бъде изтрит
+              Това действие не може да бъде отменено. Документът {documentToDelete ? `№${documentToDelete.ID}` : null} ще бъде изтрит
               перманентно.
-              {documentToDelete && (
-                <div className="bg-muted mt-2 rounded p-2">
-                  <strong>Документ ID:</strong> {documentToDelete.ID}
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

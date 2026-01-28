@@ -9,7 +9,7 @@ import { convertLocalCoordToGlobal } from "./geowlanCoordinatesConverter";
  */
 export const exportGeowlanToKML = async (
   geowlanPoints: GeowlanAP[],
-  filename: string = "geowlan_points.kml",
+  filename = "geowlan_points.kml",
 ): Promise<void> => {
   if (!geowlanPoints.length) {
     throw new Error("No geowlan points to export");

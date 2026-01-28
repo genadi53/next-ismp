@@ -7,7 +7,7 @@ import { LoadingSpinner } from "@/components/ui/spinner";
 
 export default async function ReportsPage() {
   // Prefetch data on the server
-  await api.dma.assets.getReports.prefetch();
+  void api.dma.assets.getReports.prefetch();
 
   return (
     <HydrateClient>

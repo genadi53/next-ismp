@@ -49,7 +49,7 @@ export function OperatorsPageClient() {
         title: "Успешно",
         description: "Операторът е изтрит успешно.",
       });
-      utils.hermes.operators.getAll.invalidate();
+      void utils.hermes.operators.getAll.invalidate();
     },
     onError: (error) => {
       toast({
@@ -114,7 +114,7 @@ export function OperatorsPageClient() {
             className={cn(
               "gap-2 transition-colors duration-200",
               showForm &&
-                "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
             )}
           >
             {!showForm ? (
@@ -186,7 +186,7 @@ export function OperatorsPageClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {operators && operators.length === 0 && (
+            {operators?.length === 0 && (
               <NoResults
                 title="Няма добавени оператори"
                 description="Започнете като добавите първия оператор чрез формата отгоре"
@@ -194,7 +194,7 @@ export function OperatorsPageClient() {
               />
             )}
 
-            {operators && operators.length > 0 && (
+            {operators?.length > 0 && (
               <DataTableOperators
                 columns={operatorColumns({
                   actions: {

@@ -72,7 +72,7 @@ export function PermissionsPageClient() {
   const { mutateAsync: createPermissions } =
     api.admin.permissions.create.useMutation({
       onSuccess: () => {
-        utils.admin.permissions.getAll.invalidate();
+        void utils.admin.permissions.getAll.invalidate();
         toast({
           title: "Успех",
           description: "Правата са успешно добавени.",
@@ -92,9 +92,9 @@ export function PermissionsPageClient() {
   const { mutateAsync: removePermission } =
     api.admin.permissions.remove.useMutation({
       onSuccess: () => {
-        utils.admin.permissions.getAll.invalidate();
+        void utils.admin.permissions.getAll.invalidate();
         if (selectedUsername) {
-          utils.admin.permissions.getForUser.invalidate({
+          void utils.admin.permissions.getForUser.invalidate({
             username: selectedUsername,
             mainMenu: "",
           });
@@ -140,7 +140,7 @@ export function PermissionsPageClient() {
     ...new Set(
       allPermissions
         ?.map((p) => p.main_menu)
-        .filter((menu): menu is string => Boolean(menu && menu.trim())) || [],
+        .filter((menu): menu is string => Boolean(menu?.trim())) ?? [],
     ),
   ];
 
@@ -148,7 +148,7 @@ export function PermissionsPageClient() {
     allPermissions
       ?.filter((p) => p.main_menu === watchedMainMenu && p.submenu)
       .map((p) => p.submenu)
-      .filter((value): value is string => Boolean(value && value.trim()))
+      .filter((value): value is string => Boolean(value?.trim()))
       .filter((value, index, self) => self.indexOf(value) === index) || [];
 
   const handleAddPermission = async (values: PermissionFormData) => {
@@ -158,16 +158,16 @@ export function PermissionsPageClient() {
           Username: values.Username,
           main_menu: values.main_menu,
           main_menuName: values.main_menu,
-          submenu: values.submenu || null,
-          submenuName: values.submenu || null,
+          submenu: values.submenu ?? null,
+          submenuName: values.submenu ?? null,
           action: values.action,
-          ordermenu: values.ordermenu || 1,
-          specialPermisions: values.specialPermisions || null,
-          DMAAdmins: values.DMAAdmins || null,
-          Active: values.Active || 1,
-          IsDispatcher: values.IsDispatcher || null,
-          Departmant: values.Departmant || null,
-          ro: values.ro || null,
+          ordermenu: values.ordermenu ?? 1,
+          specialPermisions: values.specialPermisions ?? null,
+          DMAAdmins: values.DMAAdmins ?? null,
+          Active: values.Active ?? 1,
+          IsDispatcher: values.IsDispatcher ?? null,
+          Departmant: values.Departmant ?? null,
+          ro: values.ro ?? null,
         },
       ]);
       form.reset();
@@ -281,7 +281,7 @@ export function PermissionsPageClient() {
                             form.setValue("main_menu", value);
                             form.setValue(
                               "main_menuName",
-                              mainMenus.find((menu) => menu === value) || "",
+                              mainMenus.find((menu) => menu === value) ?? "",
                             );
                           }}
                           value={field.value}
@@ -316,11 +316,11 @@ export function PermissionsPageClient() {
                             form.setValue("submenu", value);
                             form.setValue(
                               "submenuName",
-                              submenus.find((submenu) => submenu === value) ||
+                              submenus.find((submenu) => submenu === value) ??
                                 "",
                             );
                           }}
-                          value={field.value || ""}
+                          value={field.value ?? ""}
                           disabled={!watchedMainMenu}
                         >
                           <FormControl>
@@ -369,7 +369,7 @@ export function PermissionsPageClient() {
                             type="number"
                             placeholder="Подредба на менюто"
                             {...field}
-                            value={field.value || ""}
+                            value={field.value ?? ""}
                             onChange={(e) =>
                               field.onChange(parseInt(e.target.value) || 1)
                             }
@@ -390,7 +390,7 @@ export function PermissionsPageClient() {
                           <Input
                             placeholder="Отдел"
                             {...field}
-                            value={field.value || ""}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -534,7 +534,7 @@ export function PermissionsPageClient() {
                   showLabel
                 />
               </div>
-            ) : userPermissions && userPermissions.length > 0 ? (
+            ) : userPermissions?.length > 0 ? (
               <div className="space-y-3">
                 {userPermissions.map((permission) => (
                   <div

@@ -65,12 +65,16 @@ export const columnsDocuments = ({
         haveColumnFilter={false}
       />
     ),
-    cell: ({ row }) => (
-      <div className="wrap-break-words max-w-[100px] text-sm whitespace-break-spaces">
-        <span>{(row.getValue("Фактура / Дата") as string).split("/")[0]}</span>
-        <span>{(row.getValue("Фактура / Дата") as string).split("/")[1]}</span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const value = row.getValue("Фактура / Дата");
+      const parts = typeof value === "string" ? value.split("/") : ["", ""];
+      return (
+        <div className="wrap-break-words max-w-[100px] text-sm whitespace-break-spaces">
+          <span>{parts[0]}</span>
+          <span>{parts[1]}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "Дирекция",
@@ -92,7 +96,7 @@ export const columnsDocuments = ({
     header: "Реконструкция",
     cell: ({ row }) => (
       <div className="wrap-break-words max-w-[120px] text-sm whitespace-break-spaces">
-        {row.getValue("Реконструкция") || "Не"}
+        {row.getValue("Реконструкция") ?? "Не"}
       </div>
     ),
   },
@@ -109,9 +113,13 @@ export const columnsDocuments = ({
     },
     cell: ({ row }) => {
       const value = row.getValue("Стойност на акта");
+      const displayValue =
+        typeof value === "string" || typeof value === "number"
+          ? String(value)
+          : null;
       return (
         <div className="wrap-break-words text-sm whitespace-break-spaces">
-          {value ? `${value}` : "0.00 лв."}
+          {displayValue ?? "0.00 лв."}
         </div>
       );
     },

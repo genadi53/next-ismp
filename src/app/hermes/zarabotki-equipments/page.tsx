@@ -137,12 +137,14 @@ export default function ZarabotkiEquipmentsPage() {
       }
 
       await replaceMutation.mutateAsync(zarabotki);
-    } catch (err: any) {
+    } catch (err) {
       logError("ZarabotkiEquipments: Error sending zarabotki data:", err, {
         dataExample: data[0],
       });
 
-      setError(err?.message ?? "Unknown error");
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
       return toast({
         title: "Грешка",
         variant: "destructive",
@@ -280,11 +282,11 @@ export default function ZarabotkiEquipmentsPage() {
                                 {item.Показател}
                               </TableCell>
                               <TableCell className="text-right font-medium">
-                                {item.Количество_показател?.toFixed(2) ||
+                                {item.Количество_показател?.toFixed(2) ??
                                   "0.00"}
                               </TableCell>
                               <TableCell className="text-right font-semibold">
-                                {item.Общо_сума?.toFixed(2) || "0.00"}
+                                {item.Общо_сума?.toFixed(2) ?? "0.00"}
                               </TableCell>
                             </TableRow>
                           ))}

@@ -27,8 +27,8 @@ export function SendLoadsPageClient() {
           title: "Успешно изпратено",
           description: `Курсовете (${data.count}) са изпратени успешно.`,
         });
-        utils.loads.loads.getAll.invalidate();
-        utils.loads.loads.getUnsent.invalidate();
+        void utils.loads.loads.getAll.invalidate();
+        void utils.loads.loads.getUnsent.invalidate();
         router.push("/loads");
       },
       onError: (error) => {
@@ -77,7 +77,7 @@ export function SendLoadsPageClient() {
         </Button>
       </div>
 
-      {unsentLoads && unsentLoads.length > 0 && (
+      {unsentLoads?.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-gray-200">
           <Table>
             <TableHeader>
@@ -124,15 +124,15 @@ export function SendLoadsPageClient() {
                     {load.Truck}
                   </TableCell>
                   <TableCell className="border-r border-gray-200 text-center">
-                    {load.AddMaterial || "-"}
+                    {load.AddMaterial ?? "-"}
                   </TableCell>
                   <TableCell className="border-r border-gray-200 text-center">
-                    {load.RemoveMaterial || "-"}
+                    {load.RemoveMaterial ?? "-"}
                   </TableCell>
                   <TableCell className="border-r border-gray-200 text-center">
                     {load.Br ?? "-"}
                   </TableCell>
-                  <TableCell>{load.userAdded || "-"}</TableCell>
+                  <TableCell>{load.userAdded ?? "-"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

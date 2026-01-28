@@ -19,9 +19,9 @@ export const loadsSchema = z
   .refine(
     (data) => {
       // Check if exactly one of AddMaterial or RemoveMaterial has a value
-      const hasAddMaterial = data.AddMaterial && data.AddMaterial.trim() !== "";
+      const hasAddMaterial = data.AddMaterial?.trim() !== "";
       const hasRemoveMaterial =
-        data.RemoveMaterial && data.RemoveMaterial.trim() !== "";
+        data.RemoveMaterial?.trim() !== "";
 
       // Return true if exactly one has a value (XOR logic)
       return hasAddMaterial !== hasRemoveMaterial;

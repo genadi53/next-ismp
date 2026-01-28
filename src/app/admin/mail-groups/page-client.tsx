@@ -96,7 +96,7 @@ export function MailGroupsPageClient() {
         {showForm && (
           <div className="mb-6">
             <MailGroupForm
-              mailGroup={editingMailGroup || undefined}
+              mailGroup={editingMailGroup ?? undefined}
               onCancel={handleCancel}
             />
           </div>
@@ -132,7 +132,7 @@ export function MailGroupsPageClient() {
             </CardHeader>
             <CardContent>
               <MailGroupsTable
-                mailGroups={mailGroups || []}
+                mailGroups={mailGroups ?? []}
                 onEditClick={handleEdit}
               />
             </CardContent>

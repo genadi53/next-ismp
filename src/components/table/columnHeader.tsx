@@ -28,8 +28,7 @@ export function DataTableColumnHeader<TData, TValue>({
   title,
   longTitle,
   className,
-  // @ts-expect-error: Unsued variable
-  splitString = " ",
+  splitString: _splitString = " ",
   haveColumnFilter = true,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
@@ -46,8 +45,7 @@ export function DataTableColumnHeader<TData, TValue>({
                   .filter((word) => !!word)
                   .map((word, idx) => <span key={word + idx}>{word}</span>)} */}
 
-          {longTitle &&
-            longTitle.map((word, idx) => <span key={word + idx}>{word}</span>)}
+          {longTitle?.map((word, idx) => <span key={word + idx}>{word}</span>)}
           {!longTitle && title}
         </span>
       </div>
@@ -74,10 +72,9 @@ export function DataTableColumnHeader<TData, TValue>({
                   .filter((word) => !!word)
                   .map((word, idx) => <span key={word + idx}>{word}</span>)} */}
 
-              {longTitle &&
-                longTitle.map((word, idx) => (
-                  <span key={word + idx}>{word}</span>
-                ))}
+              {longTitle?.map((word, idx) => (
+                <span key={word + idx}>{word}</span>
+              ))}
               {!longTitle && title}
             </span>
             {column.getIsSorted() === "desc" ? (

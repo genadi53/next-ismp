@@ -67,7 +67,7 @@ const parseTimeValue = (value: string | Date | null | undefined): string => {
   // Try to extract time from ISO date string WITHOUT timezone conversion
   // This handles formats like "2024-01-08T11:00:00Z" or "2024-01-08T11:00:00.000Z"
   // We extract the time portion directly from the string, not via Date object
-  const isoTimeMatch = value.match(/T(\d{2}):(\d{2})/);
+  const isoTimeMatch = /T(\d{2}):(\d{2})/.exec(value);
   if (isoTimeMatch) {
     const hours = Number(isoTimeMatch[1]);
     const minutes = Number(isoTimeMatch[2]);
@@ -86,7 +86,7 @@ const parseTimeValue = (value: string | Date | null | undefined): string => {
   }
 
   // Try to extract time from SQL Server datetime format "YYYY-MM-DD HH:mm:ss"
-  const sqlTimeMatch = value.match(/\d{4}-\d{2}-\d{2}\s+(\d{2}):(\d{2})/);
+  const sqlTimeMatch = /\d{4}-\d{2}-\d{2}\s+(\d{2}):(\d{2})/.exec(value);
   if (sqlTimeMatch) {
     const hours = Number(sqlTimeMatch[1]);
     const minutes = Number(sqlTimeMatch[2]);
@@ -206,8 +206,8 @@ export const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
         // If has colon but incomplete minutes
         else {
           const parts = displayValue.split(":");
-          const hours = parts[0] || "00";
-          const minutes = parts[1] || "00";
+          const hours = parts[0] ?? "00";
+          const minutes = parts[1] ?? "00";
           const paddedHours = hours.padStart(2, "0");
           const paddedMinutes = minutes.padStart(2, "0");
           formatted = `${paddedHours}:${paddedMinutes}`;

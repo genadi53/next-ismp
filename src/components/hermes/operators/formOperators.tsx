@@ -44,13 +44,16 @@ export const OperatorsForm = ({
 }: OperatorsFormProps = {}) => {
   const utils = api.useUtils();
 
-  const defaultFormValues: CreateOperatorInput = {
-    OperatorName: "",
-    OperatorId: 0,
-    Dlazhnost: "",
-    Department: "",
-    Zveno: "",
-  };
+  const defaultFormValues = useMemo<CreateOperatorInput>(
+    () => ({
+      OperatorName: "",
+      OperatorId: 0,
+      Dlazhnost: "",
+      Department: "",
+      Zveno: "",
+    }),
+    [],
+  );
 
   const createMutation = api.hermes.operators.create.useMutation({
     onSuccess: () => {
@@ -58,7 +61,7 @@ export const OperatorsForm = ({
         title: "Успешно",
         description: "Операторът е успешно създаден.",
       });
-      utils.hermes.operators.getAll.invalidate();
+      void utils.hermes.operators.getAll.invalidate();
       form.reset(defaultFormValues);
       onSuccess?.();
     },
@@ -77,7 +80,7 @@ export const OperatorsForm = ({
         title: "Успешно",
         description: "Операторът е успешно обновен.",
       });
-      utils.hermes.operators.getAll.invalidate();
+      void utils.hermes.operators.getAll.invalidate();
       form.reset(defaultFormValues);
       onSuccess?.();
     },
@@ -102,7 +105,7 @@ export const OperatorsForm = ({
       };
     }
     return defaultFormValues;
-  }, [operatorToEdit]);
+  }, [operatorToEdit, defaultFormValues]);
 
   const form = useForm<CreateOperatorInput>({
     resolver: zodResolver(createOperatorSchema),
@@ -159,7 +162,7 @@ export const OperatorsForm = ({
                     <FormLabel>Длъжност</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value || ""}
+                      value={field.value ?? ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full min-w-0">
@@ -189,7 +192,7 @@ export const OperatorsForm = ({
                     <FormLabel>Отдел</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value || ""}
+                      value={field.value ?? ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full min-w-0">
@@ -245,7 +248,7 @@ export const OperatorsForm = ({
                     <FormLabel>Звено</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value || ""}
+                      value={field.value ?? ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full min-w-0">

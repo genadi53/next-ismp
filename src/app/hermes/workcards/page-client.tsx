@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { HermesWorkcard } from "@/server/repositories/hermes";
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, FileText } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { NoResults } from "@/components/NoResults";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DataTableWorkcards } from "@/components/hermes/workcards/tableWorkcards";
 import { workcardsColumns } from "@/components/hermes/workcards/columnsWorkcards";
+import { Container } from "@/components/Container";
 import { WorkcardForm } from "@/components/hermes/workcards/formWorkcards";
 
 export function WorkcardsPageClient() {
@@ -46,34 +47,40 @@ export function WorkcardsPageClient() {
   const utils = api.useUtils();
   const deleteMutation = api.hermes.workcards.delete.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Работната карта е изтрита успешно.",
       });
-      utils.hermes.workcards.getAll.invalidate();
+      void utils.hermes.workcards.getAll.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при изтриването.",
+        variant: "destructive",
       });
     },
   });
 
-  const handleEdit = (workcard: HermesWorkcard) => {
+  const handleEdit = useCallback((workcard: HermesWorkcard) => {
     setWorkcardToEdit(workcard);
     setShowForm(true);
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }, 100);
-  };
+  }, []);
 
-  const handlePrint = (workcard: HermesWorkcard) => {
-    router.push(`/hermes/workcards/${workcard.Id}/print`);
-  };
+  const handlePrint = useCallback(
+    (workcard: HermesWorkcard) => {
+      router.push(`/hermes/workcards/${workcard.Id}/print`);
+    },
+    [router],
+  );
 
-  const handleDelete = (workcard: HermesWorkcard) => {
+  const handleDelete = useCallback((workcard: HermesWorkcard) => {
     setWorkcardToDelete(workcard);
     setShowDeleteDialog(true);
-  };
+  }, []);
 
   const confirmDelete = async () => {
     if (!workcardToDelete) return;
@@ -92,45 +99,60 @@ export function WorkcardsPageClient() {
     setShowForm(false);
   };
 
-  return (
-    <>
-      {/* Header Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={() => {
-            if (showForm) {
-              setWorkcardToEdit(undefined);
-              setShowForm(false);
-            } else {
-              setWorkcardToEdit(undefined);
-              setShowForm(true);
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 100);
-            }
-          }}
-          variant={showForm ? "outline" : "ell"}
-          size="lg"
-          className={cn(
-            "gap-2 transition-colors duration-200",
-            showForm &&
-              "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
-          )}
-        >
-          {!showForm ? (
-            <>
-              <Plus className="h-5 w-5" />
-              <span>Добави Работна карта</span>
-            </>
-          ) : (
-            <>
-              <X className="h-5 w-5" />
-              <span>Затвори</span>
-            </>
-          )}
-        </Button>
-      </div>
+  const columns = useMemo(
+    () =>
+      workcardsColumns({
+        actions: {
+          edit: handleEdit,
+          print: handlePrint,
+          delete: handleDelete,
+        },
+      }),
+    [handleEdit, handlePrint, handleDelete],
+  );
 
+  return (
+    <Container
+      title="Управление на работни карти"
+      description="Добавяне и редакция на работни карти в системата Hermes"
+      headerChildren={
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => {
+              if (showForm) {
+                setWorkcardToEdit(undefined);
+                setShowForm(false);
+              } else {
+                setWorkcardToEdit(undefined);
+                setShowForm(true);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }, 100);
+              }
+            }}
+            variant={showForm ? "outline" : "ell"}
+            size="lg"
+            className={cn(
+              "gap-2 transition-colors duration-200",
+              showForm &&
+                "text-ell-primary hover:text-ell-primary shadow-ell-primary/40",
+            )}
+          >
+            {!showForm ? (
+              <>
+                <Plus className="h-5 w-5" />
+                <span>Добави Работна карта</span>
+              </>
+            ) : (
+              <>
+                <X className="h-5 w-5" />
+                <span>Затвори</span>
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
       {/* Form Section */}
       {showForm && (
         <Card className="mb-4 shadow-lg">
@@ -187,7 +209,7 @@ export function WorkcardsPageClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {workcards && workcards.length === 0 && (
+            {workcards?.length === 0 && (
               <NoResults
                 title="Няма добавени работни карти"
                 description="Започнете като добавите първата работна карта чрез формата отгоре"
@@ -195,17 +217,8 @@ export function WorkcardsPageClient() {
               />
             )}
 
-            {workcards && workcards.length > 0 && (
-              <DataTableWorkcards
-                columns={workcardsColumns({
-                  actions: {
-                    edit: handleEdit,
-                    print: handlePrint,
-                    delete: handleDelete,
-                  },
-                })}
-                data={workcards}
-              />
+            {workcards?.length > 0 && (
+              <DataTableWorkcards columns={columns} data={workcards} />
             )}
           </CardContent>
         </Card>
@@ -215,15 +228,12 @@ export function WorkcardsPageClient() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Сигурни ли сте, че искате да изтриете тази работна карта?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Това действие не може да бъде отменено. Работната карта ще бъде
               изтрита перманентно.
-              {workcardToDelete && (
-                <div className="bg-muted mt-2 rounded p-2">
-                  <strong>Работна карта ID:</strong> {workcardToDelete.Id}
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -239,6 +249,6 @@ export function WorkcardsPageClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </Container>
   );
 }

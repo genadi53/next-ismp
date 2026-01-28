@@ -31,12 +31,12 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
     const utils = api.useUtils();
     const createMutation = api.dma.assets.create.useMutation({
         onSuccess: () => {
-            utils.dma.assets.getAll.invalidate();
+            void utils.dma.assets.getAll.invalidate();
         },
     });
     const updateMutation = api.dma.assets.update.useMutation({
         onSuccess: () => {
-            utils.dma.assets.getAll.invalidate();
+            void utils.dma.assets.getAll.invalidate();
         },
     });
 
@@ -55,10 +55,10 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
         if (assetToEdit) {
             form.reset({
                 Name: assetToEdit.Name,
-                Marka: assetToEdit.Marka || "",
-                Model: assetToEdit.Model || "",
+                Marka: assetToEdit.Marka ?? "",
+                Model: assetToEdit.Model ?? "",
                 EdPrice: Number(assetToEdit.EdPrice) || 0,
-                Description: assetToEdit.Description || "",
+                Description: assetToEdit.Description ?? "",
             });
         } else {
             form.reset({
@@ -154,7 +154,7 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
                                             <Input
                                                 type="text"
                                                 placeholder="Въведете марка"
-                                                value={field.value || ""}
+                                                value={field.value ?? ""}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 name={field.name}
@@ -177,7 +177,7 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
                                             <Input
                                                 type="text"
                                                 placeholder="Въведете модел"
-                                                value={field.value || ""}
+                                                value={field.value ?? ""}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 name={field.name}
@@ -203,9 +203,7 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
                                                     step="0.01"
                                                     placeholder="Въведете цена"
                                                     value={
-                                                        field.value === null || field.value === undefined
-                                                            ? ""
-                                                            : field.value
+                                                        field.value ?? ""
                                                     }
                                                     onChange={(e) => {
                                                         const val = e.target.value;
@@ -234,7 +232,7 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Въведете описание на актива"
-                                                value={field.value || ""}
+                                                value={field.value ?? ""}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 name={field.name}

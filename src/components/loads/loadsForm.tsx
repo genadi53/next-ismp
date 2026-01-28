@@ -65,7 +65,7 @@ export const LoadsForm = ({
           title: "Успех",
           description: "Записът е успешен.",
         });
-        utils.loads.loads.getAll.invalidate();
+        void utils.loads.loads.getAll.invalidate();
         form.reset(DefaultFormValues);
         onCancelEdit?.();
       },
@@ -87,7 +87,7 @@ export const LoadsForm = ({
           title: "Успех",
           description: "Записът е успешено променен.",
         });
-        utils.loads.loads.getAll.invalidate();
+        void utils.loads.loads.getAll.invalidate();
         form.reset(DefaultFormValues);
         onCancelEdit?.();
       },
@@ -110,11 +110,11 @@ export const LoadsForm = ({
         Shift: loadToEdit.Shift
           ? Number(loadToEdit.Shift)
           : DefaultFormValues.Shift,
-        Shovel: loadToEdit.Shovel || "",
-        Truck: loadToEdit.Truck || "",
-        Br: loadToEdit.Br || 0,
-        AddMaterial: loadToEdit.AddMaterial?.trim() || "",
-        RemoveMaterial: loadToEdit.RemoveMaterial?.trim() || "",
+        Shovel: loadToEdit.Shovel ?? "",
+        Truck: loadToEdit.Truck ?? "",
+        Br: loadToEdit.Br ?? 0,
+        AddMaterial: loadToEdit.AddMaterial?.trim() ?? "",
+        RemoveMaterial: loadToEdit.RemoveMaterial?.trim() ?? "",
       };
     }
     return DefaultFormValues;
@@ -278,7 +278,7 @@ export const LoadsForm = ({
                       <Input
                         placeholder="Изберете багер"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     )}
@@ -316,7 +316,7 @@ export const LoadsForm = ({
                         type="text"
                         placeholder="Изберете камион"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     )}
@@ -342,7 +342,7 @@ export const LoadsForm = ({
                         onChange={(e) =>
                           field.onChange(parseInt(e.target.value) || 0)
                         }
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -360,7 +360,7 @@ export const LoadsForm = ({
                     <FormLabel>Добавен материал</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value)}
-                      value={field.value || ""}
+                      value={field.value ?? ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -390,7 +390,7 @@ export const LoadsForm = ({
                     <FormLabel>Премахнат материал</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value)}
-                      value={field.value || ""}
+                      value={field.value ?? ""}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">

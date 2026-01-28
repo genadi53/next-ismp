@@ -16,8 +16,7 @@ import { ScrollArea } from "./scroll-area";
 type ComboboxData = {
   label: string;
   value: string;
-  [key: string]: string | number;
-};
+} & Record<string, string | number>;
 
 type ComboboxProps = {
   placeholderString?: string;
@@ -54,7 +53,7 @@ export function Combobox({
     if (!value) return null;
     const foundItem = list.find((item) => item.value === value);
     // If value exists but not in list yet, show the value itself
-    return foundItem?.label || value;
+    return foundItem?.label ?? value;
   }, [list, value]);
 
   // Reset search and focused index when popover closes
@@ -104,7 +103,7 @@ export function Combobox({
         if (focusedIndex >= 0 && focusedIndex < filteredData.length) {
           const item = filteredData[focusedIndex];
           const newValue = item?.value === value ? "" : item?.value;
-          onValueChange?.(newValue || "");
+          onValueChange?.(newValue ?? "");
           setOpen(false);
         }
         break;

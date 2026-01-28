@@ -24,7 +24,7 @@ export function ColorConverter(value: string, toRgb: boolean): string {
     // Convert RGB → HEX
     const rgbMatch = value.match(/\d+/g);
 
-    if (!rgbMatch || rgbMatch.length !== 3) {
+    if (!rgbMatch?.length || rgbMatch.length !== 3) {
       throw new Error("Invalid RGB format. Expected format: (r,g,b)");
     }
 

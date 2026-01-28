@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function NotFound() {
   return (
     <>
@@ -11,7 +13,7 @@ export default function NotFound() {
             Sorry, we couldn&apos;t find the page you&apos;re looking for.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <a
+            <Link
               href="/"
               className="rounded-md bg-orange-500 px-3.5 py-2.5 text-sm 
               font-semibold text-white shadow-sm hover:bg-dark-green 
@@ -19,7 +21,7 @@ export default function NotFound() {
               focus-visible:outline-offset-1 focus-visible:outline-secondary-green"
             >
               Go back home
-            </a>
+            </Link>
             <a
               href="mailto:ismpsupport@helpdesk.ellatzite-med.com?subject=ИСМП Портал - Поддръжка&cc=p.penkov@ellatzite-med.com;genadi.tsolov@ellatzite-med.com"
               className="text-sm font-semibold text-accent-foreground"

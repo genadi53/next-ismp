@@ -100,7 +100,7 @@ export const loadsColumns = ({
       const addMaterial: string | null = row.getValue("AddMaterial");
       return (
         <div className="max-w-sm text-sm wrap-break-word whitespace-break-spaces">
-          {addMaterial || "-"}
+          {addMaterial ?? "-"}
         </div>
       );
     },
@@ -119,7 +119,7 @@ export const loadsColumns = ({
       const removeMaterial: string | null = row.getValue("RemoveMaterial");
       return (
         <div className="max-w-sm text-sm wrap-break-word whitespace-break-spaces">
-          {removeMaterial || "-"}
+          {removeMaterial ?? "-"}
         </div>
       );
     },
@@ -137,7 +137,7 @@ export const loadsColumns = ({
       const userAdded: string | null = row.getValue("userAdded");
       return (
         <div className="max-w-sm text-sm wrap-break-word whitespace-break-spaces">
-          {userAdded?.replaceAll("@ELLATZITE-MED.COM", "") || "-"}
+          {userAdded?.replaceAll("@ELLATZITE-MED.COM", "") ?? "-"}
         </div>
       );
     },

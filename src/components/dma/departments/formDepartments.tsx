@@ -36,12 +36,12 @@ export const DepartmentsForm = ({
   const utils = api.useUtils();
   const createMutation = api.dma.departments.create.useMutation({
     onSuccess: () => {
-      utils.dma.departments.getAll.invalidate();
+      void utils.dma.departments.getAll.invalidate();
     },
   });
   const updateMutation = api.dma.departments.update.useMutation({
     onSuccess: () => {
-      utils.dma.departments.getAll.invalidate();
+      void utils.dma.departments.getAll.invalidate();
     },
   });
 
@@ -83,11 +83,11 @@ export const DepartmentsForm = ({
     try {
       const data = {
         Department: values.Department,
-        DepMol: values.DepMol || null,
-        DepMolDuty: values.DepMolDuty || null,
-        DeptApproval: values.DeptApproval || null,
-        DeptApprovalDuty: values.DeptApprovalDuty || null,
-        DepartmentDesc: values.DepartmentDesc || null,
+        DepMol: values.DepMol ?? null,
+        DepMolDuty: values.DepMolDuty ?? null,
+        DeptApproval: values.DeptApproval ?? null,
+        DeptApprovalDuty: values.DeptApprovalDuty ?? null,
+        DepartmentDesc: values.DepartmentDesc ?? null,
       };
       if (departmentToEdit) {
         await updateMutation.mutateAsync({ id: departmentToEdit.Id, data });

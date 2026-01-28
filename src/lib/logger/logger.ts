@@ -1,16 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
+// Dynamic require() for Winston logger is necessary for conditional server-side loading
 // Client-side console logger fallback
 const consoleLogger = {
   info: (message: string, metadata?: Record<string, unknown>) => {
-    console.log(`[INFO] ${message}`, metadata || "");
+    console.log(`[INFO] ${message}`, metadata ?? "");
   },
   debug: (message: string, metadata?: Record<string, unknown>) => {
-    console.debug(`[DEBUG] ${message}`, metadata || "");
+    console.debug(`[DEBUG] ${message}`, metadata ?? "");
   },
   warn: (message: string, metadata?: Record<string, unknown>) => {
-    console.warn(`[WARN] ${message}`, metadata || "");
+    console.warn(`[WARN] ${message}`, metadata ?? "");
   },
   error: (message: string, metadata?: Record<string, unknown>) => {
-    console.error(`[ERROR] ${message}`, metadata || "");
+    console.error(`[ERROR] ${message}`, metadata ?? "");
   },
 };
 
@@ -100,7 +102,7 @@ export function logWarn(
  */
 export function logError(
   message: string,
-  error?: Error | unknown,
+  error?: unknown,
   metadata?: Record<string, unknown>,
 ): void {
   const errorMetadata: Record<string, unknown> = {

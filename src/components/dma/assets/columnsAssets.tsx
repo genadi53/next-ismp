@@ -84,7 +84,7 @@ export const assetsColumns = ({
       cell: ({ row }) => {
         const EdPrice: number | null = row.getValue("EdPrice");
         const Currency: string | null = row.original.Currency;
-        const currencySymbol = Currency && Currency.trim() === "EUR" ? "€" : "лв.";
+        const currencySymbol = Currency?.trim() === "EUR" ? "€" : "лв.";
 
         return (
           <div className="text-sm">

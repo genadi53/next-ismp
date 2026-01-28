@@ -45,20 +45,23 @@ export const EquipmentForm = ({
 }) => {
   const utils = api.useUtils();
 
-  const defaultFormValues: CreateEquipmentInput = {
-    DT_smetka: 0,
-    Obekt: "",
-    DT_Priz1_ceh: "",
-    DT_Priz2_kod_zveno: "",
-    DT_Priz3_kod_eqmt: "",
-    EqmtName: "",
-    EqmtGroupName: "",
-    PriceMinnaMasa: 0,
-    PriceShists: 0,
-    PriceGrano: 0,
-    DspEqmt: "",
-    Active: 0,
-  };
+  const defaultFormValues = useMemo<CreateEquipmentInput>(
+    () => ({
+      DT_smetka: 0,
+      Obekt: "",
+      DT_Priz1_ceh: "",
+      DT_Priz2_kod_zveno: "",
+      DT_Priz3_kod_eqmt: "",
+      EqmtName: "",
+      EqmtGroupName: "",
+      PriceMinnaMasa: 0,
+      PriceShists: 0,
+      PriceGrano: 0,
+      DspEqmt: "",
+      Active: 0,
+    }),
+    [],
+  );
 
   const createMutation = api.hermes.equipments.create.useMutation({
     onSuccess: () => {
@@ -67,7 +70,7 @@ export const EquipmentForm = ({
         description: "Оборудването е успешно създадено.",
         variant: "default",
       });
-      utils.hermes.equipments.getAll.invalidate();
+      void utils.hermes.equipments.getAll.invalidate();
       form.reset(defaultFormValues);
       onSuccess?.();
     },
@@ -88,7 +91,7 @@ export const EquipmentForm = ({
         description: "Оборудването е успешно обновено.",
         variant: "default",
       });
-      utils.hermes.equipments.getAll.invalidate();
+      void utils.hermes.equipments.getAll.invalidate();
       form.reset(defaultFormValues);
       onSuccess?.();
     },
@@ -121,7 +124,7 @@ export const EquipmentForm = ({
       };
     }
     return defaultFormValues;
-  }, [equipmentToEdit]);
+  }, [equipmentToEdit, defaultFormValues]);
 
   const form = useForm<CreateEquipmentInput>({
     resolver: zodResolver(createEquipmentSchema),
@@ -347,7 +350,7 @@ export const EquipmentForm = ({
                         type="text"
                         placeholder="Dispatch name"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormDescription className="text-xs text-gray-500">
@@ -397,7 +400,7 @@ export const EquipmentForm = ({
                         step="0.01"
                         placeholder="Цена минна маса"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
                             e.target.value === ""
@@ -426,7 +429,7 @@ export const EquipmentForm = ({
                         step="0.01"
                         placeholder="Цена шисти"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
                             e.target.value === ""
@@ -455,7 +458,7 @@ export const EquipmentForm = ({
                         step="0.01"
                         placeholder="Цена гранодиорит"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
                             e.target.value === ""

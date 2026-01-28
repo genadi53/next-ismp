@@ -46,7 +46,7 @@ export function AssetsPageClient() {
         title: "Успешно",
         description: "Активът е изтрит успешно.",
       });
-      utils.dma.assets.getAll.invalidate();
+      void utils.dma.assets.getAll.invalidate();
     },
     onError: (error) => {
       toast({
@@ -159,7 +159,7 @@ export function AssetsPageClient() {
             <AssetsForm
               assetToEdit={assetToEdit}
               onFormSubmit={() => {
-                utils.dma.assets.getAll.invalidate();
+                void utils.dma.assets.getAll.invalidate();
                 handleCancelEdit();
               }}
             />
@@ -185,7 +185,7 @@ export function AssetsPageClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {assets && assets.length === 0 && (
+            {assets?.length === 0 && (
               <NoResults
                 title="Няма намерени активи"
                 description="Опитайте отново или се свържете с администратор."
@@ -193,7 +193,7 @@ export function AssetsPageClient() {
               />
             )}
 
-            {assets && assets.length > 0 && (
+            {assets?.length > 0 && (
               <DataTableAssets
                 columns={assetsColumns({
                   actions: {

@@ -41,10 +41,10 @@ export function MailGroupForm({ mailGroup, onCancel }: MailGroupFormProps) {
   const form = useForm<MailGroupFormData>({
     resolver: zodResolver(mailGroupSchema),
     defaultValues: {
-      module: mailGroup?.module || "",
-      action: mailGroup?.action || "",
-      mail_group_name: mailGroup?.mail_group_name || "",
-      mail_group: mailGroup?.mail_group || "",
+      module: mailGroup?.module ?? "",
+      action: mailGroup?.action ?? "",
+      mail_group_name: mailGroup?.mail_group_name ?? "",
+      mail_group: mailGroup?.mail_group ?? "",
     },
   });
 
@@ -52,7 +52,7 @@ export function MailGroupForm({ mailGroup, onCancel }: MailGroupFormProps) {
   const { mutateAsync: createMailGroup, isPending: isCreating } =
     api.admin.mailGroups.create.useMutation({
       onSuccess: () => {
-        utils.admin.mailGroups.getAll.invalidate();
+        void utils.admin.mailGroups.getAll.invalidate();
         toast({
           title: "Успех",
           description: "Имейл групата е успешно създадена.",
@@ -71,7 +71,7 @@ export function MailGroupForm({ mailGroup, onCancel }: MailGroupFormProps) {
   const { mutateAsync: updateMailGroup, isPending: isUpdating } =
     api.admin.mailGroups.update.useMutation({
       onSuccess: () => {
-        utils.admin.mailGroups.getAll.invalidate();
+        void utils.admin.mailGroups.getAll.invalidate();
         toast({
           title: "Успех",
           description: "Имейл групата е успешно обновена.",
@@ -89,9 +89,9 @@ export function MailGroupForm({ mailGroup, onCancel }: MailGroupFormProps) {
 
   const handleSubmit = async (data: MailGroupFormData) => {
     setIsSubmitting(true);
-    if (mailGroup) {
+    if (mailGroup?.Id) {
       await updateMailGroup({
-        id: mailGroup.Id!,
+        id: mailGroup.Id,
         data: {
           ...data,
         },
@@ -174,7 +174,7 @@ export function MailGroupForm({ mailGroup, onCancel }: MailGroupFormProps) {
                 <FormItem>
                   <FormLabel>Имейли</FormLabel>
                   <FormDescription>
-                    Моля, разделете имейлите с ";"
+                    Моля, разделете имейлите с {"\";\""}
                   </FormDescription>
                   <FormControl>
                     <Textarea

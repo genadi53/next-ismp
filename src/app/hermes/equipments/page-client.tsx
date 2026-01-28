@@ -47,7 +47,7 @@ export function EquipmentsPageClient() {
         title: "Успешно",
         description: "Оборудването е изтрито успешно.",
       });
-      utils.hermes.equipments.getAll.invalidate();
+      void utils.hermes.equipments.getAll.invalidate();
     },
     onError: (error) => {
       toast({
@@ -184,7 +184,7 @@ export function EquipmentsPageClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {equipments && equipments.length === 0 && (
+            {equipments?.length === 0 && (
               <NoResults
                 title="Няма добавено оборудване"
                 description="Започнете като добавите първото оборудване чрез формата отгоре"
@@ -192,7 +192,7 @@ export function EquipmentsPageClient() {
               />
             )}
 
-            {equipments && equipments.length > 0 && (
+            {equipments?.length > 0 && (
               <DataTableEquipment
                 columns={equipmentColumns({
                   actions: {

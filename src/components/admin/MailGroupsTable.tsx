@@ -39,7 +39,7 @@ export function MailGroupsTable({
   const { mutateAsync: deleteMailGroup } =
     api.admin.mailGroups.delete.useMutation({
       onSuccess: () => {
-        utils.admin.mailGroups.getAll.invalidate();
+        void utils.admin.mailGroups.getAll.invalidate();
         toast({
           title: "Успех",
           description: "Имейл групата е успешно изтрита.",
@@ -77,14 +77,14 @@ export function MailGroupsTable({
       </TableHeader>
       <TableBody>
         {mailGroups.map((mailGroup) => (
-          <TableRow key={mailGroup.Id || mailGroup.mail_group_name}>
+          <TableRow key={mailGroup.Id ?? mailGroup.mail_group_name}>
             <TableCell className="font-medium">{mailGroup.module}</TableCell>
             <TableCell>{mailGroup.action}</TableCell>
             <TableCell>{mailGroup.mail_group_name}</TableCell>
             <TableCell>
               <div
                 className="flex flex-col whitespace-normal"
-                title={mailGroup.mail_group || undefined}
+                title={mailGroup.mail_group ?? undefined}
               >
                 {mailGroup.mail_group?.split(";").map((email, idx) => (
                   <div key={`${email}-${idx + 1}`}>{email}</div>
@@ -112,14 +112,18 @@ export function MailGroupsTable({
                         Изтриване на имейл група
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Сигурни ли сте, че желаете да изтриете имейл групата "
-                        {mailGroup.mail_group_name}"?
+                        Сигурни ли сте, че желаете да изтриете имейл групата {"\""}
+                        {mailGroup.mail_group_name}{"\""}?
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Отказ</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => deleteMailGroup({ id: mailGroup.Id! })}
+                        onClick={() => {
+                          if (mailGroup.Id) {
+                            void deleteMailGroup({ id: mailGroup.Id });
+                          }
+                        }}
                         className="bg-destructive hover:bg-destructive/90 text-white"
                       >
                         Изтриване

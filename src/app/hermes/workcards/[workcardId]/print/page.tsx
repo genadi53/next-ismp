@@ -70,7 +70,7 @@ export default function PrintWorkcardPage() {
       </div>
 
       <h1 className="pt-8 text-center text-xl font-bold underline">
-        <span className="uppercase">"Елаците - МЕД" АД, </span>
+        <span className="uppercase">{"\"Елаците - МЕД\""} АД, </span>
         село <span className="uppercase">Мирково</span>
       </h1>
 
@@ -81,12 +81,12 @@ export default function PrintWorkcardPage() {
 
       <div className="pt-8 text-base">
         За участие на: {workcard.OperatorName} с работен номер{" "}
-        {workcard.OperatorId}, на длъжност "{dlacnost}", работна смяна{" "}
+        {workcard.OperatorId}, на длъжност {"\""}{dlacnost}{"\""}, работна смяна{" "}
         <span className="capitalize">{smena}</span>, в извършването на{" "}
         {codeAction} на автосамосвал с инв. № {workcard.EqmtId}, на{" "}
         {format(new Date(workcard.Date), "dd.MM.yyyy")} година, за времето от{" "}
-        {format(new Date(workcard.StartTime || ""), "HH:mm")} до{" "}
-        {format(new Date(workcard.EndTime || ""), "HH:mm")} часа.
+        {format(new Date(workcard.StartTime ?? ""), "HH:mm")} до{" "}
+        {format(new Date(workcard.EndTime ?? ""), "HH:mm")} часа.
       </div>
 
       <div className="pt-12 text-center text-base">

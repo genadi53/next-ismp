@@ -26,7 +26,7 @@ export function SuppliersPageClient() {
   const [suppliers] = api.dma.suppliers.getAll.useSuspenseQuery(undefined);
   const deleteSupplierMutation = api.dma.suppliers.delete.useMutation({
     onSuccess: () => {
-      utils.dma.suppliers.getAll.invalidate();
+      void utils.dma.suppliers.getAll.invalidate();
       toast({
         title: "Успешно",
         description: "Доставчикът е изтрит успешно.",
@@ -136,7 +136,7 @@ export function SuppliersPageClient() {
             <SuppliersForm
               supplierToEdit={supplierToEdit ?? null}
               onFormSubmit={() => {
-                utils.dma.suppliers.getAll.invalidate();
+                void utils.dma.suppliers.getAll.invalidate();
                 handleCancelEdit();
               }}
             />
@@ -163,7 +163,7 @@ export function SuppliersPageClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {suppliers && suppliers.length === 0 && (
+            {suppliers?.length === 0 && (
               <NoResults
                 icon={<Building2 className="text-ell-primary/50 size-12" />}
                 title="Няма доставчици"
@@ -171,7 +171,7 @@ export function SuppliersPageClient() {
               />
             )}
 
-            {suppliers && suppliers.length > 0 && (
+            {suppliers?.length > 0 && (
               <DataTableSuppliers
                 columns={suppliersColumns({
                   actions: {

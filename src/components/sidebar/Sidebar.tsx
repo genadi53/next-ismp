@@ -16,7 +16,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>(
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
     {},
   );
 

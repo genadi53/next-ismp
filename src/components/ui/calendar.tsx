@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import * as React from "react";
 import {
@@ -6,7 +5,12 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react";
-import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
+import {
+  type DayButton,
+  DayPicker,
+  getDefaultClassNames,
+  type DayPickerProps,
+} from "react-day-picker";
 
 import { cn } from "@/lib/cn";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -20,7 +24,7 @@ function Calendar({
   formatters,
   components,
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
+}: DayPickerProps & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const defaultClassNames = getDefaultClassNames();
@@ -36,7 +40,7 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       formatters={{
-        formatMonthDropdown: (date) =>
+        formatMonthDropdown: (date: Date) =>
           date.toLocaleString("default", { month: "short" }),
         ...formatters,
       }}
@@ -125,7 +129,13 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
+        Root: ({
+          className,
+          rootRef,
+          ...props
+        }: React.ComponentProps<"div"> & {
+          rootRef?: React.Ref<HTMLDivElement>;
+        }) => {
           return (
             <div
               data-slot="calendar"
@@ -135,7 +145,13 @@ function Calendar({
             />
           );
         },
-        Chevron: ({ className, orientation, ...props }) => {
+        Chevron: ({
+          className,
+          orientation,
+          ...props
+        }: React.ComponentProps<"svg"> & {
+          orientation?: "left" | "right" | "up" | "down";
+        }) => {
           if (orientation === "left") {
             return (
               <ChevronLeftIcon className={cn("size-4", className)} {...props} />
@@ -156,7 +172,12 @@ function Calendar({
           );
         },
         DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props }) => {
+        WeekNumber: ({
+          children,
+          ...props
+        }: React.ComponentProps<"td"> & {
+          children?: React.ReactNode;
+        }) => {
           return (
             <td {...props}>
               <div className="flex size-(--cell-size) items-center justify-center text-center">

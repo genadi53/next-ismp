@@ -54,7 +54,7 @@ export function LoadsPageClient() {
       description="Добавяне и редактиране на липсващи курсове"
       headerChildren={
         <div className="mb-4 flex items-center gap-2">
-          {unsentLoads && unsentLoads.length > 0 && (
+          {unsentLoads?.length > 0 && (
             <Button
               className="min-w-28"
               variant="outline"
@@ -171,7 +171,7 @@ export function LoadsPageClient() {
               </div>
             </CardHeader>
             <CardContent>
-              {loads && loads.length === 0 && (
+              {loads?.length === 0 && (
                 <NoResults
                   title="Няма намерени записи"
                   description="Опитайте отново или се свържете с администратор."
@@ -179,7 +179,7 @@ export function LoadsPageClient() {
                 />
               )}
 
-              {loads && loads.length > 0 && (
+              {loads?.length > 0 && (
                 <DataTableLoads
                   columns={loadsColumns({
                     actions: {

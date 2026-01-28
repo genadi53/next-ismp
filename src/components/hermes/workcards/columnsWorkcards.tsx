@@ -46,10 +46,8 @@ export const workcardsColumns = ({
     accessorKey: "StartTime",
     header: "Време начало-край",
     cell: ({ row }) => {
-      console.log(row);
       const StartTime: Date | null = row.original.StartTime;
       const EndTime: Date | null = row.original.EndTime;
-
       if (!StartTime || !EndTime) return <div className="text-base">-</div>;
 
       return (

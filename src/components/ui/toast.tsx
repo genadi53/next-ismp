@@ -21,11 +21,13 @@ export function toast(toast: Omit<ToastProps, "id">) {
     <Toast
       id={id}
       title={toast.title}
-      variant={toast.variant ? toast.variant : "default"}
+      variant={toast.variant ?? "default"}
       description={toast.description}
       button={{
-        label: toast.button?.label || "",
-        onClick: toast.button?.onClick || (() => {}),
+        label: toast.button?.label ?? "",
+        onClick: toast.button?.onClick ?? (() => {
+          // Empty function for button click handler
+        }),
       }}
     />
   ));
@@ -65,7 +67,7 @@ function Toast(props: ToastProps) {
         </div>
       </div>
 
-      {button && button.label && (
+      {button?.label && (
         <button
           onClick={() => {
             button?.onClick();

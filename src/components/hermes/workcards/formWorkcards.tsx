@@ -89,22 +89,33 @@ export const WorkcardForm = ({
 
   if (workcardToEdit) {
     Object.entries(workcardToEdit).map(([key, val]) => {
-      console.log(`${key} -> ${typeof val} -> ${val}`);
+      const valString =
+        val == null
+          ? "null"
+          : val instanceof Date
+            ? val.toISOString()
+            : typeof val === "object"
+              ? JSON.stringify(val)
+              : String(val);
+      console.log(`${key} -> ${typeof val} -> ${valString}`);
     });
   }
 
   const utils = api.useUtils();
 
-  const defaultFormValues: CreateWorkcardInput = {
-    Date: new Date(),
-    StartTime: "",
-    EndTime: "",
-    OperatorId: 0,
-    CodeAction: 0,
-    Note: "",
-    WorkingCardId: "",
-    EqmtId: 0,
-  };
+  const defaultFormValues = useMemo<CreateWorkcardInput>(
+    () => ({
+      Date: new Date(),
+      StartTime: "",
+      EndTime: "",
+      OperatorId: 0,
+      CodeAction: 0,
+      Note: "",
+      WorkingCardId: "",
+      EqmtId: 0,
+    }),
+    [],
+  );
 
   const createMutation = api.hermes.workcards.create.useMutation({
     onSuccess: () => {
@@ -112,7 +123,7 @@ export const WorkcardForm = ({
         title: "Успешно",
         description: "Работната карта е успешно създадена.",
       });
-      utils.hermes.workcards.getAll.invalidate();
+      void utils.hermes.workcards.getAll.invalidate();
       form.reset(defaultFormValues);
       onSuccess?.();
     },
@@ -131,7 +142,7 @@ export const WorkcardForm = ({
         title: "Успешно",
         description: "Работната карта е успешно обновена.",
       });
-      utils.hermes.workcards.getAll.invalidate();
+      void utils.hermes.workcards.getAll.invalidate();
       form.reset(defaultFormValues);
       onSuccess?.();
     },
@@ -150,12 +161,12 @@ export const WorkcardForm = ({
       return {
         Date: new Date(workcardToEdit.Date),
         StartTime:
-          format(workcardToEdit.StartTime || new Date(), "HH:mm") ?? "",
-        EndTime: format(workcardToEdit.EndTime || new Date(), "HH:mm") ?? "",
+          format(workcardToEdit.StartTime ?? new Date(), "HH:mm") ?? "",
+        EndTime: format(workcardToEdit.EndTime ?? new Date(), "HH:mm") ?? "",
         OperatorId:
           workcardDetails?.operators.find((op) =>
             op.Operator.includes(`${workcardToEdit.OperatorId}`),
-          )?.Id || 0,
+          )?.Id ?? 0,
         CodeAction:
           typeof workcardToEdit.CodeAction === "number"
             ? workcardToEdit.CodeAction
@@ -166,7 +177,7 @@ export const WorkcardForm = ({
       };
     }
     return defaultFormValues;
-  }, [workcardToEdit]);
+  }, [workcardToEdit, workcardDetails?.operators, defaultFormValues]);
 
   const form = useForm<CreateWorkcardInput>({
     resolver: zodResolver(createWorkcardSchema),
@@ -252,8 +263,8 @@ export const WorkcardForm = ({
                     <FormControl>
                       <TimeInput
                         placeholder="00:00"
-                        value={field.value || ""}
-                        onChange={(value) => field.onChange(value || "")}
+                        value={field.value ?? ""}
+                        onChange={(value) => field.onChange(value ?? "")}
                       />
                     </FormControl>
                     <FormMessage />
@@ -272,7 +283,7 @@ export const WorkcardForm = ({
                     <FormControl>
                       <TimeInput
                         placeholder="00:00"
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={field.onChange}
                       />
                     </FormControl>
@@ -291,7 +302,7 @@ export const WorkcardForm = ({
                     <FormLabel>Оператор</FormLabel>
 
                     {workcardDetails?.operators &&
-                    workcardDetails?.operators.length > 0 ? (
+                      workcardDetails?.operators.length > 0 ? (
                       <Combobox
                         list={workcardDetails.operators.map((a) => ({
                           label: a.Operator,
@@ -300,8 +311,8 @@ export const WorkcardForm = ({
                         placeholderString="Изберете оператор"
                         value={
                           field.value !== null &&
-                          field.value !== undefined &&
-                          field.value !== 0
+                            field.value !== undefined &&
+                            field.value !== 0
                             ? field.value.toString()
                             : ""
                         }
@@ -315,7 +326,7 @@ export const WorkcardForm = ({
                         type="text"
                         placeholder="Изберете оператор"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                       />
                     )}
 
@@ -396,15 +407,15 @@ export const WorkcardForm = ({
                     <FormLabel>ID на оборудване</FormLabel>
 
                     {workcardDetails?.equipments &&
-                    workcardDetails?.equipments.length > 0 ? (
+                      workcardDetails?.equipments.length > 0 ? (
                       <Select
                         onValueChange={(value) =>
                           field.onChange(parseInt(value) || 0)
                         }
                         value={
                           field.value !== null &&
-                          field.value !== undefined &&
-                          field.value !== 0
+                            field.value !== undefined &&
+                            field.value !== 0
                             ? field.value.toString()
                             : ""
                         }
@@ -433,7 +444,7 @@ export const WorkcardForm = ({
                         type="text"
                         placeholder="Изберете оборудване"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                       />
                     )}
                     <FormMessage />
@@ -444,7 +455,7 @@ export const WorkcardForm = ({
 
             <div className="flex w-full flex-col gap-2 md:col-span-2 lg:col-span-2">
               <Label>Описание</Label>
-              {workcardDetails?.notes && workcardDetails.notes.length > 0 ? (
+              {workcardDetails?.notes && workcardDetails?.notes?.length > 0 ? (
                 <Combobox
                   list={workcardDetails.notes.map((a) => ({
                     label: a,
@@ -461,7 +472,7 @@ export const WorkcardForm = ({
                 <Input
                   type="text"
                   placeholder="Често срещани причини"
-                  value={form.getValues().Note || ""}
+                  value={form.getValues().Note ?? ""}
                   onChange={(e) => {
                     form.setValue("Note", e.target.value);
                   }}
@@ -481,7 +492,7 @@ export const WorkcardForm = ({
                         placeholder="Въведете бележка"
                         className="resize-none"
                         {...field}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />

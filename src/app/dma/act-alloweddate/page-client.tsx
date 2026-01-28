@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Calendar, Lock, Unlock } from "lucide-react";
 
 export function AllowedDatePageClient() {
@@ -19,28 +19,34 @@ export function AllowedDatePageClient() {
   const utils = api.useUtils();
   const createMutation = api.dma.documents.createAllowedDate.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Периодът е отключен успешно.",
       });
-      utils.dma.documents.getAllowedDate.invalidate();
+      void utils.dma.documents.getAllowedDate.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при отключването.",
+        variant: "destructive",
       });
     },
   });
 
   const stopMutation = api.dma.documents.stopAllowedDate.useMutation({
     onSuccess: () => {
-      toast.success("Успешно", {
+      toast({
+        title: "Успешно",
         description: "Периодът е заключен успешно.",
       });
-      utils.dma.documents.getAllowedDate.invalidate();
+      void utils.dma.documents.getAllowedDate.invalidate();
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: error.message || "Възникна грешка при заключването.",
+        variant: "destructive",
       });
     },
   });
@@ -66,7 +72,10 @@ export function AllowedDatePageClient() {
     if (allowedDate) {
       // We need an ID to stop, but the API doesn't return one
       // This is a placeholder - you may need to adjust based on actual API
-      toast.info("Функционалността за заключване ще бъде имплементирана скоро");
+      toast({
+        title: "Функционалността за заключване ще бъде имплементирана скоро",
+        description: "",
+      });
     }
   };
 
@@ -146,7 +155,7 @@ export function AllowedDatePageClient() {
               </Button>
               <Button
                 onClick={handleLock}
-                disabled={stopMutation.isPending || allowedDate.StoppedAll}
+                disabled={stopMutation.isPending || Boolean(allowedDate.StoppedAll)}
                 variant="destructive"
               >
                 <Lock className="mr-2 h-4 w-4" />
