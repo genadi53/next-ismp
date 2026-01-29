@@ -1,7 +1,6 @@
 export type ProductionPlan = {
   shDay: string;
-  [key: string]: string | number | null;
-};
+} & Record<string, string | number | null>;
 
 export type ExcavProductionDetailed = {
   Excav: string;

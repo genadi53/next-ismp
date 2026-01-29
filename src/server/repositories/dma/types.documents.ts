@@ -127,20 +127,24 @@ export type CreateDmaDocumentAssetInput = {
   LastUpdatedFrom: string | null;
 };
 
+export type UpdateDmaDocumentAssetInput = Omit<
+  CreateDmaDocumentAssetInput,
+  "CreatedFrom"
+>;
+
 export type DmaAllowedDate = {
   StartDate: string;
   EndDate: string;
-  StoppedAll: boolean;
+  StoppedAll: number;
 };
 
 export type CreateDmaAllowedDateInput = {
   StartDate: string;
   EndDate: string;
-  StoppedAll: boolean;
+  StoppedAll: number;
 };
 
 export type DmaDocumentsDetails = {
   departments: string[];
   suppliers: string[];
 };
-

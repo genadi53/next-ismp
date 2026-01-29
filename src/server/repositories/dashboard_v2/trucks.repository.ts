@@ -6,10 +6,10 @@ import { sqlQuery } from "@/server/database/db";
 export async function getLoadsForPeriod(
   StartShiftId: number,
   EndShiftId: number,
-): Promise<{ Truck: string; Br: Number }[]> {
+): Promise<{ Truck: string; Br: number }[]> {
   // DECLARE @StartShiftId int = 260101001
   // DECLARE @EndShiftId int = 260111004
-  return sqlQuery<{ Truck: string; Br: Number }>(
+  return sqlQuery<{ Truck: string; Br: number }>(
     `;with shift_loads as (
     SELECT [Load].Id,
             ShiftInfo.Crew,

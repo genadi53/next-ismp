@@ -42,11 +42,12 @@ export async function createDispatcherSchedule(
   // 1. Check the format yyyy-mm-dd
   const regEx = /^\d{4}-\d{2}-\d{2}$/;
 
-  if (!schedule[0] || !schedule[0].Date || !schedule[0].Date.match(regEx)) {
+  const firstSchedule = schedule[0];
+  if (!firstSchedule?.Date || !regEx.exec(firstSchedule.Date)) {
     throw new Error("Invalid date format passed");
   }
 
-  const yearMonth = schedule[0]!.Date.substring(0, 7); // "2025-12"
+  const yearMonth = firstSchedule.Date.substring(0, 7); // "2025-12"
 
   await sqlTransaction(async (request) => {
     // Delete existing schedule for the month
@@ -57,8 +58,7 @@ export async function createDispatcherSchedule(
     `);
 
     // Insert new schedule entries
-    for (let i = 0; i < schedule.length; i++) {
-      const row = schedule[i]!;
+    for (const [i, row] of schedule.entries()) {
       const suffix = `_${i}`;
 
       request.input(`Date${suffix}`, row.Date);

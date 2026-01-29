@@ -6,9 +6,7 @@ export type MonthPlanType =
   | "Месечен план по одобрени натурални показатели";
 
 // ===== EXCEL DATA TYPES =====
-export type RawExcelData = {
-  [key: string]: any;
-};
+export type RawExcelData = Record<string, unknown>;
 
 // ===== SHOVEL PLAN TYPES =====
 export type ExcelShovelData = {
@@ -242,6 +240,12 @@ export type NaturalIndicatorsPlanInsert = Omit<NaturalIndicatorsPlanData, "ID">;
 
 // Array of natural indicators plan inserts
 export type NaturalIndicatorsPlanInsertArray = NaturalIndicatorsPlanInsert[];
+
+// ===== GR PROJECT PLAN TYPES =====
+// GR Project uses the same structure as Natural Indicators, just different PlanType value
+export type GRProjectPlanExcelData = NaturalIndicatorsPlanExcelData;
+export type GRProjectPlanInsert = NaturalIndicatorsPlanInsert;
+export type GRProjectPlanInsertArray = NaturalIndicatorsPlanInsertArray;
 
 // ===== UNION TYPES =====
 // Union type for all plan insert types

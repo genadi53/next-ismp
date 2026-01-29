@@ -1,4 +1,4 @@
-import { sqlQuery, sqlQueryOne, sqlTransaction } from "@/server/database/db";
+import { sqlQueryOne, sqlTransaction } from "@/server/database/db";
 import type { RouterConfig } from "@/schemas/mikrotik.schemas";
 import type {
   MikrotikRouterConfig,

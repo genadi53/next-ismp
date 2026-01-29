@@ -66,8 +66,11 @@ export async function createPrestartCheck(
       SELECT SCOPE_IDENTITY() as newPrestartId;
     `);
 
-    if (insertResult && insertResult.recordset && insertResult.recordset[0]) {
-      newPrestartId = insertResult.recordset[0].newPrestartId;
+    if (insertResult?.recordset?.[0]) {
+      const result = insertResult.recordset[0] as { newPrestartId: number };
+      if (typeof result.newPrestartId === "number") {
+        newPrestartId = result.newPrestartId;
+      }
     }
   });
 

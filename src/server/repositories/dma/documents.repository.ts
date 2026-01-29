@@ -10,6 +10,7 @@ import type {
   DmaAllowedDate,
   CreateDmaAllowedDateInput,
   DmaDocumentsDetails,
+  UpdateDmaDocumentAssetInput,
 } from "./types.documents";
 
 /**
@@ -129,7 +130,9 @@ export async function createDmaDocument(
 
   await sqlTransaction(async (request) => {
     // Extract year from date string
-    const docYear = input.DocDate ? parseInt(input.DocDate.split("-")[0]!) : null;
+    const docYear = input.DocDate
+      ? parseInt(input.DocDate.split("-")[0]!)
+      : null;
 
     // Get last document ID for this year and type
     request.input("docYear", docYear);
@@ -451,7 +454,7 @@ export async function createDmaDocumentAsset(
 export async function updateDmaDocumentAsset(
   documentId: number,
   assetId: number,
-  input: CreateDmaDocumentAssetInput,
+  input: UpdateDmaDocumentAssetInput,
 ): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("documentId", documentId);
@@ -466,7 +469,7 @@ export async function updateDmaDocumentAsset(
     request.input("DetDateBuy", input.DetDateBuy);
     request.input("DetStartExploatation", input.DetStartExploatation);
     request.input("DetApprovedDMA", input.DetApprovedDMA);
-    request.input("LastUpdatedFrom", input.LastUpdatedFrom ?? "system");
+    request.input("LastUpdatedFrom", input.LastUpdatedFrom);
 
     await request.query(`
       UPDATE [ISMP].[dma].[DocumentsDet] 
@@ -569,4 +572,3 @@ export async function requestDocumentEdit(
     `);
   });
 }
-
