@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getZarabotki, createZarabotki } from "@/server/repositories";
 import { createZarabotkiSchema } from "@/schemas/hermes.schemas";
 
@@ -8,7 +8,7 @@ export const zarabotkiRouter = createTRPCRouter({
    * Get zarabotki for a specific year and month
    * Defaults to previous month if not specified
    */
-  get: publicProcedure
+  get: protectedProcedure
     .input(
       z
         .object({
@@ -25,7 +25,7 @@ export const zarabotkiRouter = createTRPCRouter({
    * Replace zarabotki data for a specific year and month
    * Deletes existing data and inserts new data
    */
-  replace: publicProcedure
+  replace: protectedProcedure
     .input(z.array(createZarabotkiSchema).min(1, "Data list cannot be empty"))
     .mutation(async ({ input }) => {
       await createZarabotki(input);

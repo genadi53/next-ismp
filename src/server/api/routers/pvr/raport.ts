@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { usernameFromEmail } from "@/lib/username";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getBlastReports,
   createBlastReport,
@@ -29,38 +30,36 @@ const createBlastReportSchema = z.object({
   state_blast_site_after: z.string().nullable(),
   non_blasted_num: z.number().nullable(),
   Initiate: z.string().nullable(),
-  CreatedFrom: z.string().nullable().default(null),
-  EditedFrom: z.string().nullable().default(null),
-});
-
-const updateBlastReportSchema = createBlastReportSchema.omit({
-  CreatedFrom: true,
-  EditedFrom: true,
 });
 
 export const raportRouter = createTRPCRouter({
   /**
    * Get all blast reports.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getBlastReports();
   }),
 
   /**
    * Create a new blast report.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createBlastReportSchema)
-    .mutation(async ({ input }) => {
-      await createBlastReport(input);
+    .mutation(async ({ input, ctx }) => {
+      const audit = usernameFromEmail(ctx.user.email);
+      await createBlastReport({
+        ...input,
+        CreatedFrom: audit,
+        EditedFrom: audit,
+      });
       return { success: true, message: "Blast report created successfully" };
     }),
 
   /**
    * Update an existing blast report.
    */
-  update: publicProcedure
-    .input(z.object({ id: z.number(), data: updateBlastReportSchema }))
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), data: createBlastReportSchema }))
     .mutation(async ({ input }) => {
       await updateBlastReport(input.id, input.data);
       return { success: true, message: "Blast report updated successfully" };

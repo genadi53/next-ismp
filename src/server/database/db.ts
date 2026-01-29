@@ -64,9 +64,7 @@ async function getSqlPool(
   server: SqlServer = "moddb2",
 ): Promise<sql.ConnectionPool> {
   if (server === "moddb") {
-    if (!sqlPoolPrimary) {
-      sqlPoolPrimary = await new sql.ConnectionPool(sqlConfigModdb).connect();
-    }
+    sqlPoolPrimary ??= await new sql.ConnectionPool(sqlConfigModdb).connect();
     return sqlPoolPrimary;
   } else {
     if (!sqlConfigModdb2) {
@@ -74,11 +72,9 @@ async function getSqlPool(
         "Secondary SQL Server is not configured. Please set SQL_SERVER_2, SQL_DATABASE_2, SQL_USER_2, and SQL_PASSWORD_2 environment variables.",
       );
     }
-    if (!sqlPoolSecondary) {
-      sqlPoolSecondary = await new sql.ConnectionPool(
-        sqlConfigModdb2,
-      ).connect();
-    }
+    sqlPoolSecondary ??= await new sql.ConnectionPool(
+      sqlConfigModdb2,
+    ).connect();
     return sqlPoolSecondary;
   }
 }
@@ -190,9 +186,7 @@ let mysqlPool: mysql.Pool | null = null;
  * Creates a new pool if one doesn't exist.
  */
 function getMysqlPool(): mysql.Pool {
-  if (!mysqlPool) {
-    mysqlPool = mysql.createPool(mysqlConfig);
-  }
+  mysqlPool ??= mysql.createPool(mysqlConfig);
   return mysqlPool;
 }
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getReportsRegistry,
   createReportsRegistry,
@@ -27,14 +27,14 @@ export const registryRouter = createTRPCRouter({
   /**
    * Get all reports registry entries.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getReportsRegistry();
   }),
 
   /**
    * Create a new reports registry entry.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createRegistrySchema)
     .mutation(async ({ input }) => {
       await createReportsRegistry(input);
@@ -44,11 +44,10 @@ export const registryRouter = createTRPCRouter({
   /**
    * Update an existing reports registry entry.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: createRegistrySchema }))
     .mutation(async ({ input }) => {
       await updateReportsRegistry(input.id, input.data);
       return { success: true, message: "Registry entry updated successfully" };
     }),
 });
-

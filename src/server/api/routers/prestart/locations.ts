@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getPrestartLocations,
   getPrestartLocks,
@@ -8,15 +8,14 @@ export const locationsRouter = createTRPCRouter({
   /**
    * Get all prestart locations.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getPrestartLocations();
   }),
 
   /**
    * Get prestart locks.
    */
-  getLocks: publicProcedure.query(async () => {
+  getLocks: protectedProcedure.query(async () => {
     return getPrestartLocks();
   }),
 });
-

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getBlastingPlans,
   createBlastingPlan,
@@ -29,14 +29,14 @@ export const blastingPlanRouter = createTRPCRouter({
   /**
    * Get all blasting plans from the last 2 months.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getBlastingPlans();
   }),
 
   /**
    * Create a new blasting plan.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createBlastingPlanSchema)
     .mutation(async ({ input }) => {
       await createBlastingPlan(input);
@@ -46,7 +46,7 @@ export const blastingPlanRouter = createTRPCRouter({
   /**
    * Update an existing blasting plan.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateBlastingPlanSchema }))
     .mutation(async ({ input }) => {
       await updateBlastingPlan(input.id, input.data);
@@ -56,7 +56,7 @@ export const blastingPlanRouter = createTRPCRouter({
   /**
    * Delete a blasting plan.
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteBlastingPlan(input.id);

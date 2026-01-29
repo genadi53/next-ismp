@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { usernameFromEmail } from "@/lib/username";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaDepartments,
   createDmaDepartment,
   updateDmaDepartment,
+  deleteDmaDepartment,
 } from "@/server/repositories/dma/departments.repository";
 
 const createDepartmentSchema = z.object({
@@ -23,28 +25,43 @@ export const departmentsRouter = createTRPCRouter({
   /**
    * Get all DMA departments.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getAllDmaDepartments();
   }),
 
   /**
    * Create a new DMA department.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createDepartmentSchema)
-    .mutation(async ({ input }) => {
-      await createDmaDepartment(input);
+    .mutation(async ({ input, ctx }) => {
+      await createDmaDepartment({
+        ...input,
+        CreatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Department created successfully" };
     }),
 
   /**
    * Update an existing DMA department.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateDepartmentSchema }))
-    .mutation(async ({ input }) => {
-      await updateDmaDepartment(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateDmaDepartment(input.id, {
+        ...input.data,
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Department updated successfully" };
     }),
-});
 
+  /**
+   * Delete a DMA department.
+   */
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await deleteDmaDepartment(input.id);
+      return { success: true, message: "Department deleted successfully" };
+    }),
+});

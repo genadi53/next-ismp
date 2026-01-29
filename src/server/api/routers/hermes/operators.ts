@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllOperators,
   getOperatorById,
@@ -14,14 +14,14 @@ export const operatorsRouter = createTRPCRouter({
   /**
    * Get all operators
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getAllOperators();
   }),
 
   /**
    * Get operator by ID
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return getOperatorById(input.id);
@@ -30,14 +30,14 @@ export const operatorsRouter = createTRPCRouter({
   /**
    * Get operators formatted for dropdown/select lists
    */
-  getNames: publicProcedure.query(async () => {
+  getNames: protectedProcedure.query(async () => {
     return getOperatorNames();
   }),
 
   /**
    * Create a new operator
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createOperatorSchema)
     .mutation(async ({ input }) => {
       await createOperator(input);
@@ -47,7 +47,7 @@ export const operatorsRouter = createTRPCRouter({
   /**
    * Update an existing operator
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: createOperatorSchema }))
     .mutation(async ({ input }) => {
       await updateOperator(input.id, input.data);
@@ -57,7 +57,7 @@ export const operatorsRouter = createTRPCRouter({
   /**
    * Delete an operator
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteOperator(input.id);

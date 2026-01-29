@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getPrestartStatus,
   getCurrentPrestartCheck,
@@ -17,7 +17,7 @@ export const prestartRouter = createTRPCRouter({
   /**
    * Get prestart status for a dispatcher.
    */
-  getStatus: publicProcedure
+  getStatus: protectedProcedure
     .input(z.object({ dispatcher: z.string() }))
     .query(async ({ input }) => {
       return getPrestartStatus(input.dispatcher);
@@ -26,7 +26,7 @@ export const prestartRouter = createTRPCRouter({
   /**
    * Get current prestart check for a dispatcher.
    */
-  getCurrent: publicProcedure
+  getCurrent: protectedProcedure
     .input(z.object({ dispatcher: z.string() }))
     .query(async ({ input }) => {
       return getCurrentPrestartCheck(input.dispatcher);
@@ -35,7 +35,7 @@ export const prestartRouter = createTRPCRouter({
   /**
    * Start a new prestart check.
    */
-  start: publicProcedure
+  start: protectedProcedure
     .input(createPrestartCheckSchema)
     .mutation(async ({ input }) => {
       const shiftId = await getCurrentShiftId();
@@ -53,7 +53,7 @@ export const prestartRouter = createTRPCRouter({
   /**
    * End a specific prestart check.
    */
-  end: publicProcedure
+  end: protectedProcedure
     .input(z.object({ id: z.number(), data: completePrestartCheckSchema }))
     .mutation(async ({ input }) => {
       await endPrestartCheck(input.id, input.data);
@@ -66,7 +66,7 @@ export const prestartRouter = createTRPCRouter({
   /**
    * Complete all old unfinished prestart checks.
    */
-  completeOld: publicProcedure
+  completeOld: protectedProcedure
     .input(completePrestartCheckSchema)
     .mutation(async ({ input }) => {
       await completeOldPrestartChecks(input);
@@ -79,8 +79,7 @@ export const prestartRouter = createTRPCRouter({
   /**
    * Get current shift ID.
    */
-  getCurrentShift: publicProcedure.query(async () => {
+  getCurrentShift: protectedProcedure.query(async () => {
     return getCurrentShiftId();
   }),
 });
-

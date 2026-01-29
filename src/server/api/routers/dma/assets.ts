@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { usernameFromEmail } from "@/lib/username";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaAssets,
   createDmaAsset,
@@ -15,24 +16,13 @@ const createAssetSchema = z.object({
   EdPrice: z.number().nullable(),
   Description: z.string().nullable(),
   Currency: z.string().nullable(),
-  CreatedFrom: z.string().nullable().default(null),
-});
-
-const updateAssetSchema = z.object({
-  Name: z.string(),
-  Marka: z.string().nullable(),
-  Model: z.string().nullable(),
-  EdPrice: z.number().nullable(),
-  Description: z.string().nullable(),
-  Currency: z.string().nullable(),
-  LastUpdatedFrom: z.string().nullable().default(null),
 });
 
 export const assetsRouter = createTRPCRouter({
   /**
    * Get all DMA assets/components.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     // throw new Error("test");
     return getAllDmaAssets();
   }),
@@ -40,27 +30,33 @@ export const assetsRouter = createTRPCRouter({
   /**
    * Create a new DMA asset/component.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createAssetSchema)
-    .mutation(async ({ input }) => {
-      await createDmaAsset(input);
+    .mutation(async ({ input, ctx }) => {
+      await createDmaAsset({
+        ...input,
+        CreatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Asset created successfully" };
     }),
 
   /**
    * Update an existing DMA asset/component.
    */
-  update: publicProcedure
-    .input(z.object({ id: z.number(), data: updateAssetSchema }))
-    .mutation(async ({ input }) => {
-      await updateDmaAsset(input.id, input.data);
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), data: createAssetSchema }))
+    .mutation(async ({ input, ctx }) => {
+      await updateDmaAsset(input.id, {
+        ...input.data,
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Asset updated successfully" };
     }),
 
   /**
    * Delete a DMA asset/component.
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteDmaAsset(input.id);
@@ -70,7 +66,7 @@ export const assetsRouter = createTRPCRouter({
   /**
    * Get DMA reports.
    */
-  getReports: publicProcedure.query(async () => {
+  getReports: protectedProcedure.query(async () => {
     return getDmaReports();
   }),
 });

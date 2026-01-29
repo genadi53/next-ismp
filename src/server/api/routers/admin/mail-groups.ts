@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   createMailGroup,
   deleteMailGroup,
@@ -13,29 +13,31 @@ export const mailGroupsRouter = createTRPCRouter({
   /**
    * Get all mail groups.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getMailGroups();
   }),
 
   /**
    * Get all mail group names.
    */
-  getNames: publicProcedure.query(async () => {
+  getNames: protectedProcedure.query(async () => {
     return getMailGroupNames();
   }),
 
   /**
    * Create a new mail group.
    */
-  create: publicProcedure.input(mailGroupSchema).mutation(async ({ input }) => {
-    await createMailGroup(input);
-    return { success: true, message: "Mail group created successfully" };
-  }),
+  create: protectedProcedure
+    .input(mailGroupSchema)
+    .mutation(async ({ input }) => {
+      await createMailGroup(input);
+      return { success: true, message: "Mail group created successfully" };
+    }),
 
   /**
    * Update an existing mail group.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: mailGroupSchema }))
     .mutation(async ({ input }) => {
       await updateMailGroup(input.id, input.data);
@@ -45,7 +47,7 @@ export const mailGroupsRouter = createTRPCRouter({
   /**
    * Delete a mail group.
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteMailGroup(input.id);

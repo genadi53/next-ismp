@@ -1,5 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { trucksRouterV2 } from "./trucks";
+import { productionRouter } from "./production";
 import {
   getShiftIdsForPeriod,
   getAllShifts,
@@ -9,6 +10,7 @@ import z from "zod";
 
 export const dashboardV2Router = createTRPCRouter({
   trucks: trucksRouterV2,
+  production: productionRouter,
   shifts: createTRPCRouter({
     getShiftIdsForPeriod: publicProcedure
       .input(

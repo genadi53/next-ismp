@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllEquipments,
   getEquipmentById,
@@ -14,14 +14,14 @@ export const equipmentsRouter = createTRPCRouter({
   /**
    * Get all equipments
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getAllEquipments();
   }),
 
   /**
    * Get equipment by ID
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return getEquipmentById(input.id);
@@ -30,14 +30,14 @@ export const equipmentsRouter = createTRPCRouter({
   /**
    * Get equipment names formatted for dropdown/select lists
    */
-  getNames: publicProcedure.query(async () => {
+  getNames: protectedProcedure.query(async () => {
     return getEquipmentNames();
   }),
 
   /**
    * Create a new equipment
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createEquipmentSchema)
     .mutation(async ({ input }) => {
       await createEquipment(input);
@@ -47,7 +47,7 @@ export const equipmentsRouter = createTRPCRouter({
   /**
    * Update an existing equipment
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: createEquipmentSchema }))
     .mutation(async ({ input }) => {
       await updateEquipment(input.id, input.data);
@@ -57,7 +57,7 @@ export const equipmentsRouter = createTRPCRouter({
   /**
    * Delete an equipment
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteEquipment(input.id);

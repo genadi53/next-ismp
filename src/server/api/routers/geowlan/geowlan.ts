@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getGeowlanAPs,
   createGeowlanAP,
@@ -36,24 +36,28 @@ export const geowlanSubRouter = createTRPCRouter({
   /**
    * Get all geowlan access points with mast information.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getGeowlanAPs();
   }),
 
   /**
    * Create a new geowlan access point with associated mast.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createGeowlanAPSchema)
     .mutation(async ({ input }) => {
       const result = await createGeowlanAP(input);
-      return { success: true, mastId: result.mastId, message: "Geowlan AP created successfully" };
+      return {
+        success: true,
+        mastId: result.mastId,
+        message: "Geowlan AP created successfully",
+      };
     }),
 
   /**
    * Update an existing geowlan access point and mast.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateGeowlanAPSchema }))
     .mutation(async ({ input }) => {
       await updateGeowlanAP(input.id, input.data);
@@ -63,11 +67,10 @@ export const geowlanSubRouter = createTRPCRouter({
   /**
    * Delete a geowlan access point (mast).
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteGeowlanAP(input.id);
       return { success: true, message: "Geowlan AP deleted successfully" };
     }),
 });
-

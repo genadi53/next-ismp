@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   createPermissions,
   deactivatePermission,
@@ -13,7 +13,7 @@ export const permissionsRouter = createTRPCRouter({
   /**
    * Get all permissions, optionally filtered by username prefix.
    */
-  getAll: publicProcedure
+  getAll: protectedProcedure
     .input(z.object({ username: z.string().optional() }).optional())
     .query(async ({ input }) => {
       return getPermissions(input?.username);
@@ -22,7 +22,7 @@ export const permissionsRouter = createTRPCRouter({
   /**
    * Get permissions for a specific user and main menu.
    */
-  getForUser: publicProcedure
+  getForUser: protectedProcedure
     .input(z.object({ username: z.string(), mainMenu: z.string() }))
     .query(async ({ input }) => {
       return getPermissionsByUser(input.username, input.mainMenu);
@@ -31,14 +31,14 @@ export const permissionsRouter = createTRPCRouter({
   /**
    * Get list of distinct usernames with permissions.
    */
-  getUsernames: publicProcedure.query(async () => {
+  getUsernames: protectedProcedure.query(async () => {
     return getPermissionUsers();
   }),
 
   /**
    * Create permissions.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.array(permissionFormSchema))
     .mutation(async ({ input }) => {
       await createPermissions(input);
@@ -48,7 +48,7 @@ export const permissionsRouter = createTRPCRouter({
   /**
    * Remove/deactivate a permission.
    */
-  remove: publicProcedure
+  remove: protectedProcedure
     .input(
       z.object({
         Username: z.string(),

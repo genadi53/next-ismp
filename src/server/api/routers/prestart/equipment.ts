@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getPrestartTrucks,
   getPrestartExcavators,
@@ -9,22 +9,21 @@ export const equipmentRouter = createTRPCRouter({
   /**
    * Get all trucks for prestart checklist.
    */
-  getTrucks: publicProcedure.query(async () => {
+  getTrucks: protectedProcedure.query(async () => {
     return getPrestartTrucks();
   }),
 
   /**
    * Get all excavators for prestart checklist.
    */
-  getExcavators: publicProcedure.query(async () => {
+  getExcavators: protectedProcedure.query(async () => {
     return getPrestartExcavators();
   }),
 
   /**
    * Get all shovels for prestart checklist with detailed info.
    */
-  getShovels: publicProcedure.query(async () => {
+  getShovels: protectedProcedure.query(async () => {
     return getPrestartShovels();
   }),
 });
-

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllWorkcards,
   getWorkcardById,
@@ -15,14 +15,14 @@ export const workcardsRouter = createTRPCRouter({
   /**
    * Get all workcards
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getAllWorkcards();
   }),
 
   /**
    * Get workcard by ID
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return getWorkcardById(input.id);
@@ -31,21 +31,21 @@ export const workcardsRouter = createTRPCRouter({
   /**
    * Get all unique workcard notes
    */
-  getNotes: publicProcedure.query(async () => {
+  getNotes: protectedProcedure.query(async () => {
     return getWorkcardNotes();
   }),
 
   /**
    * Get workcard details (notes, operators, equipments) for form dropdowns
    */
-  getDetails: publicProcedure.query(async () => {
+  getDetails: protectedProcedure.query(async () => {
     return getWorkcardDetails();
   }),
 
   /**
    * Create a new workcard
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createWorkcardSchema)
     .mutation(async ({ input }) => {
       await createWorkcard(input);
@@ -55,7 +55,7 @@ export const workcardsRouter = createTRPCRouter({
   /**
    * Delete a workcard
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteWorkcard(input.id);
@@ -65,7 +65,7 @@ export const workcardsRouter = createTRPCRouter({
   /**
    * Update an existing workcard
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: createWorkcardSchema }))
     .mutation(async ({ input }) => {
       await updateWorkcard(input.id, input.data);

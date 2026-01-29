@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getMorningReports,
   getMorningReportById,
@@ -30,14 +30,14 @@ export const morningReportRouter = createTRPCRouter({
   /**
    * Get all morning reports.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getMorningReports();
   }),
 
   /**
    * Get a morning report by ID.
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return getMorningReportById(input.id);
@@ -46,14 +46,14 @@ export const morningReportRouter = createTRPCRouter({
   /**
    * Get the morning report template.
    */
-  getTemplate: publicProcedure.query(async () => {
+  getTemplate: protectedProcedure.query(async () => {
     return getMorningReportTemplate();
   }),
 
   /**
    * Create a new morning report.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createMorningReportSchema)
     .mutation(async ({ input }) => {
       await createMorningReport(input);
@@ -63,7 +63,7 @@ export const morningReportRouter = createTRPCRouter({
   /**
    * Update an existing morning report.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateMorningReportSchema }))
     .mutation(async ({ input }) => {
       await updateMorningReport(input.id, input.data);
@@ -73,11 +73,10 @@ export const morningReportRouter = createTRPCRouter({
   /**
    * Mark a morning report as sent.
    */
-  send: publicProcedure
+  send: protectedProcedure
     .input(z.object({ id: z.number(), data: sendMorningReportSchema }))
     .mutation(async ({ input }) => {
       await sendMorningReport(input.id, input.data);
       return { success: true, message: "Morning report sent successfully" };
     }),
 });
-

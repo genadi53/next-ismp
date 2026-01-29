@@ -83,11 +83,13 @@ export function cleanupOldLogs(filePath: string): void {
     files.slice(LOGS_MAX_ROTATED_FILES).forEach((file) => {
       try {
         unlinkSync(file.path);
-      } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_error) {
         // Silently fail cleanup
       }
     });
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_error) {
     // Silently fail cleanup
   }
 }

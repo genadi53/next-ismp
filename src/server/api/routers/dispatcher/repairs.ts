@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getExcavatorReasons,
   getDrillReasons,
@@ -21,28 +21,28 @@ export const repairsRouter = createTRPCRouter({
   /**
    * Get excavator repair reasons.
    */
-  getExcavatorReasons: publicProcedure.query(async () => {
+  getExcavatorReasons: protectedProcedure.query(async () => {
     return getExcavatorReasons();
   }),
 
   /**
    * Get drill repair reasons.
    */
-  getDrillReasons: publicProcedure.query(async () => {
+  getDrillReasons: protectedProcedure.query(async () => {
     return getDrillReasons();
   }),
 
   /**
    * Get all excavators.
    */
-  getExcavators: publicProcedure.query(async () => {
+  getExcavators: protectedProcedure.query(async () => {
     return getExcavators();
   }),
 
   /**
    * Get repair requests, optionally filtered by date.
    */
-  getRequests: publicProcedure
+  getRequests: protectedProcedure
     .input(z.object({ date: z.string().optional() }).optional())
     .query(async ({ input }) => {
       return getRequestRepairs(input?.date);
@@ -51,7 +51,7 @@ export const repairsRouter = createTRPCRouter({
   /**
    * Create repair requests.
    */
-  createRequests: publicProcedure
+  createRequests: protectedProcedure
     .input(z.array(createRequestRepairSchema))
     .mutation(async ({ input }) => {
       await createRequestRepairs(input);
@@ -61,11 +61,10 @@ export const repairsRouter = createTRPCRouter({
   /**
    * Mark repair requests as sent for a specific date.
    */
-  markSent: publicProcedure
+  markSent: protectedProcedure
     .input(z.object({ date: z.string() }))
     .mutation(async ({ input }) => {
       await markRepairRequestsSent(input.date);
       return { success: true, message: "Repair requests marked as sent" };
     }),
 });
-

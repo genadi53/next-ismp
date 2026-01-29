@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { usernameFromEmail } from "@/lib/username";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaDocuments,
   getDmaDocumentById,
@@ -41,8 +42,6 @@ const createDocumentSchema = z.object({
   DocsDeptApprovalDuty: z.string().nullable(),
   DocsSuplierName: z.string().nullable(),
   DocsSuplierDesc: z.string().nullable(),
-  CreatedFrom: z.string().nullable().default(null),
-  LastUpdatedFrom: z.string().nullable().default(null),
 });
 
 const createDocumentSupplierSchema = z.object({
@@ -67,8 +66,6 @@ const createDocumentAssetSchema = z.object({
   DetDateBuy: z.string().nullable(),
   DetStartExploatation: z.string().nullable(),
   DetApprovedDMA: z.string().nullable(),
-  CreatedFrom: z.string().nullable().default(null),
-  LastUpdatedFrom: z.string().nullable().default(null),
 });
 
 const createAllowedDateSchema = z.object({
@@ -81,14 +78,14 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Get all DMA documents.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getAllDmaDocuments();
   }),
 
   /**
    * Get a single DMA document by ID.
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return getDmaDocumentById(input.id);
@@ -97,34 +94,47 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Get document details for dropdowns.
    */
-  getDetails: publicProcedure.query(async () => {
+  getDetails: protectedProcedure.query(async () => {
     return getDmaDocumentsDetails();
   }),
 
   /**
    * Create a new DMA document.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createDocumentSchema)
-    .mutation(async ({ input }) => {
-      const result = await createDmaDocument(input);
-      return { success: true, id: result.id, message: "Document created successfully" };
+    .mutation(async ({ input, ctx }) => {
+      const audit = usernameFromEmail(ctx.user.email);
+      const result = await createDmaDocument({
+        ...input,
+        CreatedFrom: audit,
+        LastUpdatedFrom: audit,
+      });
+      return {
+        success: true,
+        id: result.id,
+        message: "Document created successfully",
+      };
     }),
 
   /**
    * Update an existing DMA document.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: createDocumentSchema }))
-    .mutation(async ({ input }) => {
-      await updateDmaDocument(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateDmaDocument(input.id, {
+        ...input.data,
+        CreatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Document updated successfully" };
     }),
 
   /**
    * Delete a DMA document.
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await deleteDmaDocument(input.id);
@@ -135,7 +145,7 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Get suppliers for a document.
    */
-  getSuppliers: publicProcedure
+  getSuppliers: protectedProcedure
     .input(z.object({ documentId: z.number() }))
     .query(async ({ input }) => {
       return getDmaDocumentSuppliers(input.documentId);
@@ -144,42 +154,63 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Create a document supplier.
    */
-  createSupplier: publicProcedure
-    .input(z.object({ documentId: z.number(), data: createDocumentSupplierSchema }))
-    .mutation(async ({ input }) => {
-      await createDmaDocumentSupplier(input.documentId, input.data);
-      return { success: true, message: "Document supplier created successfully" };
+  createSupplier: protectedProcedure
+    .input(
+      z.object({ documentId: z.number(), data: createDocumentSupplierSchema }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const audit = usernameFromEmail(ctx.user.email);
+      await createDmaDocumentSupplier(input.documentId, {
+        ...input.data,
+        CreatedFrom: audit,
+        LastUpdatedFrom: audit,
+      });
+      return {
+        success: true,
+        message: "Document supplier created successfully",
+      };
     }),
 
   /**
    * Update a document supplier.
    */
-  updateSupplier: publicProcedure
-    .input(z.object({ 
-      documentId: z.number(), 
-      supplierId: z.number(), 
-      data: createDocumentSupplierSchema 
-    }))
-    .mutation(async ({ input }) => {
-      await updateDmaDocumentSupplier(input.documentId, input.supplierId, input.data);
-      return { success: true, message: "Document supplier updated successfully" };
+  updateSupplier: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.number(),
+        supplierId: z.number(),
+        data: createDocumentSupplierSchema,
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await updateDmaDocumentSupplier(input.documentId, input.supplierId, {
+        ...input.data,
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
+      return {
+        success: true,
+        message: "Document supplier updated successfully",
+      };
     }),
 
   /**
    * Delete a document supplier.
    */
-  deleteSupplier: publicProcedure
+  deleteSupplier: protectedProcedure
     .input(z.object({ documentId: z.number(), supplierId: z.number() }))
     .mutation(async ({ input }) => {
       await deleteDmaDocumentSupplier(input.documentId, input.supplierId);
-      return { success: true, message: "Document supplier deleted successfully" };
+      return {
+        success: true,
+        message: "Document supplier deleted successfully",
+      };
     }),
 
   // Document Assets
   /**
    * Get assets for a document.
    */
-  getAssets: publicProcedure
+  getAssets: protectedProcedure
     .input(z.object({ documentId: z.number() }))
     .query(async ({ input }) => {
       return getDmaDocumentAssets(input.documentId);
@@ -188,31 +219,42 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Create a document asset.
    */
-  createAsset: publicProcedure
-    .input(z.object({ documentId: z.number(), data: createDocumentAssetSchema }))
-    .mutation(async ({ input }) => {
-      await createDmaDocumentAsset(input.documentId, input.data);
+  createAsset: protectedProcedure
+    .input(
+      z.object({ documentId: z.number(), data: createDocumentAssetSchema }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await createDmaDocumentAsset(input.documentId, {
+        ...input.data,
+        CreatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Document asset created successfully" };
     }),
 
   /**
    * Update a document asset.
    */
-  updateAsset: publicProcedure
-    .input(z.object({ 
-      documentId: z.number(), 
-      assetId: z.number(), 
-      data: createDocumentAssetSchema 
-    }))
-    .mutation(async ({ input }) => {
-      await updateDmaDocumentAsset(input.documentId, input.assetId, input.data);
+  updateAsset: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.number(),
+        assetId: z.number(),
+        data: createDocumentAssetSchema,
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await updateDmaDocumentAsset(input.documentId, input.assetId, {
+        ...input.data,
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Document asset updated successfully" };
     }),
 
   /**
    * Delete a document asset.
    */
-  deleteAsset: publicProcedure
+  deleteAsset: protectedProcedure
     .input(z.object({ documentId: z.number(), assetId: z.number() }))
     .mutation(async ({ input }) => {
       await deleteDmaDocumentAsset(input.documentId, input.assetId);
@@ -223,24 +265,28 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Get the current allowed date range for documents.
    */
-  getAllowedDate: publicProcedure.query(async () => {
+  getAllowedDate: protectedProcedure.query(async () => {
     return getDmaAllowedDate();
   }),
 
   /**
    * Create a new allowed date entry.
    */
-  createAllowedDate: publicProcedure
+  createAllowedDate: protectedProcedure
     .input(createAllowedDateSchema)
     .mutation(async ({ input }) => {
-      await createDmaAllowedDate(input);
+      await createDmaAllowedDate({
+        StartDate: input.StartDate,
+        EndDate: input.EndDate,
+        StoppedAll: input.StoppedAll ? 1 : 0,
+      });
       return { success: true, message: "Allowed date created successfully" };
     }),
 
   /**
    * Stop all documents for a specific allowed date entry.
    */
-  stopAllowedDate: publicProcedure
+  stopAllowedDate: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await stopDmaAllowedDate(input.id);
@@ -250,11 +296,10 @@ export const documentsRouter = createTRPCRouter({
   /**
    * Request edit for a document.
    */
-  requestEdit: publicProcedure
+  requestEdit: protectedProcedure
     .input(z.object({ docId: z.number(), requestedFrom: z.string() }))
     .mutation(async ({ input }) => {
       await requestDocumentEdit(input.docId, input.requestedFrom);
       return { success: true, message: "Edit request submitted successfully" };
     }),
 });
-

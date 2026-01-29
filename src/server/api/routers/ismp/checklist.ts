@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getMonthChecklist,
   createMonthChecklistTasks,
@@ -15,7 +15,7 @@ export const checklistRouter = createTRPCRouter({
   /**
    * Get month checklist for a specific year/month.
    */
-  getByMonth: publicProcedure
+  getByMonth: protectedProcedure
     .input(z.object({ yearMonth: z.number().optional() }).optional())
     .query(async ({ input }) => {
       return getMonthChecklist(input?.yearMonth);
@@ -24,11 +24,10 @@ export const checklistRouter = createTRPCRouter({
   /**
    * Create month checklist tasks.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.array(createChecklistTaskSchema))
     .mutation(async ({ input }) => {
       await createMonthChecklistTasks(input);
       return { success: true, message: "Checklist tasks created successfully" };
     }),
 });
-

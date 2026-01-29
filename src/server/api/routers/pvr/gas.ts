@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getGasMeasurements,
   getGasMeasurementsEdit,
@@ -34,14 +34,14 @@ export const gasRouter = createTRPCRouter({
   /**
    * Get gas measurements (last 100).
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getGasMeasurements();
   }),
 
   /**
    * Get gas measurements for editing by date and elevation.
    */
-  getForEdit: publicProcedure
+  getForEdit: protectedProcedure
     .input(z.object({ date: z.string(), elevation: z.number() }))
     .query(async ({ input }) => {
       return getGasMeasurementsEdit(input.date, input.elevation);
@@ -50,21 +50,21 @@ export const gasRouter = createTRPCRouter({
   /**
    * Get gas references.
    */
-  getReferences: publicProcedure.query(async () => {
+  getReferences: protectedProcedure.query(async () => {
     return getGasReferences();
   }),
 
   /**
    * Get sampler details (names and duties).
    */
-  getSamplerDetails: publicProcedure.query(async () => {
+  getSamplerDetails: protectedProcedure.query(async () => {
     return getSamplerDetails();
   }),
 
   /**
    * Create gas measurements.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.array(createGasMeasurementSchema))
     .mutation(async ({ input }) => {
       await createGasMeasurements(input);
@@ -74,7 +74,7 @@ export const gasRouter = createTRPCRouter({
   /**
    * Update gas measurements.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.array(updateGasMeasurementSchema))
     .mutation(async ({ input }) => {
       await updateGasMeasurements(input);

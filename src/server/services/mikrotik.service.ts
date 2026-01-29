@@ -130,9 +130,9 @@ export class MikroTikService {
    */
   private parseSignalStrength(value: string | undefined): number {
     if (!value) return 0;
-    const match = value.match(/-?(\d+)/);
-    if (match) {
-      const dbm = parseInt(match[0]!);
+    const match = /-?(\d+)/.exec(value);
+    if (match?.[0]) {
+      const dbm = parseInt(match[0]);
       return Math.min(100, Math.max(0, 100 + dbm));
     }
     return 0;
@@ -143,7 +143,7 @@ export class MikroTikService {
    */
   private parseCCQ(value: string | undefined): number {
     if (!value) return 0;
-    const match = value.match(/(\d+)/);
+    const match = /(\d+)/.exec(value);
     return match ? parseInt(match[1]!) : 0;
   }
 
@@ -152,7 +152,7 @@ export class MikroTikService {
    */
   private parseSpeed(value: string | undefined): number {
     if (!value) return 0;
-    const match = value.match(/([\d.]+)([MG])/);
+    const match = /([\d.]+)([MG])/.exec(value);
     if (match) {
       const speed = parseFloat(match[1]!);
       const unit = match[2];

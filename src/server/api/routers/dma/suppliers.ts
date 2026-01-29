@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { usernameFromEmail } from "@/lib/username";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaSuppliers,
   createDmaSupplier,
   updateDmaSupplier,
+  deleteDmaSupplier,
 } from "@/server/repositories/dma/suppliers.repository";
 
 const createSupplierSchema = z.object({
@@ -15,27 +17,46 @@ export const suppliersRouter = createTRPCRouter({
   /**
    * Get all DMA suppliers.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getAllDmaSuppliers();
   }),
 
   /**
    * Create a new DMA supplier.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createSupplierSchema)
     .mutation(async ({ input }) => {
-      await createDmaSupplier(input);
+      await createDmaSupplier({
+        Supplier: input.Supplier,
+        SupplierDesc: input.SupplierDesc ?? null,
+        CreatedFrom: "test@testov.com",
+      });
       return { success: true, message: "Supplier created successfully" };
     }),
 
   /**
    * Update an existing DMA supplier.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: createSupplierSchema }))
-    .mutation(async ({ input }) => {
-      await updateDmaSupplier(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateDmaSupplier(input.id, {
+        Supplier: input.data.Supplier,
+        SupplierDesc: input.data.SupplierDesc ?? null,
+        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+      });
       return { success: true, message: "Supplier updated successfully" };
+    }),
+
+  delete: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await deleteDmaSupplier(input.id);
+      return { success: true, message: "Supplier deleted successfully" };
     }),
 });

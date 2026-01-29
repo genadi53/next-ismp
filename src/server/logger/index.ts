@@ -22,10 +22,14 @@ const consoleFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   winston.format.printf(({ timestamp, level, message, ...metadata }) => {
-    const metaString = Object.keys(metadata).length
-      ? JSON.stringify(metadata, null, 2)
-      : "";
-    return `${timestamp} [${level}]: ${message} ${metaString}`;
+    const metaString =
+      Object.keys(metadata).length > 0
+        ? JSON.stringify(metadata, null, 2)
+        : "";
+    const timestampStr = String(timestamp ?? "");
+    const levelStr = String(level ?? "");
+    const messageStr = String(message ?? "");
+    return `${timestampStr} [${levelStr}]: ${messageStr} ${metaString}`;
   }),
 );
 

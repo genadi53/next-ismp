@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getMgtlOre,
   createMgtlOre,
@@ -29,14 +29,14 @@ export const mgtlOreRouter = createTRPCRouter({
   /**
    * Get MGTL ore export data for the last 2 months.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getMgtlOre();
   }),
 
   /**
    * Create a new MGTL ore entry.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(createMgtlOreSchema)
     .mutation(async ({ input }) => {
       await createMgtlOre(input);
@@ -46,11 +46,10 @@ export const mgtlOreRouter = createTRPCRouter({
   /**
    * Update an existing MGTL ore entry.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateMgtlOreSchema }))
     .mutation(async ({ input }) => {
       await updateMgtlOre(input.id, input.data);
       return { success: true, message: "MGTL ore entry updated successfully" };
     }),
 });
-
