@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { User, Settings, LogOut, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,13 +10,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { api } from "@/trpc/react";
+import { initialsFromName } from "@/lib/username";
+import { Skeleton } from "../ui/skeleton";
+
+
 
 export default function ProfileDropdown() {
-  const [user] = useState({
-    name: "Genadi Tsolov",
-    email: "genadi.tsolov@ellatzite-med.com",
-    initials: "GT",
-  });
+  const { data: user } = api.auth.getCurrentUser.useQuery();
+
+  if (!user || !user.user) {
+    return (<Skeleton className="size-9 rounded-full" />)
+  }
+  const { nameBg, fullName, email, } = user.user;
 
   return (
     <DropdownMenu>
@@ -27,16 +32,16 @@ export default function ProfileDropdown() {
           className="relative size-9 rounded-full transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           <Avatar>
-            <AvatarFallback>{user.initials}</AvatarFallback>
+            <AvatarFallback>{initialsFromName(nameBg)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm leading-none font-medium">{user.name}</p>
+            <p className="text-sm leading-none font-medium">{fullName}</p>
             <p className="text-xs leading-none text-slate-500 dark:text-slate-400">
-              {user.email}
+              {email}
             </p>
           </div>
         </DropdownMenuLabel>

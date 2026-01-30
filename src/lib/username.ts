@@ -24,3 +24,18 @@ export function emailFromUsername(username: string | null): string {
 export function nameInput(username: string, nameBg: string): string {
   return nameBg + " (" + username + ")";
 }
+
+export function initialsFromName(name: string | null | undefined): string {
+  if (!name || name.trim() === "") {
+    return "";
+  }
+
+  const parts = name.split(" ");
+  if (parts.length === 0) {
+    return "";
+  }
+
+  return (
+    parts[0]?.charAt(0) + (parts[parts.length - 1]?.charAt(0) ?? "")
+  ).toUpperCase();
+}
