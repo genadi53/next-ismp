@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getLoads,
   getUnsentLoads,
@@ -8,34 +8,40 @@ import {
   updateLoad,
 } from "@/server/repositories/loads/loads.repository";
 import { loadsSchema } from "@/schemas/loads.schemas";
+import { nameInput } from "@/lib/username";
 
 export const loadsRouter = createTRPCRouter({
   /**
    * Get all loads from the last 6 months.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getLoads();
   }),
 
   /**
    * Get unsent loads.
    */
-  getUnsent: publicProcedure.query(async () => {
+  getUnsent: protectedProcedure.query(async () => {
     return getUnsentLoads();
   }),
 
   /**
    * Create a new load entry.
    */
-  create: publicProcedure.input(loadsSchema).mutation(async ({ input }) => {
-    await createLoad(input);
-    return { success: true, message: "Load created successfully" };
-  }),
+  create: protectedProcedure
+    .input(loadsSchema)
+    .mutation(async ({ input, ctx }) => {
+      await createLoad({
+        ...input,
+        userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
+      return { success: true, message: "Load created successfully" };
+    }),
 
   /**
    * Mark a load as sent.
    */
-  markSent: publicProcedure
+  markSent: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await markLoadSent(input.id);
@@ -45,7 +51,7 @@ export const loadsRouter = createTRPCRouter({
   /**
    * Mark all unsent loads as sent.
    */
-  sendAll: publicProcedure.mutation(async () => {
+  sendAll: protectedProcedure.mutation(async () => {
     const unsentLoads = await getUnsentLoads();
     for (const load of unsentLoads) {
       await markLoadSent(load.id);
@@ -60,10 +66,13 @@ export const loadsRouter = createTRPCRouter({
   /**
    * Update a load entry.
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), data: loadsSchema }))
-    .mutation(async ({ input }) => {
-      await updateLoad(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateLoad(input.id, {
+        ...input.data,
+        userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Load updated successfully" };
     }),
 });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { usernameFromEmail } from "@/lib/username";
+import { nameInput } from "@/lib/username";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getBlastReports,
@@ -46,11 +46,11 @@ export const raportRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createBlastReportSchema)
     .mutation(async ({ input, ctx }) => {
-      const audit = usernameFromEmail(ctx.user.email);
+      const userAdded = nameInput(ctx.user.username, ctx.user.nameBg);
       await createBlastReport({
         ...input,
-        CreatedFrom: audit,
-        EditedFrom: audit,
+        CreatedFrom: userAdded,
+        EditedFrom: userAdded,
       });
       return { success: true, message: "Blast report created successfully" };
     }),
@@ -60,8 +60,11 @@ export const raportRouter = createTRPCRouter({
    */
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: createBlastReportSchema }))
-    .mutation(async ({ input }) => {
-      await updateBlastReport(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateBlastReport(input.id, {
+        ...input.data,
+        EditedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Blast report updated successfully" };
     }),
 });

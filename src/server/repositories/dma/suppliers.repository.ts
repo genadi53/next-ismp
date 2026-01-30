@@ -1,5 +1,9 @@
 import { sqlQuery, sqlTransaction } from "@/server/database/db";
-import type { DmaSupplier, CreateDmaSupplierInput, UpdateDmaSupplierInput } from "./types.suppliers";
+import type {
+  DmaSupplier,
+  CreateDmaSupplierInput,
+  UpdateDmaSupplierInput,
+} from "./types.suppliers";
 
 /**
  * Get all DMA suppliers.
@@ -25,11 +29,12 @@ export async function createDmaSupplier(
   await sqlTransaction(async (request) => {
     request.input("Supplier", input.Supplier);
     request.input("SupplierDesc", input.SupplierDesc);
-    request.input("CreatedFrom", input.CreatedFrom);
+    request.input("CreatedFrom", input.CreatedFrom ?? "system");
+    request.input("LastUpdatedFrom", input.CreatedFrom ?? "system");
 
     await request.query(`
-      INSERT INTO [ISMP].[dma].[Suppliers] ([Supplier], [SupplierDesc], [CreatedFrom])
-      VALUES (@Supplier, @SupplierDesc, @CreatedFrom)
+      INSERT INTO [ISMP].[dma].[Suppliers] ([Supplier], [SupplierDesc], [CreatedFrom], [LastUpdatedFrom])
+      VALUES (@Supplier, @SupplierDesc, @CreatedFrom, @LastUpdatedFrom)
     `);
   });
 }
@@ -45,7 +50,7 @@ export async function updateDmaSupplier(
     request.input("id", id);
     request.input("Supplier", input.Supplier);
     request.input("SupplierDesc", input.SupplierDesc);
-    request.input("LastUpdatedFrom", input.LastUpdatedFrom);
+    request.input("LastUpdatedFrom", input.LastUpdatedFrom ?? "system");
 
     await request.query(`
       UPDATE [ISMP].[dma].[Suppliers]
@@ -60,9 +65,7 @@ export async function updateDmaSupplier(
 /**
  * Deleta DMA supplier.
  */
-export async function deleteDmaSupplier(
-  id: number,
-): Promise<void> {
+export async function deleteDmaSupplier(id: number): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("id", id);
 

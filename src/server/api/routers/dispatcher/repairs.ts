@@ -8,6 +8,7 @@ import {
   createRequestRepairs,
   markRepairRequestsSent,
 } from "@/server/repositories/dispatcher/repairs.repository";
+import { nameInput } from "@/lib/username";
 
 const createRequestRepairSchema = z.object({
   RequestDate: z.string(),
@@ -53,8 +54,13 @@ export const repairsRouter = createTRPCRouter({
    */
   createRequests: protectedProcedure
     .input(z.array(createRequestRepairSchema))
-    .mutation(async ({ input }) => {
-      await createRequestRepairs(input);
+    .mutation(async ({ input, ctx }) => {
+      await createRequestRepairs(
+        input.map((repair) => ({
+          ...repair,
+          userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+        })),
+      );
       return { success: true, message: "Repair requests created successfully" };
     }),
 

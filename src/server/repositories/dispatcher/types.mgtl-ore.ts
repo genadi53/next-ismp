@@ -22,6 +22,7 @@ export type CreateMgtlOreInput = {
   Mgtl3: number | null;
   Izvoz4: number | null;
   Mgtl4: number | null;
+  lrby: string | null;
 };
 
 export type UpdateMgtlOreInput = {
@@ -31,6 +32,5 @@ export type UpdateMgtlOreInput = {
   Mgtl3: number | null;
   Izvoz4: number | null;
   Mgtl4: number | null;
+  lrby: string | null;
 };
-
-

@@ -16,10 +16,9 @@ export type CreateRequestRepairInput = {
   EquipmentType: string | null;
   RequestRemont: string | null;
   DrillHoles_type: string | null;
+  userAdded: string | null;
 };
 
 export type ExcavatorInfo = {
   FieldId: string;
 };
-
-

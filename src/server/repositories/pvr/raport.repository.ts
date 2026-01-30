@@ -124,6 +124,7 @@ export async function updateBlastReport(
     request.input("state_blast_site_after", input.state_blast_site_after);
     request.input("non_blasted_num", input.non_blasted_num);
     request.input("Initiate", input.Initiate);
+    request.input("EditedFrom", input.EditedFrom ?? "system");
 
     await request.query(`
       UPDATE [ISMP].[dbo].[Raport]
@@ -148,9 +149,10 @@ export async function updateBlastReport(
           [state_blast_material] = @state_blast_material,
           [state_blast_site_after] = @state_blast_site_after,
           [non_blasted_num] = @non_blasted_num,
-          [Initiate] = @Initiate
+          [Initiate] = @Initiate,
+          [EditedFrom] = @EditedFrom,
+          [lrd] = GETDATE()
       WHERE ID = @id
     `);
   });
 }
-

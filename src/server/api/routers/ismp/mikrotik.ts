@@ -41,7 +41,8 @@ export const mikrotikRouter = createTRPCRouter({
       if (configWithPassword) {
         try {
           await mikrotikService.testConnection(configWithPassword);
-        } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_error) {
           throw new Error(
             "Успешно запазено, но неуспешна връзка с MikroTik рутер",
           );
@@ -65,9 +66,11 @@ export const mikrotikRouter = createTRPCRouter({
     try {
       const clients = await mikrotikService.getAllClients(config);
       return clients;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Get clients error:", error);
-      throw new Error(error.message || "Грешка при четене на клиенти");
+      const errorMessage =
+        error instanceof Error ? error.message : "Грешка при четене на клиенти";
+      throw new Error(errorMessage);
     }
   }),
 
@@ -101,7 +104,8 @@ export const mikrotikRouter = createTRPCRouter({
         connected: isConnected,
         routerIp: config.ip,
       };
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       return {
         connected: false,
         routerIp: config.ip,

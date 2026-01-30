@@ -13,18 +13,22 @@ import type {
  */
 export async function getGasMeasurements(): Promise<GasMeasurement[]> {
   return mysqlQuery<GasMeasurement>(`
-    SELECT xcom_man_measure.GasID,
-           gasName, gasType,
-           ROUND(GasValue, 2) AS GasValue,
-           MeasuredFrom,
-           MeasuredDuty, MeasuredOn,
-           Horizont, xcom_man_measure.lrd,
-           xcom_man_measure.lrdFrom, Dimension
-    FROM (xcom_man_measure 
-          INNER JOIN xcom_l_gases ON xcom_man_measure.GasID = xcom_l_gases.ID)
-          INNER JOIN xcom_references AS xcRef ON xcRef.GasID = xcom_l_gases.ID
-    GROUP BY MeasuredOn, gasid, MeasuredFrom, Horizont
-    ORDER BY MeasuredOn DESC
+    SELECT m.GasID,
+           g.gasName, g.gasType,
+           ROUND(m.GasValue, 2) AS GasValue,
+           m.MeasuredFrom,
+           m.MeasuredDuty, m.MeasuredOn,
+           m.Horizont, m.lrd,
+           m.lrdFrom, g.Dimension
+    FROM xcom_man_measure m
+    INNER JOIN xcom_l_gases g ON m.GasID = g.ID
+    INNER JOIN xcom_references AS xcRef ON xcRef.GasID = g.ID
+    INNER JOIN (
+      SELECT MeasuredOn, GasID, MeasuredFrom, Horizont, MAX(ID) AS MaxID
+      FROM xcom_man_measure
+      GROUP BY MeasuredOn, GasID, MeasuredFrom, Horizont
+    ) AS latest ON m.ID = latest.MaxID
+    ORDER BY m.MeasuredOn DESC
     LIMIT 0, 100
   `);
 }
@@ -66,15 +70,19 @@ export async function getGasMeasurementsEdit(
       ORDER BY growid, GasID
     ) AS t1
     INNER JOIN (
-      SELECT xcom_man_measure.ID AS MMrOW, xcom_man_measure.GasID, gasName, gasType,
-             GasValue, MeasuredFrom, MeasuredDuty, MeasuredOn, Horizont,
-             xcom_man_measure.lrd, xcom_man_measure.lrdFrom, Dimension
-      FROM (xcom_man_measure 
-            INNER JOIN xcom_l_gases ON xcom_man_measure.GasID = xcom_l_gases.ID)
-            INNER JOIN xcom_references AS xcRef ON xcRef.GasID = xcom_l_gases.ID
-      WHERE MeasuredOn = ? AND Horizont = ?
-      GROUP BY MeasuredOn, gasid, MeasuredFrom, Horizont
-    ) AS t2 ON t1.GasId = t2.GasId
+      SELECT m.ID AS MMrOW, m.GasID, g.gasName, g.gasType,
+             m.GasValue, m.MeasuredFrom, m.MeasuredDuty, m.MeasuredOn, m.Horizont,
+             m.lrd, m.lrdFrom, g.Dimension
+      FROM xcom_man_measure m
+      INNER JOIN xcom_l_gases g ON m.GasID = g.ID
+      INNER JOIN xcom_references AS xcRef ON xcRef.GasID = g.ID
+      INNER JOIN (
+        SELECT MeasuredOn, GasID, MeasuredFrom, Horizont, MAX(ID) AS MaxID
+        FROM xcom_man_measure
+        WHERE MeasuredOn = ? AND Horizont = ?
+        GROUP BY MeasuredOn, GasID, MeasuredFrom, Horizont
+      ) AS latest ON m.ID = latest.MaxID
+    ) AS t2 ON t1.GasId = t2.GasID
   `,
     [date, elevation],
   );
@@ -105,7 +113,7 @@ export async function updateGasMeasurements(
           measurement.MeasuredDuty,
           measurement.MeasuredOn,
           measurement.Horizont,
-          measurement.lrdFrom,
+          measurement.lrdFrom ?? "system",
           measurement.OldMeasuredOn,
           measurement.GasID,
         ],
@@ -207,4 +215,3 @@ export async function createGasMeasurements(
     }
   });
 }
-

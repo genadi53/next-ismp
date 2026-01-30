@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getMonthPlanOperativen,
   createMonthPlanOperativen,
 } from "@/server/repositories/mine-planning/operativen-plan.repository";
+import { nameInput } from "@/lib/username";
 
 const createPlanOperativenSchema = z.object({
   PlanMonthDay: z.string(),
@@ -48,25 +49,31 @@ const createPlanOperativenSchema = z.object({
   PlanMassIBRToDepo: z.number().nullable(),
   percent_IBRToDepo: z.number().nullable(),
   Cu_t_IBRToDepo: z.number().nullable(),
-  userAdded: z.string().nullable(),
 });
 
 export const operativenPlanRouter = createTRPCRouter({
   /**
    * Get operational plan for the current date.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getMonthPlanOperativen();
   }),
 
   /**
    * Create operational plan entries.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.array(createPlanOperativenSchema))
-    .mutation(async ({ input }) => {
-      await createMonthPlanOperativen(input);
-      return { success: true, message: "Operational plan created successfully" };
+    .mutation(async ({ input, ctx }) => {
+      await createMonthPlanOperativen(
+        input.map((plan) => ({
+          ...plan,
+          userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+        })),
+      );
+      return {
+        success: true,
+        message: "Operational plan created successfully",
+      };
     }),
 });
-

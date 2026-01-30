@@ -45,4 +45,3 @@ export type DmaReport = {
   "Създаден от": string | null;
   "Последна редакция от / на": string | null;
 };
-

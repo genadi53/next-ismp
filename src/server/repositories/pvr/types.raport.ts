@@ -56,7 +56,5 @@ export type CreateBlastReportInput = {
 
 export type UpdateBlastReportInput = Omit<
   CreateBlastReportInput,
-  "CreatedFrom" | "EditedFrom"
+  "CreatedFrom"
 >;
-
-

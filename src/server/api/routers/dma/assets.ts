@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { usernameFromEmail } from "@/lib/username";
+import { nameInput } from "@/lib/username";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaAssets,
@@ -35,7 +35,7 @@ export const assetsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await createDmaAsset({
         ...input,
-        CreatedFrom: usernameFromEmail(ctx.user.email),
+        CreatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return { success: true, message: "Asset created successfully" };
     }),
@@ -48,7 +48,7 @@ export const assetsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await updateDmaAsset(input.id, {
         ...input.data,
-        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return { success: true, message: "Asset updated successfully" };
     }),

@@ -6,6 +6,7 @@ import {
   updateBlastingPlan,
   deleteBlastingPlan,
 } from "@/server/repositories/pvr/blasting-plan.repository";
+import { nameInput } from "@/lib/username";
 
 const createBlastingPlanSchema = z.object({
   OperDate: z.string(),
@@ -20,7 +21,6 @@ const createBlastingPlanSchema = z.object({
   MineVolume: z.number().nullable(),
   Disabled: z.boolean().nullable(),
   Note: z.string().nullable(),
-  userAdded: z.string().nullable().default(null),
 });
 
 const updateBlastingPlanSchema = createBlastingPlanSchema;
@@ -38,8 +38,11 @@ export const blastingPlanRouter = createTRPCRouter({
    */
   create: protectedProcedure
     .input(createBlastingPlanSchema)
-    .mutation(async ({ input }) => {
-      await createBlastingPlan(input);
+    .mutation(async ({ input, ctx }) => {
+      await createBlastingPlan({
+        ...input,
+        userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Blasting plan created successfully" };
     }),
 
@@ -48,8 +51,11 @@ export const blastingPlanRouter = createTRPCRouter({
    */
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateBlastingPlanSchema }))
-    .mutation(async ({ input }) => {
-      await updateBlastingPlan(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateBlastingPlan(input.id, {
+        ...input.data,
+        userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Blasting plan updated successfully" };
     }),
 
@@ -63,4 +69,3 @@ export const blastingPlanRouter = createTRPCRouter({
       return { success: true, message: "Blasting plan deleted successfully" };
     }),
 });
-

@@ -5,6 +5,7 @@ import {
   createReportsRegistry,
   updateReportsRegistry,
 } from "@/server/repositories/reports/registry.repository";
+import { nameInput } from "@/lib/username";
 
 const createRegistrySchema = z.object({
   ReportID: z.number(),
@@ -36,8 +37,12 @@ export const registryRouter = createTRPCRouter({
    */
   create: protectedProcedure
     .input(createRegistrySchema)
-    .mutation(async ({ input }) => {
-      await createReportsRegistry(input);
+    .mutation(async ({ input, ctx }) => {
+      await createReportsRegistry({
+        ...input,
+        CreatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+        EditedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Registry entry created successfully" };
     }),
 
@@ -46,8 +51,11 @@ export const registryRouter = createTRPCRouter({
    */
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: createRegistrySchema }))
-    .mutation(async ({ input }) => {
-      await updateReportsRegistry(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateReportsRegistry(input.id, {
+        ...input.data,
+        EditedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Registry entry updated successfully" };
     }),
 });

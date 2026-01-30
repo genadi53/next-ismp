@@ -59,7 +59,7 @@ export async function createLoad(input: CreateLoadInput): Promise<void> {
     request.input("Br", input.Br);
     request.input("AddMaterial", input.AddMaterial);
     request.input("RemoveMaterial", input.RemoveMaterial);
-    request.input("userAdded", "test@testov.com");
+    request.input("userAdded", input.userAdded ?? "system");
 
     await request.query(`
       INSERT INTO [ELLDBAdmins].[dbo].[Kursove] (
@@ -100,7 +100,7 @@ export async function updateLoad(
     request.input("Br", input.Br);
     request.input("AddMaterial", input.AddMaterial);
     request.input("RemoveMaterial", input.RemoveMaterial);
-    request.input("userAdded", "test@testov.com");
+    request.input("userAdded", input.userAdded ?? "system");
     request.input("id", id);
 
     await request.query(`

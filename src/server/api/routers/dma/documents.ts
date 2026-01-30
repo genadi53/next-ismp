@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { usernameFromEmail } from "@/lib/username";
+import { nameInput } from "@/lib/username";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaDocuments,
@@ -51,8 +51,6 @@ const createDocumentSupplierSchema = z.object({
   DocSuplAmount: z.number().nullable(),
   Inv: z.string().nullable(),
   InvDate: z.string().nullable(),
-  CreatedFrom: z.string().nullable().default(null),
-  LastUpdatedFrom: z.string().nullable().default(null),
 });
 
 const createDocumentAssetSchema = z.object({
@@ -104,11 +102,11 @@ export const documentsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createDocumentSchema)
     .mutation(async ({ input, ctx }) => {
-      const audit = usernameFromEmail(ctx.user.email);
+      const createdFrom = nameInput(ctx.user.username, ctx.user.nameBg);
       const result = await createDmaDocument({
         ...input,
-        CreatedFrom: audit,
-        LastUpdatedFrom: audit,
+        CreatedFrom: createdFrom,
+        LastUpdatedFrom: createdFrom,
       });
       return {
         success: true,
@@ -125,8 +123,7 @@ export const documentsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await updateDmaDocument(input.id, {
         ...input.data,
-        CreatedFrom: usernameFromEmail(ctx.user.email),
-        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return { success: true, message: "Document updated successfully" };
     }),
@@ -159,11 +156,11 @@ export const documentsRouter = createTRPCRouter({
       z.object({ documentId: z.number(), data: createDocumentSupplierSchema }),
     )
     .mutation(async ({ input, ctx }) => {
-      const audit = usernameFromEmail(ctx.user.email);
+      const createdFrom = nameInput(ctx.user.username, ctx.user.nameBg);
       await createDmaDocumentSupplier(input.documentId, {
         ...input.data,
-        CreatedFrom: audit,
-        LastUpdatedFrom: audit,
+        CreatedFrom: createdFrom,
+        LastUpdatedFrom: createdFrom,
       });
       return {
         success: true,
@@ -185,7 +182,7 @@ export const documentsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await updateDmaDocumentSupplier(input.documentId, input.supplierId, {
         ...input.data,
-        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return {
         success: true,
@@ -224,10 +221,11 @@ export const documentsRouter = createTRPCRouter({
       z.object({ documentId: z.number(), data: createDocumentAssetSchema }),
     )
     .mutation(async ({ input, ctx }) => {
+      const createdFrom = nameInput(ctx.user.username, ctx.user.nameBg);
       await createDmaDocumentAsset(input.documentId, {
         ...input.data,
-        CreatedFrom: usernameFromEmail(ctx.user.email),
-        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+        CreatedFrom: createdFrom,
+        LastUpdatedFrom: createdFrom,
       });
       return { success: true, message: "Document asset created successfully" };
     }),
@@ -246,7 +244,7 @@ export const documentsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await updateDmaDocumentAsset(input.documentId, input.assetId, {
         ...input.data,
-        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return { success: true, message: "Document asset updated successfully" };
     }),

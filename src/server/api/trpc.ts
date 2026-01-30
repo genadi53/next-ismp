@@ -9,8 +9,8 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { usernameFromEmail } from "@/lib/username";
 import { logError, logInfo } from "@/lib/logger/logger";
+import { fixEncoding } from "@/lib/utf-decoder";
 
 /**
  * 1. CONTEXT
@@ -25,15 +25,18 @@ import { logError, logInfo } from "@/lib/logger/logger";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const email = opts.headers.get("X-WEBAUTH-USER") ?? null;
-  const name = (opts.headers.get("X-WEBAUTH-NAME") ?? "").trim() || "";
-  const displayName = opts.headers.get("X-WEBAUTH-DISPLAYNAME")?.trim();
-  const username =
-    displayName ?? (email ? usernameFromEmail(email) : "test@testov");
+  const username = opts.headers.get("X-WEBAUTH-USER") ?? "";
+  const fullName = (opts.headers.get("X-Authorize-Name") ?? "").trim() || "";
+  const nameBg = (opts.headers.get("X-Authorize-Name-BG") ?? "").trim() || "";
+  const email = username
+    ? username.concat("@ellatzite-med.com")
+    : "test@testov";
 
   return {
     ...opts,
-    user: email ? { email, username, name } : null,
+    user: username
+      ? { email, username, fullName, nameBg: fixEncoding(nameBg) }
+      : null,
   };
 };
 

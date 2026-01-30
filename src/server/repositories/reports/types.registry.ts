@@ -25,8 +25,11 @@ export type CreateReportsRegistryInput = {
   CompletedWorkDesc: string | null;
   VerificationWorkDesc: string | null;
   ApprovedFrom: string | null;
+  CreatedFrom: string | null;
+  EditedFrom: string | null;
 };
 
-export type UpdateReportsRegistryInput = CreateReportsRegistryInput;
-
-
+export type UpdateReportsRegistryInput = Omit<
+  CreateReportsRegistryInput,
+  "CreatedFrom"
+>;

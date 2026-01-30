@@ -29,7 +29,9 @@ export async function getAllDmaAssets(): Promise<DmaAsset[]> {
 /**
  * Create a new DMA asset/component.
  */
-export async function createDmaAsset(input: CreateDmaAssetInput): Promise<void> {
+export async function createDmaAsset(
+  input: CreateDmaAssetInput,
+): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("Name", input.Name);
     request.input("Marka", input.Marka);
@@ -37,13 +39,15 @@ export async function createDmaAsset(input: CreateDmaAssetInput): Promise<void> 
     request.input("EdPrice", input.EdPrice);
     request.input("Currency", input.Currency);
     request.input("Description", input.Description);
-    request.input("CreatedFrom", input.CreatedFrom);
+    request.input("CreatedFrom", input.CreatedFrom ?? "system");
+    // Same as CreatedFrom for the first time
+    request.input("LastUpdatedFrom", input.CreatedFrom ?? "system");
 
     await request.query(`
       INSERT INTO [ISMP].[dma].[Components] (
-        [Name], [Marka], [Model], [EdPrice], [Currency], [Description], [CreatedFrom], [lrd]
+        [Name], [Marka], [Model], [EdPrice], [Currency], [Description], [CreatedFrom], [LastUpdatedFrom], [lrd]
       )
-      VALUES (@Name, @Marka, @Model, @EdPrice, @Currency, @Description, @CreatedFrom, GETDATE())
+      VALUES (@Name, @Marka, @Model, @EdPrice, @Currency, @Description, @CreatedFrom, @LastUpdatedFrom, GETDATE())
     `);
   });
 }
@@ -134,4 +138,3 @@ export async function getDmaReports(): Promise<DmaReport[]> {
     ) AS act_amount ON docs.Id = act_amount.DocId
   `);
 }
-

@@ -41,12 +41,13 @@ export async function createMgtlOre(input: CreateMgtlOreInput): Promise<void> {
     request.input("Mgtl3", input.Mgtl3);
     request.input("Izvoz4", input.Izvoz4);
     request.input("Mgtl4", input.Mgtl4);
+    request.input("lrby", input.lrby ?? "PULSE");
 
     await request.query(`
       INSERT INTO [ELLDBAdmins].[dbo].[IZVOZ] (
         [OperDate], [Izvoz1], [Mgtl1], [Izvoz3], [Mgtl3], [Izvoz4], [Mgtl4], [lrby]
       )
-      VALUES (CAST(@OperDate AS DATETIME), @Izvoz1, @Mgtl1, @Izvoz3, @Mgtl3, @Izvoz4, @Mgtl4, 'PULSE')
+      VALUES (CAST(@OperDate AS DATETIME), @Izvoz1, @Mgtl1, @Izvoz3, @Mgtl3, @Izvoz4, @Mgtl4, @lrby)
     `);
   });
 }
@@ -66,6 +67,7 @@ export async function updateMgtlOre(
     request.input("Mgtl3", input.Mgtl3);
     request.input("Izvoz4", input.Izvoz4);
     request.input("Mgtl4", input.Mgtl4);
+    request.input("lrby", input.lrby ?? "PULSE");
 
     await request.query(`
       UPDATE [ELLDBAdmins].[dbo].[IZVOZ] 
@@ -74,9 +76,9 @@ export async function updateMgtlOre(
           [Izvoz3] = @Izvoz3,
           [Mgtl3] = @Mgtl3,
           [Izvoz4] = @Izvoz4,
-          [Mgtl4] = @Mgtl4
+          [Mgtl4] = @Mgtl4,
+          [lrby] = @lrby
       WHERE ID = @id
     `);
   });
 }
-

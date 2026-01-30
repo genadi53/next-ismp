@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getMonthPlanShovels,
   createMonthPlanShovels,
 } from "@/server/repositories/mine-planning/plan-shovels.repository";
+import { nameInput } from "@/lib/username";
 
 const createPlanShovelsSchema = z.object({
   PlanMonthDay: z.string(),
@@ -15,25 +16,28 @@ const createPlanShovelsSchema = z.object({
   PlanVol: z.number().nullable(),
   PlanMass: z.number().nullable().default(null),
   Etap: z.string().nullable(),
-  userAdded: z.string().nullable().default(null),
 });
 
 export const planShovelsRouter = createTRPCRouter({
   /**
    * Get shovel plan for the current date.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getMonthPlanShovels();
   }),
 
   /**
    * Create shovel plan entries.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.array(createPlanShovelsSchema))
-    .mutation(async ({ input }) => {
-      await createMonthPlanShovels(input);
+    .mutation(async ({ input, ctx }) => {
+      await createMonthPlanShovels(
+        input.map((plan) => ({
+          ...plan,
+          userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+        })),
+      );
       return { success: true, message: "Shovel plan created successfully" };
     }),
 });
-

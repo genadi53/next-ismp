@@ -100,12 +100,13 @@ export async function createRequestRepairs(
       request.input(`EquipmentType${suffix}`, repair.EquipmentType);
       request.input(`RequestRemont${suffix}`, repair.RequestRemont);
       request.input(`DrillHoles_type${suffix}`, repair.DrillHoles_type);
+      request.input(`userAdded${suffix}`, repair.userAdded ?? "system");
 
       await request.query(`
         INSERT INTO [ELLDBAdmins].[remonti].[RequestRemontiDate] (
-          [RequestDate], [Equipment], [EquipmentType], [RequestRemont], [addUser], [DrillHoles_type]
+          [RequestDate], [Equipment], [EquipmentType], [RequestRemont], [addUser], [DrillHoles_type], [userAdded]
         )
-        VALUES (@RequestDate${suffix}, @Equipment${suffix}, @EquipmentType${suffix}, @RequestRemont${suffix}, 'system', @DrillHoles_type${suffix})
+        VALUES (@RequestDate${suffix}, @Equipment${suffix}, @EquipmentType${suffix}, @RequestRemont${suffix}, @userAdded${suffix}, @DrillHoles_type${suffix})
       `);
     }
   });

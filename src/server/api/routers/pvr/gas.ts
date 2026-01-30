@@ -8,6 +8,7 @@ import {
   getGasReferences,
   getSamplerDetails,
 } from "@/server/repositories/pvr/gas.repository";
+import { nameInput } from "@/lib/username";
 
 const createGasMeasurementSchema = z.object({
   GasID: z.number(),
@@ -16,7 +17,6 @@ const createGasMeasurementSchema = z.object({
   MeasuredDuty: z.string().nullable(),
   MeasuredOn: z.string(),
   Horizont: z.number(),
-  lrdFrom: z.string().nullable().default(null),
 });
 
 const updateGasMeasurementSchema = z.object({
@@ -26,7 +26,6 @@ const updateGasMeasurementSchema = z.object({
   MeasuredDuty: z.string().nullable(),
   MeasuredOn: z.string(),
   Horizont: z.number(),
-  lrdFrom: z.string().nullable(),
   OldMeasuredOn: z.string(),
 });
 
@@ -66,9 +65,17 @@ export const gasRouter = createTRPCRouter({
    */
   create: protectedProcedure
     .input(z.array(createGasMeasurementSchema))
-    .mutation(async ({ input }) => {
-      await createGasMeasurements(input);
-      return { success: true, message: "Gas measurements created successfully" };
+    .mutation(async ({ input, ctx }) => {
+      await createGasMeasurements(
+        input.map((measurement) => ({
+          ...measurement,
+          lrdFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+        })),
+      );
+      return {
+        success: true,
+        message: "Gas measurements created successfully",
+      };
     }),
 
   /**
@@ -76,9 +83,16 @@ export const gasRouter = createTRPCRouter({
    */
   update: protectedProcedure
     .input(z.array(updateGasMeasurementSchema))
-    .mutation(async ({ input }) => {
-      await updateGasMeasurements(input);
-      return { success: true, message: "Gas measurements updated successfully" };
+    .mutation(async ({ input, ctx }) => {
+      await updateGasMeasurements(
+        input.map((measurement) => ({
+          ...measurement,
+          lrdFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+        })),
+      );
+      return {
+        success: true,
+        message: "Gas measurements updated successfully",
+      };
     }),
 });
-

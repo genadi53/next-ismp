@@ -8,22 +8,20 @@ import {
   updateMorningReport,
   sendMorningReport,
 } from "@/server/repositories/dispatcher/morning-report.repository";
+import { nameInput } from "@/lib/username";
 
 const createMorningReportSchema = z.object({
   ReportDate: z.string(),
-  StartedFromDispatcher: z.string(),
   ReportBody: z.string(),
 });
 
 const updateMorningReportSchema = z.object({
-  CompletedFromDispatcher: z.string().nullable(),
   CompletedOn: z.string().nullable(),
   ReportBody: z.string(),
 });
 
 const sendMorningReportSchema = z.object({
   SentOn: z.string(),
-  SentFrom: z.string(),
 });
 
 export const morningReportRouter = createTRPCRouter({
@@ -55,8 +53,11 @@ export const morningReportRouter = createTRPCRouter({
    */
   create: protectedProcedure
     .input(createMorningReportSchema)
-    .mutation(async ({ input }) => {
-      await createMorningReport(input);
+    .mutation(async ({ input, ctx }) => {
+      await createMorningReport({
+        ...input,
+        StartedFromDispatcher: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Morning report created successfully" };
     }),
 
@@ -65,8 +66,11 @@ export const morningReportRouter = createTRPCRouter({
    */
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateMorningReportSchema }))
-    .mutation(async ({ input }) => {
-      await updateMorningReport(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateMorningReport(input.id, {
+        ...input.data,
+        CompletedFromDispatcher: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Morning report updated successfully" };
     }),
 
@@ -75,8 +79,11 @@ export const morningReportRouter = createTRPCRouter({
    */
   send: protectedProcedure
     .input(z.object({ id: z.number(), data: sendMorningReportSchema }))
-    .mutation(async ({ input }) => {
-      await sendMorningReport(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await sendMorningReport(input.id, {
+        ...input.data,
+        SentFrom: nameInput(ctx.user.username, ctx.user.nameBg),
+      });
       return { success: true, message: "Morning report sent successfully" };
     }),
 });

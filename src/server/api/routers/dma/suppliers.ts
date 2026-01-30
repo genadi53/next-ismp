@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { usernameFromEmail } from "@/lib/username";
+import { nameInput } from "@/lib/username";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getAllDmaSuppliers,
@@ -26,11 +26,11 @@ export const suppliersRouter = createTRPCRouter({
    */
   create: protectedProcedure
     .input(createSupplierSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       await createDmaSupplier({
         Supplier: input.Supplier,
         SupplierDesc: input.SupplierDesc ?? null,
-        CreatedFrom: "test@testov.com",
+        CreatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return { success: true, message: "Supplier created successfully" };
     }),
@@ -44,7 +44,7 @@ export const suppliersRouter = createTRPCRouter({
       await updateDmaSupplier(input.id, {
         Supplier: input.data.Supplier,
         SupplierDesc: input.data.SupplierDesc ?? null,
-        LastUpdatedFrom: usernameFromEmail(ctx.user.email),
+        LastUpdatedFrom: nameInput(ctx.user.username, ctx.user.nameBg),
       });
       return { success: true, message: "Supplier updated successfully" };
     }),

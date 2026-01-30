@@ -88,6 +88,7 @@ export async function updateBlastingPlan(
     request.input("TypeBlast", input.TypeBlast);
     request.input("Disabled", input.Disabled);
     request.input("Note", input.Note);
+    request.input("userAdded", input.userAdded ?? "system");
 
     await request.query(`
       UPDATE [ELLDBAdmins].[dbo].[OperativkaBlasting]
@@ -102,7 +103,9 @@ export async function updateBlastingPlan(
           [MineVolume] = @MineVolume,
           [TypeBlast] = @TypeBlast,
           [Disabled] = @Disabled,
-          [Note] = @Note
+          [Note] = @Note,
+          [userAdded] = @userAdded,
+          [lrd] = GETDATE()
       WHERE ID = @id
     `);
   });
@@ -119,4 +122,3 @@ export async function deleteBlastingPlan(id: number): Promise<void> {
     `);
   });
 }
-

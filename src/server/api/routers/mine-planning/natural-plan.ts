@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getMonthPlanNP,
   createMonthPlanNP,
 } from "@/server/repositories/mine-planning/natural-plan.repository";
+import { nameInput } from "@/lib/username";
 
 const createPlanNPSchema = z.object({
   PlanMonthDay: z.string(),
@@ -45,25 +46,28 @@ const createPlanNPSchema = z.object({
   AvgkmWaste: z.number().nullable(),
   PlanTkm: z.number().nullable(),
   Avgkm: z.number().nullable(),
-  userAdded: z.string().nullable(),
 });
 
 export const naturalPlanRouter = createTRPCRouter({
   /**
    * Get natural plan (НП) for the current date.
    */
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return getMonthPlanNP();
   }),
 
   /**
    * Create natural plan entries.
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.array(createPlanNPSchema))
-    .mutation(async ({ input }) => {
-      await createMonthPlanNP(input);
+    .mutation(async ({ input, ctx }) => {
+      await createMonthPlanNP(
+        input.map((plan) => ({
+          ...plan,
+          userAdded: nameInput(ctx.user.username, ctx.user.nameBg),
+        })),
+      );
       return { success: true, message: "Natural plan created successfully" };
     }),
 });
-

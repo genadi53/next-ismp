@@ -38,8 +38,8 @@ export const mgtlOreRouter = createTRPCRouter({
    */
   create: protectedProcedure
     .input(createMgtlOreSchema)
-    .mutation(async ({ input }) => {
-      await createMgtlOre(input);
+    .mutation(async ({ input, ctx }) => {
+      await createMgtlOre({ ...input, lrby: ctx.user.username });
       return { success: true, message: "MGTL ore entry created successfully" };
     }),
 
@@ -48,8 +48,8 @@ export const mgtlOreRouter = createTRPCRouter({
    */
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: updateMgtlOreSchema }))
-    .mutation(async ({ input }) => {
-      await updateMgtlOre(input.id, input.data);
+    .mutation(async ({ input, ctx }) => {
+      await updateMgtlOre(input.id, { ...input.data, lrby: ctx.user.username });
       return { success: true, message: "MGTL ore entry updated successfully" };
     }),
 });

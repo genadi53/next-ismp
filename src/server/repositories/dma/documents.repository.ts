@@ -164,7 +164,7 @@ export async function createDmaDocument(
     request.input("DocsSuplierName", input.DocsSuplierName);
     request.input("DocsSuplierDesc", input.DocsSuplierDesc);
     request.input("CreatedFrom", input.CreatedFrom ?? "system");
-    request.input("LastUpdatedFrom", input.LastUpdatedFrom);
+    request.input("LastUpdatedFrom", input.LastUpdatedFrom ?? "system");
 
     const result = await request.query<{ Id: number }>(`
       INSERT INTO [ISMP].[dma].[Documents] (
@@ -200,7 +200,7 @@ export async function createDmaDocument(
  */
 export async function updateDmaDocument(
   id: number,
-  input: CreateDmaDocumentInput,
+  input: Omit<CreateDmaDocumentInput, "CreatedFrom">,
 ): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("id", id);
@@ -330,7 +330,7 @@ export async function createDmaDocumentSupplier(
 export async function updateDmaDocumentSupplier(
   documentId: number,
   supplierId: number,
-  input: CreateDmaDocumentSupplierInput,
+  input: Omit<CreateDmaDocumentSupplierInput, "CreatedFrom">,
 ): Promise<void> {
   await sqlTransaction(async (request) => {
     request.input("documentId", documentId);
