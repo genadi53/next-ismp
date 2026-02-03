@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   getLoads,
@@ -9,6 +10,9 @@ import {
 } from "@/server/repositories/loads/loads.repository";
 import { loadsSchema } from "@/schemas/loads.schemas";
 import { nameInput } from "@/lib/username";
+import { sendEmail } from "@/lib/email/sendEmail";
+import { buildLoadsReportHtml } from "@/lib/email/loadsEmailTemplate";
+import { env } from "@/env";
 
 export const loadsRouter = createTRPCRouter({
   /**
@@ -52,15 +56,49 @@ export const loadsRouter = createTRPCRouter({
    * Mark all unsent loads as sent.
    */
   sendAll: protectedProcedure.mutation(async () => {
-    const unsentLoads = await getUnsentLoads();
-    for (const load of unsentLoads) {
-      await markLoadSent(load.id);
+    try {
+      const unsentLoads = await getUnsentLoads();
+
+      if (unsentLoads.length === 0) {
+        return {
+          success: true,
+          message: "Няма неизпратени курсове",
+          count: 0,
+        };
+      }
+
+      const htmlTemplate = buildLoadsReportHtml(unsentLoads);
+      const messageId = await sendEmail(
+        "Отчет редакция курсове",
+        htmlTemplate,
+        env.TEST_EMAIL_TO ??
+          "genadi.tsolov@ellatzite-med.com;p.penkov@ellatzite-med.com;",
+      );
+
+      if (!messageId) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Неуспешно изпращане на имейл",
+        });
+      }
+
+      for (const load of unsentLoads) {
+        await markLoadSent(load.id);
+      }
+
+      return {
+        success: true,
+        message: `${unsentLoads.length} курса са изпратени успешно`,
+        count: unsentLoads.length,
+      };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          error instanceof Error ? error.message : "Грешка при изпращане",
+      });
     }
-    return {
-      success: true,
-      message: `${unsentLoads.length} loads marked as sent`,
-      count: unsentLoads.length,
-    };
   }),
 
   /**

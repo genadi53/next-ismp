@@ -1,5 +1,4 @@
 import AppLayout from "@/components/AppLayout";
-import { Container } from "@/components/Container";
 import { api, HydrateClient } from "@/trpc/server";
 import { SendLoadsPageClient } from "./page-client";
 import { Suspense } from "react";
@@ -12,24 +11,19 @@ export default async function SendLoadsPage() {
   return (
     <HydrateClient>
       <AppLayout>
-        <Container
-          title="Отчет за редакция на курсове"
-          description="Преглед и изпращане на непратени курсове"
+        <Suspense
+          fallback={
+            <div className="flex flex-col items-center justify-center py-12">
+              <LoadingSpinner
+                size="lg"
+                label="Зареждане на данни..."
+                showLabel
+              />
+            </div>
+          }
         >
-          <Suspense
-            fallback={
-              <div className="flex flex-col items-center justify-center py-12">
-                <LoadingSpinner
-                  size="lg"
-                  label="Зареждане на данни..."
-                  showLabel
-                />
-              </div>
-            }
-          >
-            <SendLoadsPageClient />
-          </Suspense>
-        </Container>
+          <SendLoadsPageClient />
+        </Suspense>
       </AppLayout>
     </HydrateClient>
   );

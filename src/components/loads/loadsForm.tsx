@@ -66,6 +66,7 @@ export const LoadsForm = ({
           description: "Записът е успешен.",
         });
         void utils.loads.loads.getAll.invalidate();
+        void utils.loads.loads.getUnsent.invalidate();
         form.reset(DefaultFormValues);
         onCancelEdit?.();
       },
@@ -257,8 +258,8 @@ export const LoadsForm = ({
                   <FormItem className="flex w-full flex-col">
                     <FormLabel>Багер</FormLabel>
                     {!isLoading &&
-                    equipmentNames &&
-                    equipmentNames.length > 0 ? (
+                      equipmentNames &&
+                      equipmentNames.length > 0 ? (
                       <FormControl>
                         <Combobox
                           list={equipmentNames
@@ -296,8 +297,8 @@ export const LoadsForm = ({
                   <FormItem>
                     <FormLabel>Камион</FormLabel>
                     {!isLoading &&
-                    equipmentNames &&
-                    equipmentNames.length > 0 ? (
+                      equipmentNames &&
+                      equipmentNames.length > 0 ? (
                       <FormControl>
                         <Combobox
                           list={equipmentNames

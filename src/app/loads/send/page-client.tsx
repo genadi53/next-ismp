@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/ui/spinner";
 import { api } from "@/trpc/react";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
+import { Container } from "@/components/Container";
 
 export function SendLoadsPageClient() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export function SendLoadsPageClient() {
       onSuccess: (data) => {
         toast({
           title: "Успешно изпратено",
-          description: `Курсовете (${data.count}) са изпратени успешно.`,
+          description: `Курсовете (${data?.count ?? 0}) са изпратени успешно.`,
         });
         void utils.loads.loads.getAll.invalidate();
         void utils.loads.loads.getUnsent.invalidate();
@@ -59,24 +60,28 @@ export function SendLoadsPageClient() {
   };
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Button
-          variant={"default"}
-          onClick={onSend}
-          disabled={isSending || !unsentLoads || unsentLoads.length === 0}
-        >
-          {isSending ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              Изпращане...
-            </>
-          ) : (
-            `Изпрати ${unsentLoads?.length || 0} курса`
-          )}
-        </Button>
-      </div>
-
+    <Container
+      title="Отчет за редакция на курсове"
+      description="Преглед и изпращане на непратени курсове"
+      headerChildren={
+        <div className="mb-4 flex justify-end">
+          <Button
+            variant={"default"}
+            onClick={onSend}
+            disabled={isSending || !unsentLoads || unsentLoads.length === 0}
+          >
+            {isSending ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Изпращане...
+              </>
+            ) : (
+              `Изпрати ${unsentLoads?.length || 0} курса`
+            )}
+          </Button>
+        </div>
+      }
+    >
       {unsentLoads?.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-gray-200">
           <Table>
@@ -145,7 +150,7 @@ export function SendLoadsPageClient() {
           Няма непратени курсове за изпращане.
         </div>
       )}
-    </>
+    </Container>
   );
 }
 

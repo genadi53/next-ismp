@@ -57,10 +57,20 @@ export async function getCurrentDispatcher(): Promise<CurrentDispatcher[]> {
 export async function getDispatchEquipmentNames(): Promise<
   DispatchEquipmentName[]
 > {
-  const results = await sqlQuery<{ FieldId: string }>(`
-    SELECT * FROM [ISMP_SP_FUNCTION].[dbo].AllEquipment() 
-    WHERE fieldId NOT IN (N'2B998', N'2BРЦ', N'2S98', N'2W999', N'2C999', N'2BРЦ') 
+  const results = await sqlQuery<{ FieldId: string }>(
+    `
+    select FieldId from ELLOperational.dbo.PITExcav
+    WHERE FieldId NOT IN (N'2B998', N'2BРЦ')
+      UNION ALL
+    select FieldId from ELLOperational.dbo.PITTruck
+    WHERE FieldId NOT IN (N'2C999')
+      UNION ALL	
+    select FieldId from ELLOperational.dbo.PITAuxeqmt
+    WHERE FieldId NOT IN (N'2S98', N'2W999') 
     ORDER BY FieldId
-  `);
+  `,
+    {},
+    "moddb",
+  );
   return results.map((r) => r.FieldId);
 }
