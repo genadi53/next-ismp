@@ -30,7 +30,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { useState, useMemo, useEffect } from "react";
 import { TimeInput } from "@/components/ui/time-input";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import type { GasMeasurement } from "@/server/repositories/pvr";
 import { api } from "@/trpc/react";
 
@@ -48,17 +48,20 @@ export function PlanGasForm({
   const { mutateAsync: createGasMeasurement, isPending: isCreating } =
     api.pvr.gas.create.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Измерванията на газове са успешно записани.",
         });
-        utils.pvr.gas.getAll.invalidate();
+        void utils.pvr.gas.getAll.invalidate();
         handleReset();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при записване на измерванията. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });
@@ -66,22 +69,25 @@ export function PlanGasForm({
   const { mutateAsync: updateGasMeasurements, isPending: isUpdating } =
     api.pvr.gas.update.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Измерванията на газове са успешно обновени.",
         });
-        utils.pvr.gas.getAll.invalidate();
+        void utils.pvr.gas.getAll.invalidate();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при обновяване на измерванията. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });
 
   const isSubmitting = isCreating || isUpdating;
-  const isEditMode = !!measurementsToupdate && measurementsToupdate.length > 0;
+  const isEditMode = (measurementsToupdate?.length ?? 0) > 0;
 
   // Initialize form with default values
   const getDefaultValues = (): PlanGasDataType => {
@@ -89,7 +95,7 @@ export function PlanGasForm({
       // Extract date and time from first measurement (all should have same date/time)
       const firstMeasurement = measurementsToupdate[0];
       const measuredOnDate =
-        firstMeasurement && firstMeasurement.MeasuredOn
+        firstMeasurement?.MeasuredOn
           ? new Date(firstMeasurement.MeasuredOn)
           : new Date();
 
@@ -102,36 +108,36 @@ export function PlanGasForm({
       // Build measurements array matching the form structure
       const measurements = references
         ? [...references]
-            .sort((a, b) => a.GasId - b.GasId)
-            .map((ref) => {
-              const existingMeasurement = measurementMap.get(ref.GasId);
-              return {
-                GasID: ref.GasId,
-                gasName: ref.gasName || "",
-                gasType: ref.gasType || "",
-                Dimension: ref.Dimension || "",
-                GasValue: existingMeasurement?.GasValue ?? 0,
-              };
-            })
+          .sort((a, b) => a.GasId - b.GasId)
+          .map((ref) => {
+            const existingMeasurement = measurementMap.get(ref.GasId);
+            return {
+              GasID: ref.GasId,
+              gasName: ref.gasName ?? "",
+              gasType: ref.gasType ?? "",
+              Dimension: ref.Dimension ?? "",
+              GasValue: existingMeasurement?.GasValue ?? 0,
+            };
+          })
         : PLAN_GASES;
 
       return {
         MeasuredDateOn: measuredOnDate,
         MeasuredTimeOn:
-          firstMeasurement && firstMeasurement.MeasuredOn
+          firstMeasurement?.MeasuredOn
             ? format(measuredOnDate, "HH:mm")
             : format(new Date(), "HH:mm"),
         Horizont:
-          (firstMeasurement && firstMeasurement.Horizont?.toString()) || "",
-        MeasuredFrom: (firstMeasurement && firstMeasurement.MeasuredFrom) || "",
-        MeasuredDuty: (firstMeasurement && firstMeasurement.MeasuredDuty) || "",
+          firstMeasurement?.Horizont?.toString() ?? "",
+        MeasuredFrom: firstMeasurement?.MeasuredFrom ?? "",
+        MeasuredDuty: firstMeasurement?.MeasuredDuty ?? "",
         measurements:
           measurements.length === 6
             ? (measurements as PlanGasDataType["measurements"])
             : (PLAN_GASES.map((g) => ({
-                ...g,
-                GasValue: 0,
-              })) as PlanGasDataType["measurements"]),
+              ...g,
+              GasValue: 0,
+            })) as PlanGasDataType["measurements"]),
       };
     }
 
@@ -171,9 +177,8 @@ export function PlanGasForm({
 
   const handleFormSubmit = async (data: PlanGasDataType) => {
     try {
-      const measuredOn = `${format(data.MeasuredDateOn, "yyyy-MM-dd")} ${
-        data.MeasuredTimeOn
-      }`;
+      const measuredOn = `${format(data.MeasuredDateOn, "yyyy-MM-dd")} ${data.MeasuredTimeOn
+        }`;
 
       if (
         isEditMode &&
@@ -181,12 +186,12 @@ export function PlanGasForm({
         measurementsToupdate.length > 0
       ) {
         // Update existing measurements
-        const oldMeasuredOn = measurementsToupdate[0]?.MeasuredOn || "";
+        const oldMeasuredOn = measurementsToupdate[0]?.MeasuredOn ?? "";
 
         const transformedData = data.measurements.map((measurement) => {
           // Find the original measurement to preserve other fields
           const originalMeasurement =
-            measurementsToupdate.find((m) => m.GasID === measurement.GasID) ||
+            measurementsToupdate.find((m) => m.GasID === measurement.GasID) ??
             measurementsToupdate[0];
 
           return {
@@ -196,8 +201,8 @@ export function PlanGasForm({
             MeasuredDuty: data.MeasuredDuty,
             MeasuredOn: measuredOn,
             Horizont: Number(data.Horizont),
-            lrdFrom: originalMeasurement?.lrdFrom || "",
-            OldMeasuredOn: oldMeasuredOn,
+            lrdFrom: originalMeasurement?.lrdFrom ?? "",
+            OldMeasuredOn: oldMeasuredOn ? format(oldMeasuredOn, "yyyy-MM-dd") : "",
           };
         });
 
@@ -274,8 +279,8 @@ export function PlanGasForm({
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value
                               ? format(new Date(field.value), "PPP", {
-                                  locale: bg,
-                                })
+                                locale: bg,
+                              })
                               : "Избери дата"}
                           </Button>
                         </FormControl>
@@ -425,19 +430,19 @@ export function PlanGasForm({
                               </td>
 
                               <td className="border border-gray-300 px-3 py-2 dark:border-gray-700">
-                                {reference.work8 || "-"}
+                                {reference.work8 ?? "-"}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 dark:border-gray-700">
-                                {reference.work7 || "-"}
+                                {reference.work7 ?? "-"}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 dark:border-gray-700">
-                                {reference.work6 || "-"}
+                                {reference.work6 ?? "-"}
                               </td>
                               <td className="border border-gray-300 bg-red-50 px-3 py-2 dark:border-gray-700 dark:bg-red-950">
-                                {reference.work5 || "-"}
+                                {reference.work5 ?? "-"}
                               </td>
                               <td className="border border-gray-300 bg-red-50 px-3 py-2 dark:border-gray-700 dark:bg-red-950">
-                                {reference.work2 || "-"}
+                                {reference.work2 ?? "-"}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 dark:border-gray-700">
                                 <FormField
@@ -502,10 +507,9 @@ export function PlanGasForm({
                       />
                     </FormControl>
                     <datalist id="sampler-names">
-                      {details?.names &&
-                        details.names.map((name, index) => (
-                          <option key={index} value={name} />
-                        ))}
+                      {details?.names?.map((name, index) => (
+                        <option key={index} value={name} />
+                      ))}
                     </datalist>
                     <FormMessage />
                   </FormItem>
@@ -528,10 +532,9 @@ export function PlanGasForm({
                       />
                     </FormControl>
                     <datalist id="sampler-duties">
-                      {details?.duties &&
-                        details.duties.map((duty, index) => (
-                          <option key={index} value={duty} />
-                        ))}
+                      {details?.duties?.map((duty, index) => (
+                        <option key={index} value={duty} />
+                      ))}
                     </datalist>
                     <FormMessage />
                   </FormItem>

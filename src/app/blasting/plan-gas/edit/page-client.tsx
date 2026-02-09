@@ -14,8 +14,8 @@ export function PlanGasEditPageClient() {
 
   const { data: measurements, isLoading } = api.pvr.gas.getForEdit.useQuery(
     {
-      date: date || "",
-      elevation: Number(elevation) || 0,
+      date: date ?? "",
+      elevation: Number(elevation) ?? 0,
     },
     {
       enabled: !!date && !!elevation,
@@ -42,6 +42,6 @@ export function PlanGasEditPageClient() {
     );
   }
 
-  return <PlanGasForm measurementsToupdate={measurements || undefined} />;
+  return <PlanGasForm measurementsToupdate={measurements ?? undefined} />;
 }
 

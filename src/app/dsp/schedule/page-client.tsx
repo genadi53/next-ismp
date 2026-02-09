@@ -51,7 +51,7 @@ export function SchedulePageClient() {
   const { mutateAsync: createSchedule } =
     api.dispatcher.schedule.create.useMutation({
       onSuccess: () => {
-        utils.dispatcher.schedule.getAll.invalidate();
+        void utils.dispatcher.schedule.getAll.invalidate();
         toast({
           title: "Успешно записан график",
           description: `Графикът за месец ${date ? monthNamesBG[date.getMonth() + 1] : ""
@@ -89,7 +89,7 @@ export function SchedulePageClient() {
     }
 
     // Check if it's an Excel file
-    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    if (!/\.(xlsx|xls)$/i.exec(file.name)) {
       return toast({
         title: "Грешка при обработка",
         description:

@@ -138,8 +138,6 @@ export function DocumentAssetDetailForm({
         DetDateBuy: values.DetDateBuy ?? null,
         DetStartExploatation: values.DetStartExploatation ?? null,
         DetApprovedDMA: values.DetApprovedDMA ?? null,
-        CreatedFrom: null,
-        LastUpdatedFrom: "test@testov",
       };
       if (assetToEdit) {
         await updateMutation.mutateAsync({

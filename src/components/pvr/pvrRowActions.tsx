@@ -39,7 +39,7 @@ export function RowActionsBlastingPlan<TData extends BlastingPlan>({
       <DropdownMenuContent side="left" align="end" className="w-[160px]">
         <DropdownMenuItem
           onClick={() => {
-            actions["edit"](plan);
+            actions.edit(plan);
           }}
         >
           Редактирай
@@ -48,7 +48,7 @@ export function RowActionsBlastingPlan<TData extends BlastingPlan>({
         <DropdownMenuItem
           className="text-destructive"
           onClick={() => {
-            actions["delete"](plan);
+            actions.delete(plan);
           }}
         >
           Изтрий

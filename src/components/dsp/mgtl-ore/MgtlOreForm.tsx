@@ -23,7 +23,7 @@ import { CalendarIcon, Save, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   mgtlOreFormSchema,
   type MgtlOreFormData,
@@ -43,15 +43,18 @@ export function MgtlOreForm({
   const { mutateAsync: createMgtlOre, isPending } =
     api.dispatcher.mgtlOre.create.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Данните за извоза на руда са записани успешно.",
         });
-        utils.dispatcher.mgtlOre.getAll.invalidate();
+        void utils.dispatcher.mgtlOre.getAll.invalidate();
         form.reset();
         onSuccess?.();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при записването на данните. Опитайте отново.",
@@ -83,8 +86,10 @@ export function MgtlOreForm({
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     if (data.OperDate > today) {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: "Въведена е бъдеща дата!",
+        variant: "destructive",
       });
       return;
     }
@@ -98,8 +103,10 @@ export function MgtlOreForm({
       !data.sclad3 &&
       !data.MGTL3
     ) {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: "Моля, въведете поне една стойност.",
+        variant: "destructive",
       });
       return;
     }

@@ -8,17 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { api } from "@/trpc/react";
 import { AlertTriangle, Info, Wrench } from "lucide-react";
-import Link from "next/link";
+import { RequestRepairForm } from "@/components/dsp/requests-repairs/RequestRepairForm";
 
 export function RequestsRepairsPageClient() {
   const [requestRepairs] =
@@ -59,10 +51,7 @@ export function RequestsRepairsPageClient() {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Формата за създаване на заявки за ремонти ще бъде имплементирана в
-            следващ етап.
-          </p>
+          <RequestRepairForm />
         </CardContent>
       </Card>
 
@@ -73,53 +62,65 @@ export function RequestsRepairsPageClient() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Дата</TableHead>
-                  <TableHead>Машина</TableHead>
-                  <TableHead>Заявка</TableHead>
-                  <TableHead>Създаден от</TableHead>
-                  <TableHead>Създаден на</TableHead>
-                  <TableHead>Изпратен на</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requestRepairs && requestRepairs.length > 0 ? (
-                  requestRepairs.map((request) => (
-                    <TableRow key={request.ID} className="hover:bg-muted/50">
-                      <TableCell>{request.ID}</TableCell>
-                      <TableCell>
-                        <Link
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    ID
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Дата
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Машина
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Заявка
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Създаден от
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Създаден на
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Изпратен на
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {requestRepairs?.map((request) => (
+                    <tr key={request.ID} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-2">
+                        {request.ID}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <a
                           href={`/dsp/requests-repairs-report?date=${request.RequestDate}`}
                           className="text-blue-600 hover:underline"
                         >
                           {request.RequestDate}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{request.Equipment}</TableCell>
-                      <TableCell>
+                        </a>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {request.Equipment}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
                         {request.RequestRemont?.replace(/is\|\|mp/g, ";")}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
                         {request.addUser?.replace(/\(/g, "\n(")}
-                      </TableCell>
-                      <TableCell>{request.lrd}</TableCell>
-                      <TableCell>{request.SentReportOn || "-"}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center">
-                      <div className="text-muted-foreground">
-                        Няма намерени заявки
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {request.lrd}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {request.SentReportOn}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>

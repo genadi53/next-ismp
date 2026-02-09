@@ -18,7 +18,7 @@ import {
   type GeowlanAPFormData,
 } from "@/schemas/geowlan.schemas";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import {
   Dialog,
@@ -55,12 +55,12 @@ export const GeowlanForm = ({
   const utils = api.useUtils();
   const { mutateAsync: createGeowlan } = api.geowlan.aps.create.useMutation({
     onSuccess: () => {
-      utils.geowlan.aps.getAll.invalidate();
+      void utils.geowlan.aps.getAll.invalidate();
     },
   });
   const { mutateAsync: updateGeowlan } = api.geowlan.aps.update.useMutation({
     onSuccess: () => {
-      utils.geowlan.aps.getAll.invalidate();
+      void utils.geowlan.aps.getAll.invalidate();
     },
   });
   const [enableGlobal, setEnableGlobal] = useState(true);
@@ -128,13 +128,13 @@ export const GeowlanForm = ({
         enabled: geowlanToEdit.enabled ? true : false,
         lat: lat,
         lng: lng,
-        hardware: geowlanToEdit.hardware || "",
-        ip: geowlanToEdit.ip || "",
-        mac: geowlanToEdit.mac || "",
+        hardware: geowlanToEdit.hardware ?? "",
+        ip: geowlanToEdit.ip ?? "",
+        mac: geowlanToEdit.mac ?? "",
         rgb: geowlanToEdit.rgb
           ? ColorConverter(geowlanToEdit.rgb, false)
           : defaultColor,
-        LAN: geowlanToEdit.LAN || "",
+        LAN: geowlanToEdit.LAN ?? "",
       });
     }
   }, [geowlanToEdit, form]);
@@ -148,10 +148,10 @@ export const GeowlanForm = ({
           y: values.y ?? 0,
           enabled: values.enabled,
           apId: geowlanToEdit.apId,
-          mac: values.mac || null,
-          ip: values.ip || null,
-          hardware: values.hardware || null,
-          LAN: values.LAN || null,
+          mac: values.mac ?? null,
+          ip: values.ip ?? null,
+          hardware: values.hardware ?? null,
+          LAN: values.LAN ?? null,
           rgb: values.rgb ? ColorConverter(values.rgb, true) : null,
         };
 
@@ -159,7 +159,8 @@ export const GeowlanForm = ({
           id: geowlanToEdit.id,
           data: dataToUpdate,
         });
-        toast.success("Успешно", {
+        toast({
+          title: "Успешно",
           description: `Точка "${values.name}" е обновена успешно.`,
         });
       } else {
@@ -168,13 +169,14 @@ export const GeowlanForm = ({
           x: values.x ?? null,
           y: values.y ?? null,
           enabled: values.enabled ?? null,
-          mac: values.mac || null,
-          ip: values.ip || null,
-          hardware: values.hardware || null,
-          LAN: values.LAN || null,
+          mac: values.mac ?? null,
+          ip: values.ip ?? null,
+          hardware: values.hardware ?? null,
+          LAN: values.LAN ?? null,
           rgb: values.rgb ? ColorConverter(values.rgb, true) : null,
         });
-        toast.success("Успешно", {
+        toast({
+          title: "Успешно",
           description: `Точка "${values.name}" е добавена успешно.`,
         });
       }
@@ -183,8 +185,10 @@ export const GeowlanForm = ({
       onFormSubmit();
     } catch (error) {
       console.error("Error submitting geowlan:", error);
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: "Възникна грешка при записване. Опитайте отново.",
+        variant: "destructive",
       });
     }
   }
@@ -381,7 +385,7 @@ export const GeowlanForm = ({
                         <Input placeholder={defaultColor} {...field} />
                         <Input
                           type="color"
-                          value={field.value || defaultColor}
+                          value={field.value ?? defaultColor}
                           onChange={(e) => field.onChange(e.target.value)}
                           className="h-9 w-12 rounded border p-1"
                         />

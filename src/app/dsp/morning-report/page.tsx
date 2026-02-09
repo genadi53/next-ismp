@@ -8,14 +8,25 @@ import { LoadingSpinner } from "@/components/ui/spinner";
 export default async function MorningReportPage() {
   // Prefetch data on the server
   await api.dispatcher.morningReport.getAll.prefetch();
-  await api.dashboard.dispatcher.getCurrent.prefetch();
+  const currentDispatcher = await api.dashboard.dispatcher.getCurrent();
 
   return (
     <HydrateClient>
       <AppLayout>
         <Container
           title="Сутрешен отчет Диспечери"
-          description="Управление на сутрешни отчети"
+          headerChildren={
+            <>
+              {currentDispatcher?.length > 0 && (
+                <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                  <span className="text-gray-500">Текущ диспечер:</span>{" "}
+                  <span className="font-semibold text-gray-800">
+                    {currentDispatcher[0]?.Name}
+                  </span>
+                </div>
+              )}
+            </>
+          }
         >
           <Suspense
             fallback={

@@ -24,10 +24,10 @@ interface ConfigDialogProps {
 export function ConfigDialog({ config, onSave }: ConfigDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<RouterConfig>({
-    ip: config?.ip || "192.168.88.1",
-    port: config?.port || "8728",
-    username: config?.username || "admin",
-    password: config?.password || "",
+    ip: config?.ip ?? "192.168.88.1",
+    port: config?.port ?? "8728",
+    username: config?.username ?? "admin",
+    password: config?.password ?? "",
   });
 
   const handleSave = () => {

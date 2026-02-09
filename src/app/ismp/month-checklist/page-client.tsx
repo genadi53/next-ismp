@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { monthNamesBG } from "@/types/global.types";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface ChecklistItem {
   id: string;
@@ -93,7 +93,10 @@ export function MonthChecklistPageClient() {
 
   const handleSendEmail = () => {
     console.log(checklistItems);
-    toast.info("Функционалността за изпращане на имейл ще бъде добавена скоро");
+    toast({
+      title: "Функционалността за изпращане на имейл ще бъде добавена скоро",
+      description: "",
+    });
   };
 
   return (

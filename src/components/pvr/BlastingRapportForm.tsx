@@ -56,7 +56,6 @@ import {
 } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { toast } from "@/components/ui/toast";
-import type { CreateBlastReportInput } from "@/server/repositories/pvr";
 
 const toOneString = (strArray: string[]) => {
   return strArray.reduce(
@@ -100,7 +99,7 @@ export function BlastingRapportForm() {
           title: "Успех",
           description: "Рапортът е успешно създаден.",
         });
-        utils.pvr.raport.getAll.invalidate();
+        void utils.pvr.raport.getAll.invalidate();
         form.reset(getDefaultFormValues());
       },
       onError: (error) => {
@@ -126,7 +125,7 @@ export function BlastingRapportForm() {
     try {
       // Transform the form data to match the backend API expectations
       const transformedData = {
-        ShiftDate: data.ShiftDate.toISOString().split("T")[0],
+        ShiftDate: data.ShiftDate.toISOString().split("T")[0] ?? null,
         VP_num: data.VP_num.toString(),
         Horiz: data.Horiz.toString(),
         site_conditon: data.site_conditon,
@@ -148,11 +147,9 @@ export function BlastingRapportForm() {
         state_blast_site_after: toOneString(data.state_blast_site_after),
         non_blasted_num: data.non_blasted_num,
         Initiate: data.Initiate,
-        CreatedFrom: null,
-        EditedFrom: null,
       };
 
-      await createRapport(transformedData as CreateBlastReportInput);
+      await createRapport(transformedData);
     } catch (error) {
       console.error("Error creating rapport:", error);
     }
@@ -171,7 +168,7 @@ export function BlastingRapportForm() {
       (E1100 !== undefined && E1100 !== -1) ||
       (E3400 !== undefined && E3400 !== -1)
     ) {
-      form.trigger(["ANFO", "E1100", "E3400"]);
+      void form.trigger(["ANFO", "E1100", "E3400"]);
     }
   }, [ANFO, E1100, E3400, form]);
 
@@ -246,7 +243,7 @@ export function BlastingRapportForm() {
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
                             }
-                            value={field.value || ""}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -269,7 +266,7 @@ export function BlastingRapportForm() {
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
                             }
-                            value={field.value || ""}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />

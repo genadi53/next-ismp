@@ -42,8 +42,8 @@ export const geowlanColumns = ({
     accessorKey: "lat",
     header: "Ширина",
     cell: ({ row }) => {
-      const x = row.original.x as number | null;
-      const y = row.original.y as number | null;
+      const x = row.original.x;
+      const y = row.original.y;
       if (!x || !y) return <div>-</div>;
       return <div>{convertLocalCoordToGlobal(x, y).lat.toFixed(7)}</div>;
     },
@@ -52,8 +52,8 @@ export const geowlanColumns = ({
     accessorKey: "lng",
     header: "Дължина",
     cell: ({ row }) => {
-      const x = row.original.x as number | null;
-      const y = row.original.y as number | null;
+      const x = row.original.x;
+      const y = row.original.y;
       if (!x || !y) return <div>-</div>;
       return <div>{convertLocalCoordToGlobal(x, y).lng.toFixed(7)}</div>;
     },
@@ -62,7 +62,7 @@ export const geowlanColumns = ({
     accessorKey: "enabled",
     header: "Статус",
     cell: ({ row }) => {
-      const enabled = row.getValue("enabled") as boolean | null;
+      const enabled = row.getValue("enabled");
       return (
         <Badge variant={enabled ? "default" : "secondary"}>
           {enabled ? "Активна" : "Неактивна"}

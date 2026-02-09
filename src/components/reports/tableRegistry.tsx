@@ -88,9 +88,9 @@ export function DataTableRegistry<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -137,13 +137,14 @@ export const registryColumns: ColumnDef<ReportsRegistry>[] = [
     accessorKey: "ID",
     header: "ID",
     cell: ({ row }) => {
-      const id = row.getValue("ID") as number;
+      const id = row.getValue("ID");
+      const idStr = typeof id === "string" || typeof id === "number" ? String(id) : "";
       return (
         <Link
-          href={`/reports/registry?id=${id}`}
+          href={`/reports/registry?id=${idStr}`}
           className="text-blue-600 hover:text-blue-800 hover:underline"
         >
-          {id}
+          {idStr}
         </Link>
       );
     },
@@ -152,25 +153,31 @@ export const registryColumns: ColumnDef<ReportsRegistry>[] = [
     accessorKey: "RequestDate",
     header: "Дата",
     cell: ({ row }) => {
-      const date = row.getValue("RequestDate") as string;
+      const date: string = row.getValue("RequestDate") ?? "";
       return <div className="whitespace-nowrap">{date}</div>;
     },
   },
   {
     accessorKey: "RequestID",
     header: "Заявка",
-    cell: ({ row }) => (row.getValue("RequestID") as string | null) ?? "-",
+    cell: ({ row }) => {
+      const value = row.getValue("RequestID");
+      return typeof value === "string" || typeof value === "number" ? String(value) : "-";
+    },
   },
   {
     accessorKey: "ReportName",
     header: "Отчет",
-    cell: ({ row }) => (row.getValue("ReportName") as string) ?? "-",
+    cell: ({ row }) => {
+      const value = row.getValue("ReportName");
+      return typeof value === "string" || typeof value === "number" ? String(value) : "-";
+    },
   },
   {
     accessorKey: "RequestedFrom",
     header: "Заявен от",
     cell: ({ row }) => {
-      const requestedFrom = (row.getValue("RequestedFrom") as string | null) ?? "";
+      const requestedFrom: string = row.getValue("RequestedFrom") ?? "";
       const requestDepartment = row.original.RequestDepartment ?? "";
       return (
         <div>
@@ -182,21 +189,25 @@ export const registryColumns: ColumnDef<ReportsRegistry>[] = [
   {
     accessorKey: "WorkAcceptedFrom",
     header: "Изработен от",
-    cell: ({ row }) =>
-      (row.getValue("WorkAcceptedFrom") as string | null) ?? "-",
+    cell: ({ row }) => {
+      const value = row.getValue("WorkAcceptedFrom");
+      return typeof value === "string" || typeof value === "number" ? String(value) : "-";
+    },
   },
   {
     accessorKey: "CompletedWorkOn",
     header: "Приключила на",
     cell: ({ row }) => {
-      const date = (row.getValue("CompletedWorkOn") as string | null) ?? "";
-      return <div className="whitespace-nowrap">{date || "-"}</div>;
+      const date: string = row.getValue("CompletedWorkOn") ?? "";
+      return <div className="whitespace-nowrap">{date ?? "-"}</div>;
     },
   },
   {
     accessorKey: "RequestDescription",
     header: "Кратко описание",
-    cell: ({ row }) =>
-      (row.getValue("RequestDescription") as string | null) ?? "-",
+    cell: ({ row }) => {
+      const value = row.getValue("RequestDescription");
+      return typeof value === "string" || typeof value === "number" ? String(value) : "-";
+    },
   },
 ];

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Download, MapPin } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import type { GeowlanAP } from "@/server/repositories/geowlan";
 import {
   GoogleMap,
@@ -67,7 +67,11 @@ export function GeowlanPageClient() {
 
   const handleExportToKML = async () => {
     if (!geowlanData || geowlanData.length === 0) {
-      toast.error("Няма данни за експорт");
+      toast({
+        title: "Няма данни за експорт",
+        description: "",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -75,7 +79,11 @@ export function GeowlanPageClient() {
       // Validate data before export
       const validation = validateGeowlanPointsForExport(geowlanData);
       if (!validation.isValid) {
-        toast.error(`Грешка при валидация: ${validation.errors.join(", ")}`);
+        toast({
+          title: "Грешка при валидация",
+          description: validation.errors.join(", "),
+          variant: "destructive",
+        });
         return;
       }
 
@@ -85,12 +93,17 @@ export function GeowlanPageClient() {
 
       await exportGeowlanToKML(geowlanData, filename);
 
-      toast.success(
-        `Успешно експортирани ${geowlanData.length} точки в Google Earth формат`,
-      );
+      toast({
+        title: "Успешно експортирани",
+        description: `${geowlanData.length} точки в Google Earth формат`,
+      });
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Възникна грешка при експорта");
+      toast({
+        title: "Възникна грешка при експорта",
+        description: "",
+        variant: "destructive",
+      });
     }
   };
 
@@ -107,7 +120,7 @@ export function GeowlanPageClient() {
 
   const { isLoaded: isMapLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? "",
   });
 
   const centerGoogle = useMemo(() => ({ lat: 42.751111, lng: 24.030556 }), []);
@@ -170,7 +183,7 @@ export function GeowlanPageClient() {
                       position={convertLocalCoordToGlobal(geowlan.x, geowlan.y)}
                       onClick={(e) =>
                         setSelected({
-                          g: geowlan as GeowlanAP,
+                          g: geowlan,
                           pos: e.latLng!,
                         })
                       }
@@ -210,7 +223,7 @@ export function GeowlanPageClient() {
               showOnMap: handleShowOnMap,
             },
           })}
-          data={[...(geowlanData as GeowlanAP[])]}
+          data={[...geowlanData]}
         />
       )}
 

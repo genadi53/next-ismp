@@ -23,7 +23,7 @@ import { CalendarIcon, Save, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { EquipmentSelector, type SelectedEquipment } from "./EquipmentSelector";
 import { RepairReasonsPanel } from "./RepairReasonsPanel";
 
@@ -56,10 +56,11 @@ export function RequestRepairsForm({
   const { mutateAsync: createRequests, isPending } =
     api.dispatcher.repairs.createRequests.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Заявките за ремонт са записани успешно.",
         });
-        utils.dispatcher.repairs.getRequests.invalidate();
+        void utils.dispatcher.repairs.getRequests.invalidate();
         // Reset form
         setRequestDate(undefined);
         setSelectedEquipment([]);
@@ -68,7 +69,9 @@ export function RequestRepairsForm({
         onSuccess?.();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при записването на заявките. Опитайте отново.",
@@ -118,7 +121,7 @@ export function RequestRepairsForm({
     (reason: string) => {
       if (!activeEquipment) return;
       setEquipmentInputs((prev) => {
-        const current = prev[activeEquipment]?.content || "";
+        const current = prev[activeEquipment]?.content ?? "";
         const newContent =
           current.length === 0 ? reason : `${current};${reason}`;
         return {
@@ -171,7 +174,11 @@ export function RequestRepairsForm({
 
   const handleSubmit = async () => {
     if (!requestDate) {
-      toast.error("Грешка", { description: "Моля, изберете дата." });
+      toast({
+        title: "Грешка",
+        description: "Моля, изберете дата.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -193,7 +200,7 @@ export function RequestRepairsForm({
       if (
         !input.content.trim() &&
         !input.notes.trim() &&
-        !(input.holes && input.holes.trim())
+        !input.holes?.trim()
       ) {
         return;
       }
@@ -212,7 +219,7 @@ export function RequestRepairsForm({
         RequestDate: formattedDate,
         Equipment: equipment.id,
         EquipmentType: equipment.typeCode,
-        RequestRemont: requestRemont || null,
+        RequestRemont: requestRemont ?? null,
         DrillHoles_type:
           equipment.type === "drill" && input.holes?.trim()
             ? input.holes.trim()
@@ -221,8 +228,10 @@ export function RequestRepairsForm({
     });
 
     if (requests.length === 0) {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description: "Моля, въведете поне една заявка за ремонт.",
+        variant: "destructive",
       });
       return;
     }
@@ -353,7 +362,7 @@ export function RequestRepairsForm({
                         <div className="grid gap-2">
                           <Textarea
                             placeholder="Въведете заявка за ремонт..."
-                            value={equipmentInputs[equipment.id]?.content || ""}
+                            value={equipmentInputs[equipment.id]?.content ?? ""}
                             onChange={(e) =>
                               handleInputChange(
                                 equipment.id,
@@ -365,7 +374,7 @@ export function RequestRepairsForm({
                           />
                           <Input
                             placeholder="Въведете заявка, която да не се записва..."
-                            value={equipmentInputs[equipment.id]?.notes || ""}
+                            value={equipmentInputs[equipment.id]?.notes ?? ""}
                             onChange={(e) =>
                               handleInputChange(
                                 equipment.id,
@@ -423,7 +432,7 @@ export function RequestRepairsForm({
                         <div className="grid gap-2">
                           <Textarea
                             placeholder="Въведете заявка за ремонт..."
-                            value={equipmentInputs[equipment.id]?.content || ""}
+                            value={equipmentInputs[equipment.id]?.content ?? ""}
                             onChange={(e) =>
                               handleInputChange(
                                 equipment.id,
@@ -435,7 +444,7 @@ export function RequestRepairsForm({
                           />
                           <Input
                             placeholder="Въведете сондажи и тип на сондажното поле..."
-                            value={equipmentInputs[equipment.id]?.holes || ""}
+                            value={equipmentInputs[equipment.id]?.holes ?? ""}
                             onChange={(e) =>
                               handleInputChange(
                                 equipment.id,
@@ -446,7 +455,7 @@ export function RequestRepairsForm({
                           />
                           <Input
                             placeholder="Въведете заявка, която да не се записва..."
-                            value={equipmentInputs[equipment.id]?.notes || ""}
+                            value={equipmentInputs[equipment.id]?.notes ?? ""}
                             onChange={(e) =>
                               handleInputChange(
                                 equipment.id,
@@ -502,7 +511,7 @@ export function RequestRepairsForm({
                         </div>
                         <Textarea
                           placeholder="Въведете свободен текст за заявката..."
-                          value={equipmentInputs[equipment.id]?.content || ""}
+                          value={equipmentInputs[equipment.id]?.content ?? ""}
                           onChange={(e) =>
                             handleInputChange(
                               equipment.id,

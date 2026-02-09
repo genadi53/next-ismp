@@ -19,7 +19,6 @@ import {
 import {
   Activity,
   AlertTriangle,
-  Gauge,
   Target,
   TrendingDown,
   TrendingUp,
@@ -50,8 +49,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 // =============================================================================
 // TYPES
 // =============================================================================
-
-type Granularity = "day" | "shift";
 
 interface Alert {
   id: string;
@@ -109,51 +106,6 @@ const ALERTS: Alert[] = [
   },
 ];
 
-const TIME_SERIES_DATA: TimeSeriesPoint[] = [
-  {
-    time: "Ден 1",
-    materialMoved: 42000,
-    oreTonnes: 17500,
-    strippingRatioMA: 2.3,
-  },
-  {
-    time: "Ден 2",
-    materialMoved: 44500,
-    oreTonnes: 18200,
-    strippingRatioMA: 2.35,
-  },
-  {
-    time: "Ден 3",
-    materialMoved: 41000,
-    oreTonnes: 17000,
-    strippingRatioMA: 2.32,
-  },
-  {
-    time: "Ден 4",
-    materialMoved: 46000,
-    oreTonnes: 19000,
-    strippingRatioMA: 2.38,
-  },
-  {
-    time: "Ден 5",
-    materialMoved: 43500,
-    oreTonnes: 18000,
-    strippingRatioMA: 2.36,
-  },
-  {
-    time: "Ден 6",
-    materialMoved: 45200,
-    oreTonnes: 18800,
-    strippingRatioMA: 2.4,
-  },
-  {
-    time: "Ден 7",
-    materialMoved: 47000,
-    oreTonnes: 19500,
-    strippingRatioMA: 2.42,
-  },
-];
-
 const QUEUE_SPOT_DATA = [
   { hour: "06:00", queue: 8, spot: 5 },
   { hour: "08:00", queue: 12, spot: 6 },
@@ -164,45 +116,6 @@ const QUEUE_SPOT_DATA = [
   { hour: "18:00", queue: 16, spot: 8 },
   { hour: "20:00", queue: 11, spot: 6 },
 ];
-
-const KPI_DATA = {
-  strippingRatio: {
-    value: 2.4,
-    delta: 0.2,
-    trend: "up" as const,
-    sparkline: [2.2, 2.25, 2.3, 2.28, 2.35, 2.38, 2.4],
-  },
-  materialMoved: {
-    value: 45200,
-    delta: 2100,
-    trend: "up" as const,
-    sparkline: [42000, 44500, 41000, 46000, 43500, 45200, 47000],
-  },
-  oreTonnes: {
-    value: 18800,
-    delta: -400,
-    trend: "down" as const,
-    sparkline: [17500, 18200, 17000, 19000, 18000, 18800, 19500],
-  },
-  fleetUtil: {
-    value: 87,
-    delta: 3,
-    trend: "up" as const,
-    sparkline: [82, 84, 85, 83, 86, 85, 87],
-  },
-  equipAvail: {
-    value: 94,
-    delta: 0,
-    trend: "stable" as const,
-    sparkline: [93, 94, 92, 95, 94, 93, 94],
-  },
-  tkphCompliance: {
-    value: 96,
-    delta: 1,
-    trend: "up" as const,
-    sparkline: [94, 95, 93, 96, 95, 94, 96],
-  },
-};
 
 export function Sheet1Overview({
   onAlertClick,
@@ -216,13 +129,8 @@ export function Sheet1Overview({
     miningDashboard: { overviewSheet },
   } = useDashboard();
 
-  const {
-    overviewGranularity,
-    setOverviewGranularity,
-    overviewStartShiftId,
-    overviewEndShiftId,
-    setOverviewShiftIds,
-  } = overviewSheet;
+  const { overviewStartShiftId, overviewEndShiftId, setOverviewShiftIds } =
+    overviewSheet;
 
   // Fetch all shifts for the comboboxes
   const { data: allShifts = [] } =
@@ -255,12 +163,45 @@ export function Sheet1Overview({
     overviewStartShiftId > 0 &&
     overviewEndShiftId > 0;
 
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/58d26b2b-bcf0-40c6-ab50-61f806b2e928", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "overview.tsx:164",
+      message: "hasShiftIds check",
+      data: { hasShiftIds, overviewStartShiftId, overviewEndShiftId },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      runId: "run1",
+      hypothesisId: "A",
+    }),
+  }).catch(() => {
+    // Ignore fetch errors for agent logging
+  });
+  // #endregion
+
   // Fetch both cycle times and loads data in a single API request (queries run sequentially on server)
+  const { data: truckData, isLoading: isLoadingTruckData } =
+    api.dashboardV2.trucks.getTruckData.useQuery(
+      {
+        startShiftId: Number(overviewStartShiftId!),
+        endShiftId: Number(overviewEndShiftId!),
+      },
+      {
+        enabled: hasShiftIds,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+        staleTime: 30000, // Consider data fresh for 30 seconds to prevent unnecessary refetches
+      },
+    );
+
+  // Fetch production data
   const {
-    data: truckData,
-    isLoading: isLoadingTruckData,
-    isFetching: isFetchingTruckData,
-  } = api.dashboardV2.trucks.getTruckData.useQuery(
+    data: productionData,
+    isLoading: isLoadingProduction,
+    error: productionError,
+  } = api.dashboardV2.production.getCurrentProduction.useQuery(
     {
       startShiftId: Number(overviewStartShiftId!),
       endShiftId: Number(overviewEndShiftId!),
@@ -269,9 +210,212 @@ export function Sheet1Overview({
       enabled: hasShiftIds,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
-      staleTime: 30000, // Consider data fresh for 30 seconds to prevent unnecessary refetches
+      staleTime: 30000,
+      retry: false, // Don't retry on failure to avoid multiple timeout attempts
     },
   );
+
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/58d26b2b-bcf0-40c6-ab50-61f806b2e928", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "overview.tsx:196",
+      message: "productionData query result with error check",
+      data: {
+        productionDataType: typeof productionData,
+        isArray: Array.isArray(productionData),
+        length: Array.isArray(productionData) ? productionData.length : "N/A",
+        isLoadingProduction,
+        hasShiftIds,
+        hasError: !!productionError,
+        errorMessage: productionError?.message ?? "N/A",
+        errorData: productionError ? JSON.stringify(productionError) : "N/A",
+        startShiftId: Number(overviewStartShiftId!),
+        endShiftId: Number(overviewEndShiftId!),
+        firstItem:
+          Array.isArray(productionData) && productionData.length > 0 && productionData[0]
+            ? Object.keys(productionData[0])
+            : "N/A",
+      },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      runId: "run2",
+      hypothesisId: "B,D",
+    }),
+  }).catch(() => {
+    // Ignore fetch errors for agent logging
+  });
+  // #endregion
+
+  // Helper function to extract evenly distributed values for sparkline (5-6 values)
+  const extractSparklineData = <T,>(
+    data: T[],
+    extractor: (item: T) => number,
+  ): number[] => {
+    if (!data || data.length === 0) return [];
+    if (data.length <= 6) return data.map(extractor);
+
+    // Select 5-6 evenly distributed values
+    const targetCount = data.length >= 6 ? 6 : 5;
+    const step = Math.floor((data.length - 1) / (targetCount - 1));
+    const result: number[] = [];
+
+    // Always include first value
+    result.push(extractor(data[0]!));
+
+    // Add evenly distributed values
+    for (let i = step; i < data.length - 1; i += step) {
+      if (result.length < targetCount - 1) {
+        result.push(extractor(data[i]!));
+      }
+    }
+
+    // Always include last value
+    if (data.length > 0) {
+      const lastValue = extractor(data[data.length - 1]!);
+      if (result[result.length - 1] !== lastValue) {
+        result.push(lastValue);
+      } else {
+        // If last value is already included, replace it to ensure it's the actual last
+        result[result.length - 1] = lastValue;
+      }
+    }
+
+    return result;
+  };
+
+  // Calculate KPI values from production data
+  const productionArray = productionData ?? [];
+
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/58d26b2b-bcf0-40c6-ab50-61f806b2e928", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "overview.tsx:237",
+      message: "productionArray after null coalesce",
+      data: {
+        productionArrayLength: productionArray.length,
+        firstItemKeys:
+          productionArray.length > 0
+            ? Object.keys(productionArray[0] ?? {})
+            : [],
+        firstItemSample:
+          productionArray.length > 0
+            ? JSON.stringify(productionArray[0])
+            : "N/A",
+      },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      runId: "run1",
+      hypothesisId: "C,D,E",
+    }),
+  }).catch(() => {
+    // Ignore fetch errors for agent logging
+  });
+  // #endregion
+
+  const lastEntry =
+    productionArray.length > 0
+      ? productionArray[productionArray.length - 1]!
+      : null;
+
+  // Stripping Ratio: Vol_Waste / Vol_Ore
+  const strippingRatio =
+    lastEntry?.Vol_Ore && lastEntry.Vol_Ore > 0
+      ? lastEntry.Vol_Waste / lastEntry.Vol_Ore
+      : 0;
+  const strippingRatioSparkline = extractSparklineData(
+    productionArray,
+    (item) => (item.Vol_Ore > 0 ? item.Vol_Waste / item.Vol_Ore : 0),
+  );
+  const previousStrippingRatio =
+    productionArray.length > 1 && productionArray[productionArray.length - 2]!
+      ? productionArray[productionArray.length - 2]!.Vol_Ore > 0
+        ? productionArray[productionArray.length - 2]!.Vol_Waste /
+          productionArray[productionArray.length - 2]!.Vol_Ore
+        : 0
+      : 0;
+  const strippingRatioDelta = strippingRatio - previousStrippingRatio;
+  const strippingRatioTrend: "up" | "down" | "stable" =
+    strippingRatioDelta > 0
+      ? "up"
+      : strippingRatioDelta < 0
+        ? "down"
+        : "stable";
+
+  // Ore Tonnes
+  const oreTonnes = lastEntry?.Tons_Ore ?? 0;
+  const oreTonnesPlan = lastEntry?.PlanmassOreKet ?? 0;
+  const oreTonnesDelta = oreTonnes - oreTonnesPlan;
+  const oreTonnesTrend: "up" | "down" =
+    oreTonnes >= oreTonnesPlan ? "up" : "down";
+  const oreTonnesSparkline = extractSparklineData(
+    productionArray,
+    (item) => item.Tons_Ore,
+  );
+
+  // Waste Volume (Откривка)
+  const wasteVolume = lastEntry?.Vol_Waste ?? 0;
+  const wasteVolumePlan = lastEntry?.PlanVolWaste ?? 0;
+  const wasteVolumeDelta = wasteVolume - wasteVolumePlan;
+  const wasteVolumeTrend: "up" | "down" =
+    wasteVolume >= wasteVolumePlan ? "up" : "down";
+  const wasteVolumeSparkline = extractSparklineData(
+    productionArray,
+    (item) => item.Vol_Waste,
+  );
+
+  // Material Moved (Извозен материал)
+  const materialMoved = lastEntry?.Tons_Total ?? 0;
+  const materialMovedPlan =
+    (lastEntry?.PlanmassOreKet ?? 0) + (lastEntry?.PlanMassWaste ?? 0);
+  const materialMovedDelta = materialMoved - materialMovedPlan;
+  const materialMovedTrend: "up" | "down" =
+    materialMoved >= materialMovedPlan ? "up" : "down";
+  const materialMovedSparkline = extractSparklineData(
+    productionArray,
+    (item) => item.Tons_Total,
+  );
+
+  // Transform production data into time series format for chart
+  const timeSeriesData: TimeSeriesPoint[] = productionArray.map((item) => ({
+    time: item.ShiftId.toString(),
+    materialMoved: item.Tons_Total,
+    oreTonnes: item.Tons_Ore,
+    strippingRatioMA: item.Vol_Ore > 0 ? item.Vol_Waste / item.Vol_Ore : 0,
+  }));
+
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/58d26b2b-bcf0-40c6-ab50-61f806b2e928", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "overview.tsx:307",
+      message: "timeSeriesData after transformation",
+      data: {
+        timeSeriesDataLength: timeSeriesData.length,
+        firstItem: timeSeriesData.length > 0 ? timeSeriesData[0] : null,
+        lastEntry: lastEntry
+          ? {
+              ShiftId: lastEntry.ShiftId,
+              Tons_Total: lastEntry.Tons_Total,
+              Tons_Ore: lastEntry.Tons_Ore,
+              Vol_Ore: lastEntry.Vol_Ore,
+              Vol_Waste: lastEntry.Vol_Waste,
+            }
+          : null,
+      },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      runId: "run1",
+      hypothesisId: "C,E",
+    }),
+  }).catch(() => {
+    // Ignore fetch errors for agent logging
+  });
+  // #endregion
 
   // Extract and transform data
   const cycleTimeDataRaw = truckData?.cycleTimes ?? [];
@@ -303,15 +447,15 @@ export function Sheet1Overview({
   > = {
     cycleTime: {
       label: "Време на цикъл",
-      color: "hsl(var(--chart-1))",
+      color: "var(--chart-1)",
     },
     spotTime: {
       label: "Време позициониране",
-      color: "hsl(var(--chart-2))",
+      color: "var(--chart-2)",
     },
     queueTime: {
       label: "Време в опашка",
-      color: "hsl(var(--chart-3))",
+      color: "var(--chart-3)",
     },
   };
 
@@ -361,9 +505,9 @@ export function Sheet1Overview({
 
       {/* KPI Cards Row */}
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {isLoadingCycleTimes || isLoadingLoads ? (
+        {isLoadingProduction || productionError ? (
           <>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <Card key={i} className="min-w-[140px] flex-1">
                 <CardContent className="mb-0 px-4 pb-0">
                   <div className="flex w-full items-start justify-between">
@@ -385,54 +529,59 @@ export function Sheet1Overview({
           <>
             <KPICard
               title="Коеф. Откривка/Руда"
-              value={KPI_DATA.strippingRatio.value}
+              value={strippingRatio.toFixed(2)}
               unit=":1"
-              delta={`+${KPI_DATA.strippingRatio.delta}`}
-              trend={KPI_DATA.strippingRatio.trend}
-              sparkline={KPI_DATA.strippingRatio.sparkline}
+              delta={
+                strippingRatioDelta >= 0
+                  ? `+${strippingRatioDelta.toFixed(2)}`
+                  : strippingRatioDelta.toFixed(2)
+              }
+              trend={strippingRatioTrend}
+              sparkline={strippingRatioSparkline}
               icon={Target}
             />
             <KPICard
               title="Руда (т)"
-              value={KPI_DATA.oreTonnes.value}
+              value={Math.round(oreTonnes)}
               unit="т/ден"
-              plan={12255}
+              plan={oreTonnesPlan > 0 ? Math.round(oreTonnesPlan) : undefined}
               planUnit="т/ден"
-              delta={KPI_DATA.oreTonnes.delta}
-              trend={KPI_DATA.oreTonnes.trend}
-              sparkline={KPI_DATA.oreTonnes.sparkline}
+              delta={Math.round(oreTonnesDelta)}
+              trend={oreTonnesTrend}
+              sparkline={oreTonnesSparkline}
               icon={Activity}
             />
             <KPICard
               title="Откривка (м3)"
-              value={KPI_DATA.oreTonnes.value}
+              value={Math.round(wasteVolume)}
               unit="м3/ден"
-              plan={25500}
+              plan={
+                wasteVolumePlan > 0 ? Math.round(wasteVolumePlan) : undefined
+              }
               planUnit="м3/ден"
-              delta={KPI_DATA.oreTonnes.delta}
-              trend={KPI_DATA.oreTonnes.trend}
-              sparkline={KPI_DATA.oreTonnes.sparkline}
+              delta={Math.round(wasteVolumeDelta)}
+              trend={wasteVolumeTrend}
+              sparkline={wasteVolumeSparkline}
               icon={Activity}
             />
             <KPICard
               title="Извозен материал"
-              value={KPI_DATA.materialMoved.value}
+              value={Math.round(materialMoved)}
               unit="т/ден"
-              plan={45200}
-              planUnit="м3/ден"
-              delta={`+${KPI_DATA.materialMoved.delta}`}
-              trend={KPI_DATA.materialMoved.trend}
-              sparkline={KPI_DATA.materialMoved.sparkline}
+              plan={
+                materialMovedPlan > 0
+                  ? Math.round(materialMovedPlan)
+                  : undefined
+              }
+              planUnit="т/ден"
+              delta={
+                materialMovedDelta >= 0
+                  ? `+${Math.round(materialMovedDelta)}`
+                  : Math.round(materialMovedDelta).toString()
+              }
+              trend={materialMovedTrend}
+              sparkline={materialMovedSparkline}
               icon={Truck}
-            />
-            <KPICard
-              title="Средно време на курс (мин)"
-              value={KPI_DATA.fleetUtil.value}
-              unit="%"
-              delta={`+${KPI_DATA.fleetUtil.delta}%`}
-              trend={KPI_DATA.fleetUtil.trend}
-              sparkline={KPI_DATA.fleetUtil.sparkline}
-              icon={Gauge}
             />
           </>
         )}
@@ -461,11 +610,40 @@ export function Sheet1Overview({
             </div>
           </CardHeader>
           <CardContent>
-            {isLoadingCycleTimes || isLoadingLoads ? (
+            {isLoadingProduction ? (
               <Skeleton className="h-[250px] w-full" />
+            ) : productionError ? (
+              <div className="text-destructive flex h-[250px] flex-col items-center justify-center gap-2 text-sm">
+                <AlertTriangle className="h-5 w-5" />
+                <div>Грешка при зареждане на данни</div>
+                <div className="text-muted-foreground text-xs">
+                  {(() => {
+                    const errorMessage =
+                      productionError instanceof Error
+                        ? productionError.message
+                        : typeof productionError === "object" &&
+                            productionError !== null &&
+                            "message" in productionError &&
+                            typeof productionError.message === "string"
+                          ? productionError.message
+                          : typeof productionError === "string"
+                            ? productionError
+                            : "Неизвестна грешка";
+                    return errorMessage.includes("Timeout")
+                      ? "Заявката отне твърде много време"
+                      : errorMessage.includes("Failed to connect")
+                        ? "Не може да се свърже с базата данни"
+                        : errorMessage;
+                  })()}
+                </div>
+              </div>
+            ) : timeSeriesData.length === 0 ? (
+              <div className="text-muted-foreground flex h-[250px] items-center justify-center">
+                Няма данни за избрания период
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
-                <ComposedChart data={TIME_SERIES_DATA}>
+                <ComposedChart data={timeSeriesData}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis dataKey="time" tick={{ fontSize: 11 }} />
                   <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
@@ -481,25 +659,25 @@ export function Sheet1Overview({
                     yAxisId="left"
                     type="monotone"
                     dataKey="materialMoved"
-                    fill="hsl(var(--chart-1))"
+                    fill="var(--chart-1)"
                     fillOpacity={0.3}
-                    stroke="hsl(var(--chart-1))"
+                    stroke="var(--chart-1)"
                     name="Извозен материал (т)"
                   />
                   <Area
                     yAxisId="left"
                     type="monotone"
                     dataKey="oreTonnes"
-                    fill="hsl(var(--chart-2))"
+                    fill="var(--chart-2)"
                     fillOpacity={0.3}
-                    stroke="hsl(var(--chart-2))"
+                    stroke="var(--chart-2)"
                     name="Руда (т)"
                   />
                   <Line
                     yAxisId="right"
                     type="monotone"
                     dataKey="strippingRatioMA"
-                    stroke="hsl(var(--chart-3))"
+                    stroke="var(--chart-3)"
                     strokeWidth={2}
                     strokeDasharray="5 5"
                     name="Коеф. Откривка/Руда"
@@ -542,7 +720,7 @@ export function Sheet1Overview({
                   <Tooltip />
                   <Bar
                     dataKey="loads"
-                    fill="hsl(var(--chart-2))"
+                    fill="var(--chart-2)"
                     radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
@@ -636,8 +814,12 @@ export function Sheet1Overview({
                     const numValue =
                       typeof value === "number"
                         ? value
-                        : Array.isArray(value)
-                          ? value[0]
+                        : Array.isArray(value) && value.length > 0
+                          ? typeof value[0] === "number"
+                            ? value[0]
+                            : typeof value[0] === "string"
+                              ? parseFloat(value[0])
+                              : 0
                           : typeof value === "string"
                             ? parseFloat(value)
                             : 0;
@@ -658,19 +840,19 @@ export function Sheet1Overview({
                   <>
                     <Bar
                       dataKey="cycleTime"
-                      fill="hsl(var(--chart-1))"
+                      fill="var(--chart-1)"
                       radius={[4, 4, 0, 0]}
                       name={cycleMetricConfig.cycleTime.label}
                     />
                     <Bar
                       dataKey="spotTime"
-                      fill="hsl(var(--chart-4))"
+                      fill="var(--chart-4)"
                       radius={[4, 4, 0, 0]}
                       name={cycleMetricConfig.spotTime.label}
                     />
                     <Bar
                       dataKey="queueTime"
-                      fill="hsl(var(--chart-5))"
+                      fill="var(--chart-5)"
                       radius={[4, 4, 0, 0]}
                       name={cycleMetricConfig.queueTime.label}
                     />
@@ -706,7 +888,7 @@ export function Sheet1Overview({
             <CardDescription>Средно време в минути на час</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoadingCycleTimes || isLoadingLoads ? (
+            {isLoadingCycleTimes ? (
               <Skeleton className="h-[150px] w-full" />
             ) : (
               <ResponsiveContainer width="100%" height={150}>
@@ -719,16 +901,16 @@ export function Sheet1Overview({
                     type="monotone"
                     dataKey="queue"
                     stackId="1"
-                    fill="hsl(var(--chart-4))"
-                    stroke="hsl(var(--chart-4))"
+                    fill="var(--chart-4)"
+                    stroke="var(--chart-4)"
                     name="Опашка"
                   />
                   <Area
                     type="monotone"
                     dataKey="spot"
                     stackId="1"
-                    fill="hsl(var(--chart-5))"
-                    stroke="hsl(var(--chart-5))"
+                    fill="var(--chart-5)"
+                    stroke="var(--chart-5)"
                     name="Позициониране"
                   />
                 </AreaChart>

@@ -317,7 +317,7 @@ export function PermissionsPageClient() {
                             form.setValue(
                               "submenuName",
                               submenus.find((submenu) => submenu === value) ??
-                                "",
+                              "",
                             );
                           }}
                           value={field.value ?? ""}
@@ -534,7 +534,7 @@ export function PermissionsPageClient() {
                   showLabel
                 />
               </div>
-            ) : userPermissions?.length > 0 ? (
+            ) : userPermissions && userPermissions?.length > 0 ? (
               <div className="space-y-3">
                 {userPermissions.map((permission) => (
                   <div

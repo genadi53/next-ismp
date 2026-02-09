@@ -23,8 +23,8 @@ export function PrestartPageClient() {
 
   useEffect(() => {
     // Get dispatcher username from current dispatcher query
-    if (currentDispatcher && currentDispatcher.length > 0) {
-      setDispatcher(currentDispatcher[0]?.DispatcherProfile || "");
+    if (currentDispatcher?.length > 0) {
+      setDispatcher(currentDispatcher[0]?.DispatcherProfile ?? "");
     } else {
       // Fallback: try to get from session or use a default
       // This should be replaced with actual auth context
@@ -39,7 +39,7 @@ export function PrestartPageClient() {
     );
 
   const handleStatusChange = () => {
-    refetch();
+    void refetch();
   };
 
   if (!dispatcher) {

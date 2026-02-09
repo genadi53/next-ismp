@@ -1,5 +1,4 @@
 import AppLayout from "@/components/AppLayout";
-import { Container } from "@/components/Container";
 import { SchedulePageClient } from "./page-client";
 import { Suspense } from "react";
 import { LoadingSpinner } from "@/components/ui/spinner";

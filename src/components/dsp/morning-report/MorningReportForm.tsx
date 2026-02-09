@@ -22,7 +22,7 @@ import { cn } from "@/lib/cn";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { z } from "zod";
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,7 +45,7 @@ export function MorningReportForm({
   dispatcher,
   onSuccess,
 }: MorningReportFormProps) {
-  const [_templateLoaded, setTemplateLoaded] = useState(false);
+  const [, setTemplateLoaded] = useState(false);
   const utils = api.useUtils();
 
   const { data: template } =
@@ -54,19 +54,22 @@ export function MorningReportForm({
   const { mutateAsync: createReport, isPending } =
     api.dispatcher.morningReport.create.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Отчетът е създаден успешно.",
         });
-        utils.dispatcher.morningReport.getAll.invalidate();
+        void utils.dispatcher.morningReport.getAll.invalidate();
         form.reset();
         setTemplateLoaded(false);
         onSuccess?.();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при създаването на отчета. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });
@@ -84,30 +87,75 @@ export function MorningReportForm({
     form.setValue("StartedFromDispatcher", dispatcher);
   }, [dispatcher, form]);
 
+  // UTF-8 base64 decode helper
+  const decodeBase64UTF8 = (str: string): string => {
+    try {
+      // Decode base64
+      const binaryString = atob(str);
+      // Convert binary string to UTF-8
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      // Decode UTF-8
+      return new TextDecoder("utf-8").decode(bytes);
+    } catch {
+      return str;
+    }
+  };
+
   const loadTemplate = () => {
     if (template) {
       // Decode base64 template
       try {
-        const decoded = Buffer.from(template, "base64").toString("utf-8");
+        const decoded = decodeBase64UTF8(template);
         form.setValue("ReportBody", decoded);
         setTemplateLoaded(true);
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Темплейтът е зареден успешно.",
         });
-      } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_error) {
         // If decoding fails, use template as-is
         form.setValue("ReportBody", template);
         setTemplateLoaded(true);
-        toast.success("Успех", {
-          description: "Темплейтът е зареден успешно.",
+        toast({
+          title: "Грешка",
+          description: "Възникна грешка при зареждането на темплейта.",
+          variant: "destructive",
         });
       }
+    } else {
+      toast({
+        title: "Грешка",
+        description: "Темплейтът не е наличен.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // UTF-8 base64 encode helper
+  const encodeBase64UTF8 = (str: string): string => {
+    try {
+      // Encode UTF-8 to bytes
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(str);
+      // Convert bytes to binary string
+      let binaryString = "";
+      for (const byte of bytes) {
+        binaryString += String.fromCharCode(byte);
+      }
+      // Encode to base64
+      return btoa(binaryString);
+    } catch {
+      return str;
     }
   };
 
   const onSubmit = async (data: MorningReportFormData) => {
-    // Encode report body to base64
-    const encodedBody = Buffer.from(data.ReportBody).toString("base64");
+    // Encode report body to base64 with UTF-8 support
+    const encodedBody = encodeBase64UTF8(data.ReportBody);
 
     await createReport({
       ReportDate: format(data.ReportDate, "yyyy-MM-dd"),

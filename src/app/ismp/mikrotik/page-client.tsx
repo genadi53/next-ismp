@@ -9,7 +9,7 @@ import { ConfigDialog } from "@/components/mikrotik/ConfigDialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Users, Activity, Gauge, Wifi, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import type { RouterConfig } from "@/schemas/mikrotik.schemas";
 
 export function MikrotikPageClient() {
@@ -31,16 +31,19 @@ export function MikrotikPageClient() {
   const utils = api.useUtils();
   const configMutation = api.ismp.mikrotik.setConfig.useMutation({
     onSuccess: () => {
-      utils.ismp.mikrotik.getClients.invalidate();
-      utils.ismp.mikrotik.getStatus.invalidate();
-      utils.ismp.mikrotik.getConfig.invalidate();
-      toast.success("Успешно свързване", {
+      void utils.ismp.mikrotik.getClients.invalidate();
+      void utils.ismp.mikrotik.getStatus.invalidate();
+      void utils.ismp.mikrotik.getConfig.invalidate();
+      toast({
+        title: "Успешно свързване",
         description: "Успешно се свързахте с MikroTik рутера",
       });
     },
     onError: (error) => {
-      toast.error("Грешка при свързване", {
+      toast({
+        title: "Грешка при свързване",
         description: error.message || "Неуспешна връзка с MikroTik рутера",
+        variant: "destructive",
       });
     },
   });
@@ -77,7 +80,7 @@ export function MikrotikPageClient() {
   const handleRefresh = async () => {
     setLastUpdate("току-що");
     await refetchClients();
-    utils.ismp.mikrotik.getStatus.invalidate();
+    void utils.ismp.mikrotik.getStatus.invalidate();
   };
 
   const handleConfigSave = (config: RouterConfig) => {
@@ -86,7 +89,6 @@ export function MikrotikPageClient() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
       const seconds = Math.floor((Date.now() % 60000) / 1000);
       setLastUpdate(`преди ${seconds} сек`);
     }, 1000);
@@ -115,7 +117,7 @@ export function MikrotikPageClient() {
             </div>
             <div className="flex items-center gap-2">
               <ConfigDialog
-                config={savedConfig || defaultConfig}
+                config={savedConfig ?? defaultConfig}
                 onSave={handleConfigSave}
               />
               <Button
@@ -138,7 +140,7 @@ export function MikrotikPageClient() {
           <Alert className="mb-6">
             <AlertDescription>
               Не сте свързани с MikroTik рутер. Моля, въведете данните за връзка
-              чрез бутона "Настройки".
+              чрез бутона {"\"Настройки\""}.
             </AlertDescription>
           </Alert>
         )}

@@ -36,7 +36,7 @@ export function BlastingPlanPageClient() {
           title: "Успешно",
           description: "Планът е успешно създаден",
         });
-        utils.pvr.blastingPlan.getAll.invalidate();
+        void utils.pvr.blastingPlan.getAll.invalidate();
         setEditingPlan(null);
         setShowForm(false);
       },
@@ -57,7 +57,7 @@ export function BlastingPlanPageClient() {
           title: "Успешно",
           description: "Планът е успешно обновен",
         });
-        utils.pvr.blastingPlan.getAll.invalidate();
+        void utils.pvr.blastingPlan.getAll.invalidate();
         setEditingPlan(null);
         setShowForm(false);
       },
@@ -77,7 +77,7 @@ export function BlastingPlanPageClient() {
         title: "Успешно",
         description: "Планът е успешно изтрит",
       });
-      utils.pvr.blastingPlan.getAll.invalidate();
+      void utils.pvr.blastingPlan.getAll.invalidate();
     },
     onError: (error) => {
       toast({
@@ -96,42 +96,42 @@ export function BlastingPlanPageClient() {
           id: editingPlan.ID,
           data: {
             OperDate: data.date,
-            BlastingField: data.BlastingField || null,
-            Horizont1: data.Horiz1 || null,
-            Horizont2: data.Horiz2 || null,
+            BlastingField: data.BlastingField ?? null,
+            Horizont1: data.Horiz1 ?? null,
+            Horizont2: data.Horiz2 ?? null,
             Drill: data.Drill.reduce(
               (prev: string, curr: string, idx: number) =>
                 idx === 0 ? (prev += `${curr}`) : (prev += `_${curr}`),
               "",
             ),
             Drill2: null,
-            Holes: data.Holes || null,
-            Konturi: data.Konturi || null,
-            MineVolume: data.MineVolume || null,
-            TypeBlast: data.TypeBlast || null,
+            Holes: data.Holes ?? null,
+            Konturi: data.Konturi ?? null,
+            MineVolume: data.MineVolume ?? null,
+            TypeBlast: data.TypeBlast ?? null,
             Disabled: data.Disabled === 1,
-            Note: data.Note || null,
+            Note: data.Note ?? null,
             userAdded: null,
           },
         });
       } else {
         await createPlan({
           OperDate: data.date,
-          BlastingField: data.BlastingField || null,
-          Horizont1: data.Horiz1 || null,
-          Horizont2: data.Horiz2 || null,
+          BlastingField: data.BlastingField ?? null,
+          Horizont1: data.Horiz1 ?? null,
+          Horizont2: data.Horiz2 ?? null,
           Drill: data.Drill.reduce(
             (prev: string, curr: string, idx: number) =>
               idx === 0 ? (prev += `${curr}`) : (prev += `_${curr}`),
             "",
           ),
           Drill2: null,
-          Holes: data.Holes || null,
-          Konturi: data.Konturi || null,
-          MineVolume: data.MineVolume || null,
-          TypeBlast: data.TypeBlast || null,
+          Holes: data.Holes ?? null,
+          Konturi: data.Konturi ?? null,
+          MineVolume: data.MineVolume ?? null,
+          TypeBlast: data.TypeBlast ?? null,
           Disabled: data.Disabled === 1,
-          Note: data.Note || null,
+          Note: data.Note ?? null,
           userAdded: null,
         });
       }
@@ -258,7 +258,9 @@ export function BlastingPlanPageClient() {
                 <PVRDataTable
                   columns={pvrColumns({
                     actions: {
-                      delete: handleDelete,
+                      delete: (plan) => {
+                        void handleDelete(plan);
+                      },
                       edit: handleEdit,
                     },
                   })}

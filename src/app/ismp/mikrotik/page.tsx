@@ -12,7 +12,8 @@ export default async function MikrotikPage() {
       api.ismp.mikrotik.getConfig.prefetch(),
       api.ismp.mikrotik.getStatus.prefetch(),
     ]);
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_error) {
     // Ignore prefetch errors, they will be handled on the client
   }
 

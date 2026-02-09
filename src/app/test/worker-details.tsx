@@ -396,7 +396,7 @@ function Sheet4Detail() {
   const equipment = equipmentId
     ? EQUIPMENT.find((e) => e.id === equipmentId)
     : null;
-  const defaultEvents = PRODUCTION_EVENTS["w1"] ?? [];
+  const defaultEvents = PRODUCTION_EVENTS.w1 ?? [];
   const events: ProductionEvent[] = workerId
     ? (PRODUCTION_EVENTS[workerId] ?? defaultEvents)
     : defaultEvents;
@@ -446,7 +446,7 @@ function Sheet4Detail() {
           <Card className="flex-1">
             <CardContent className="p-4 text-center">
               <p className="text-muted-foreground text-xs">TKPH</p>
-              <p className="text-2xl font-bold">{worker.tkph || "--"}</p>
+              <p className="text-2xl font-bold">{worker.tkph ?? "--"}</p>
             </CardContent>
           </Card>
           <Card className="flex-1">
@@ -558,7 +558,7 @@ function Sheet4Detail() {
                   : equipment.type === "excavator"
                     ? "Багер"
                     : equipment.type === "drill"
-                      ? "Сондаж"
+                      ? "Сонда"
                       : "Поддръжка"}
               </p>
               <Badge
@@ -601,7 +601,7 @@ function Sheet4Detail() {
                 Време на цикъл (ср.)
               </p>
               <p className="text-2xl font-bold">
-                {equipment.cycleTimeAvg || "--"} мин
+                {equipment.cycleTimeAvg ?? "--"} мин
               </p>
             </CardContent>
           </Card>
@@ -611,14 +611,14 @@ function Sheet4Detail() {
                 Товароносимост (ср.)
               </p>
               <p className="text-2xl font-bold">
-                {equipment.payloadAvg || "--"}т
+                {equipment.payloadAvg ?? "--"}т
               </p>
             </CardContent>
           </Card>
           <Card className="flex-1">
             <CardContent className="p-4 text-center">
               <p className="text-muted-foreground text-xs">Оператор</p>
-              <p className="text-lg font-bold">{equipment.operator || "--"}</p>
+              <p className="text-lg font-bold">{equipment.operator ?? "--"}</p>
             </CardContent>
           </Card>
           <Card className="flex-1">

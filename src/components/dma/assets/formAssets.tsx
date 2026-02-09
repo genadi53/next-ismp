@@ -83,7 +83,6 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
                         EdPrice: values.EdPrice ?? null,
                         Description: values.Description ?? null,
                         Currency: "EUR",
-                        LastUpdatedFrom: "test@testov",
                     },
                 });
                 onFormSubmit();
@@ -100,7 +99,6 @@ export const AssetsForm = ({ assetToEdit, onFormSubmit }: AssetFormProps) => {
                 EdPrice: values.EdPrice ?? null,
                 Description: values.Description ?? null,
                 Currency: "EUR",
-                CreatedFrom: "test@testov.com",
             });
             onFormSubmit();
             form.reset();

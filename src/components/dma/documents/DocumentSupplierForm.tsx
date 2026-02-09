@@ -104,8 +104,6 @@ export function DocumentSupplierForm({
         DocSuplAmount: values.DocSuplAmount,
         Inv: values.Inv,
         InvDate: values.InvDate,
-        CreatedFrom: "test@testov",
-        LastUpdatedFrom: "test@testov",
       };
       if (supplierToEdit) {
         await updateMutation.mutateAsync({

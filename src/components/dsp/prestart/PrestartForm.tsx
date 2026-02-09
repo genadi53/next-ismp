@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import type { PrestartCheck } from "@/server/repositories/dispatcher";
 
@@ -37,14 +37,17 @@ export function PrestartForm({
   const { mutateAsync: startPrestart, isPending: isStarting } =
     api.dispatcher.prestart.start.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Предстартовата проверка е започната успешно.",
         });
-        utils.dispatcher.prestart.getStatus.invalidate({ dispatcher });
+        void utils.dispatcher.prestart.getStatus.invalidate({ dispatcher });
         onStatusChange();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при започването на проверката. Опитайте отново.",
@@ -56,14 +59,17 @@ export function PrestartForm({
   const { mutateAsync: endPrestart, isPending: isEnding } =
     api.dispatcher.prestart.end.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Предстартовата проверка е завършена успешно.",
         });
-        utils.dispatcher.prestart.getStatus.invalidate({ dispatcher });
+        void utils.dispatcher.prestart.getStatus.invalidate({ dispatcher });
         onStatusChange();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при завършването на проверката. Опитайте отново.",
@@ -75,15 +81,18 @@ export function PrestartForm({
   const { mutateAsync: completeOld, isPending: isCompleting } =
     api.dispatcher.prestart.completeOld.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Старите проверки са приключени успешно.",
         });
         setShowCompleteDialog(false);
-        utils.dispatcher.prestart.getStatus.invalidate({ dispatcher });
+        void utils.dispatcher.prestart.getStatus.invalidate({ dispatcher });
         onStatusChange();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
+          variant: "destructive",
           description:
             error.message ||
             "Възникна грешка при приключването на старите проверки. Опитайте отново.",
@@ -101,7 +110,8 @@ export function PrestartForm({
     setIsProcessing(true);
     try {
       await startPrestart({ Dispatcher: dispatcher, Shift: 0 }); // Shift will be set by the server
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       // Error is handled by mutation onError
     } finally {
       setIsProcessing(false);
@@ -117,7 +127,8 @@ export function PrestartForm({
         id: currentPrestart.ID,
         data: { EndDispatcher: dispatcher },
       });
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       // Error is handled by mutation onError
     } finally {
       setIsProcessing(false);
@@ -130,7 +141,8 @@ export function PrestartForm({
       await completeOld({ EndDispatcher: dispatcher });
       // After completing old, start new one
       await startPrestart({ Dispatcher: dispatcher, Shift: 0 });
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       // Error is handled by mutation onError
     } finally {
       setIsProcessing(false);

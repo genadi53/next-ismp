@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { GeowlanAP } from "@/server/repositories/geowlan";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 type GeowlanDeleteDialogProps = {
   geowlanAP: GeowlanAP | null;
@@ -28,17 +28,20 @@ export const GeowlanDeleteDialog = ({
   const utils = api.useUtils();
   const { mutateAsync: deleteGeowlan } = api.geowlan.aps.delete.useMutation({
     onSuccess: () => {
-      utils.geowlan.aps.getAll.invalidate();
-      toast.success("Успех", {
+      void utils.geowlan.aps.getAll.invalidate();
+      toast({
+        title: "Успех",
         description: `Точка ${geowlanAP?.name} беше изтрита успешно.`,
       });
       onDeleteSuccess();
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error("Грешка", {
+      toast({
+        title: "Грешка",
         description:
           error.message || "Възникна грешка при изтриване. Опитайте отново.",
+        variant: "destructive",
       });
     },
   });
@@ -60,7 +63,7 @@ export const GeowlanDeleteDialog = ({
           <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
           <AlertDialogDescription>
             Това действие не може да бъде отменено. Това ще изтрие за постоянно
-            "{geowlanAP?.name}".
+            {" \""}{geowlanAP?.name}{"\""}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

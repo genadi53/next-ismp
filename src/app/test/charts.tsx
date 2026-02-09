@@ -169,8 +169,8 @@ export function GaugeChart({ value, label }: { value: number; label: string }) {
             endAngle={0}
             dataKey="value"
           >
-            <Cell fill="hsl(var(--chart-1))" />
-            <Cell fill="hsl(var(--muted))" />
+            <Cell fill="var(--chart-1)" />
+            <Cell fill="var(--muted)" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>

@@ -106,9 +106,9 @@ export function BlastingPlanForm({
       isInitializingRef.current = true;
       form.reset({
         date: convertDateFormat(editingPlan.OperDate),
-        BlastingField: editingPlan.BlastingField || "",
-        Horiz1: editingPlan.Horizont1 || "",
-        Horiz2: editingPlan.Horizont2 || "",
+        BlastingField: editingPlan.BlastingField ?? "",
+        Horiz1: editingPlan.Horizont1 ?? "",
+        Horiz2: editingPlan.Horizont2 ?? "",
         Drill:
           editingPlan.Drill && typeof editingPlan.Drill === "string"
             ? editingPlan.Drill.split("_").filter(Boolean)
@@ -118,12 +118,12 @@ export function BlastingPlanForm({
             | "Контур"
             | "Поле"
             | "Поле-Контур"
-            | "Проби") || "Поле",
-        Holes: editingPlan.Holes || 0,
-        Konturi: editingPlan.Konturi || 0,
-        MineVolume: editingPlan.MineVolume || 0,
+            | "Проби") ?? "Поле",
+        Holes: editingPlan.Holes ?? 0,
+        Konturi: editingPlan.Konturi ?? 0,
+        MineVolume: editingPlan.MineVolume ?? 0,
         Disabled: editingPlan.Disabled ? 1 : 0,
-        Note: editingPlan.Note || "",
+        Note: editingPlan.Note ?? "",
       });
       // Reset the flag after a delay to allow the form to settle and prevent TypeBlast effect from clearing values
       setTimeout(() => {
@@ -185,7 +185,7 @@ export function BlastingPlanForm({
     const drillInfo = watchedDrill
       .map((drill) => `${drill}(${DRILL_SIZES[drill as DrillType]}mm)`)
       .join("+");
-    return drillInfo || "";
+    return drillInfo ?? "";
   };
 
   const addDrill = (drill: string) => {
@@ -398,7 +398,7 @@ export function BlastingPlanForm({
                         {...field}
                         type="number"
                         placeholder="Брой сондажи"
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(parseInt(e.target.value) || 0)
                         }
@@ -422,7 +422,7 @@ export function BlastingPlanForm({
                         type="number"
                         placeholder="Контури"
                         disabled={watchedTypeBlast === "Проби"}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(parseInt(e.target.value) || 0)
                         }
@@ -446,7 +446,7 @@ export function BlastingPlanForm({
                         type="number"
                         placeholder="Обем на минна маса"
                         disabled={watchedTypeBlast === "Проби"}
-                        value={field.value || ""}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(parseInt(e.target.value) || 0)
                         }

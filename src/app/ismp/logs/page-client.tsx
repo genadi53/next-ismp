@@ -23,7 +23,7 @@ export function LogsPageClient() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {logs && logs.length === 0 ? (
+        {logs?.length === 0 ? (
           <NoResults
             title="Няма намерени логове"
             description="Все още няма записани мрежови логове."

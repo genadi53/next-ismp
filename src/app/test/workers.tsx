@@ -179,7 +179,7 @@ const TASKS: Task[] = [
   {
     id: "t1",
     workerId: "w1",
-    description: "Транспорт Кар'ер 3 → Отвал 1",
+    description: "Отвал 1 → КЕТ 3",
     tonnes: 2100,
     startTime: "14:00",
     endTime: "18:30",
@@ -187,7 +187,7 @@ const TASKS: Task[] = [
   {
     id: "t2",
     workerId: "w1",
-    description: "Транспорт Кар'ер 2 → Дробилка",
+    description: "РП 1400 → КЕТ 1",
     tonnes: 1000,
     startTime: "18:45",
     endTime: "22:00",
@@ -195,7 +195,7 @@ const TASKS: Task[] = [
   {
     id: "t3",
     workerId: "w2",
-    description: "Транспорт Кар'ер 1 → Отвал 2",
+    description: "РП 1200 → КЕТ 1",
     tonnes: 1800,
     startTime: "14:00",
     endTime: "17:30",
@@ -203,7 +203,7 @@ const TASKS: Task[] = [
   {
     id: "t4",
     workerId: "w2",
-    description: "Транспорт Кар'ер 3 → Дробилка",
+    description: "РП 1240 → КЕТ 3",
     tonnes: 1150,
     startTime: "17:45",
     endTime: "22:00",
@@ -211,7 +211,7 @@ const TASKS: Task[] = [
   {
     id: "t5",
     workerId: "w3",
-    description: "Товарене в Кар'ер 3",
+    description: "Товарене в КЕТ 3",
     tonnes: 5200,
     startTime: "14:00",
     endTime: "22:00",
@@ -275,7 +275,7 @@ function Sheet3Workers({
   const crews = useMemo(() => {
     const crewMap = new Map<string, Worker[]>();
     WORKERS.forEach((w) => {
-      const list = crewMap.get(w.crew) || [];
+      const list = crewMap.get(w.crew) ?? [];
       list.push(w);
       crewMap.set(w.crew, list);
     });
@@ -432,7 +432,7 @@ function Sheet3Workers({
                     {worker.materialMoved.toLocaleString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    {worker.tkph || "--"}
+                    {worker.tkph ?? "--"}
                   </TableCell>
                   <TableCell className="text-right">
                     {worker.drillingRate ?? "--"}
@@ -452,7 +452,7 @@ function Sheet3Workers({
                   <TableCell>
                     <Sparkline
                       data={worker.sparklineData}
-                      color="hsl(var(--chart-1))"
+                      color="var(--chart-1)"
                       width={60}
                       height={20}
                     />

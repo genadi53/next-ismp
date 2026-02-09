@@ -25,7 +25,9 @@ type MgtlOrePageClientProps = {
   isReadOnly?: boolean;
 };
 
-export function MgtlOrePageClient({ isReadOnly = false }: MgtlOrePageClientProps) {
+export function MgtlOrePageClient({
+  isReadOnly = false,
+}: MgtlOrePageClientProps) {
   const [mgtlOre] = api.dispatcher.mgtlOre.getAll.useSuspenseQuery();
 
   const formatNumber = (value: number | null) => {
@@ -52,7 +54,7 @@ export function MgtlOrePageClient({ isReadOnly = false }: MgtlOrePageClientProps
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <MgtlOreForm />
           </CardContent>
         </Card>
@@ -76,7 +78,7 @@ export function MgtlOrePageClient({ isReadOnly = false }: MgtlOrePageClientProps
           </div>
         </CardHeader>
         <CardContent>
-          {mgtlOre && mgtlOre.length === 0 && (
+          {mgtlOre?.length === 0 && (
             <NoResults
               title="Няма намерени записи"
               description="Все още няма въведени данни за извоза на руда."
@@ -84,7 +86,7 @@ export function MgtlOrePageClient({ isReadOnly = false }: MgtlOrePageClientProps
             />
           )}
 
-          {mgtlOre && mgtlOre.length > 0 && (
+          {mgtlOre?.length > 0 && (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -115,7 +117,9 @@ export function MgtlOrePageClient({ isReadOnly = false }: MgtlOrePageClientProps
                       <TableCell>{formatNumber(record.Mgtl4)}</TableCell>
                       <TableCell>{formatNumber(record.SumMGTL)}</TableCell>
                       <TableCell>{record.lrd}</TableCell>
-                      <TableCell>{record.lrby?.replace(/\(/g, "\n(")}</TableCell>
+                      <TableCell>
+                        {record.lrby?.replace(/\(/g, "\n(")}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -14,7 +14,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { z } from "zod";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -57,25 +57,31 @@ export function MorningReportEdit({
                 SentFrom: dispatcher,
               },
             });
-          } catch (error) {
-            toast.error("Грешка", {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_error) {
+            toast({
+              title: "Грешка",
               description:
                 "Отчетът е запазен, но възникна грешка при изпращането.",
+              variant: "destructive",
             });
           }
         } else {
-          toast.success("Успех", {
+          toast({
+            title: "Успех",
             description: "Отчетът е запазен успешно.",
           });
         }
-        utils.dispatcher.morningReport.getAll.invalidate();
+        void utils.dispatcher.morningReport.getAll.invalidate();
         onSuccess?.();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при запазването на отчета. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });
@@ -83,28 +89,44 @@ export function MorningReportEdit({
   const { mutateAsync: sendReportMutation, isPending: isSending } =
     api.dispatcher.morningReport.send.useMutation({
       onSuccess: () => {
-        toast.success("Успех", {
+        toast({
+          title: "Успех",
           description: "Отчетът е изпратен успешно.",
         });
-        utils.dispatcher.morningReport.getAll.invalidate();
+        void utils.dispatcher.morningReport.getAll.invalidate();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при изпращането на отчета. Опитайте отново.",
+          variant: "destructive",
         });
       },
     });
 
+  // UTF-8 base64 decode helper
+  const decodeBase64UTF8 = (str: string): string => {
+    try {
+      // Decode base64
+      const binaryString = atob(str);
+      // Convert binary string to UTF-8
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      // Decode UTF-8
+      return new TextDecoder("utf-8").decode(bytes);
+    } catch {
+      return str;
+    }
+  };
+
   // Decode report body from base64
   const getDecodedReportBody = () => {
     if (!report.ReportBody) return "";
-    try {
-      return Buffer.from(report.ReportBody, "base64").toString("utf-8");
-    } catch {
-      return report.ReportBody;
-    }
+    return decodeBase64UTF8(report.ReportBody);
   };
 
   const form = useForm<MorningReportEditData>({
@@ -114,9 +136,27 @@ export function MorningReportEdit({
     },
   });
 
+  // UTF-8 base64 encode helper
+  const encodeBase64UTF8 = (str: string): string => {
+    try {
+      // Encode UTF-8 to bytes
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(str);
+      // Convert bytes to binary string
+      let binaryString = "";
+      for (const byte of bytes) {
+        binaryString += String.fromCharCode(byte);
+      }
+      // Encode to base64
+      return btoa(binaryString);
+    } catch {
+      return str;
+    }
+  };
+
   const onSubmit = async (data: MorningReportEditData) => {
-    // Encode report body to base64
-    const encodedBody = Buffer.from(data.ReportBody).toString("base64");
+    // Encode report body to base64 with UTF-8 support
+    const encodedBody = encodeBase64UTF8(data.ReportBody);
 
     await updateReport({
       id: report.ID,
@@ -130,7 +170,7 @@ export function MorningReportEdit({
 
   const handleSaveAndSend = () => {
     setSendReport(true);
-    form.handleSubmit(onSubmit)();
+    void form.handleSubmit(onSubmit)();
   };
 
   const isLoading = isUpdating || isSending;
@@ -156,7 +196,7 @@ export function MorningReportEdit({
                 Започната от Диспечер
               </label>
               <Input
-                value={report.StartedFromDispatcher || ""}
+                value={report.StartedFromDispatcher ?? ""}
                 disabled
                 className="bg-muted mt-1"
               />
@@ -167,7 +207,7 @@ export function MorningReportEdit({
                 Приключен от Диспечер
               </label>
               <Input
-                value={report.CompletedFromDispatcher || ""}
+                value={report.CompletedFromDispatcher ?? ""}
                 disabled
                 className="bg-muted mt-1"
               />
@@ -189,7 +229,7 @@ export function MorningReportEdit({
             <div>
               <label className="text-sm font-medium">Изпратен от</label>
               <Input
-                value={report.SentFrom || ""}
+                value={report.SentFrom ?? ""}
                 disabled
                 className="bg-muted mt-1"
               />

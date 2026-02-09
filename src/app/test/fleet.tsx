@@ -71,7 +71,7 @@ const FLEET_UTIL_DATA: FleetUtilPoint[] = [
 const HEATMAP_DATA = [
   { type: "Камиони", values: [92, 88, 85, 90, 87, 91, 89] },
   { type: "Багери", values: [95, 92, 88, 94, 90, 93, 91] },
-  { type: "Сондажи", values: [88, 85, 90, 86, 89, 87, 88] },
+  { type: "Сонди", values: [88, 85, 90, 86, 89, 87, 88] },
   { type: "Поддръжка", values: [78, 82, 80, 85, 79, 83, 81] },
 ];
 
@@ -298,24 +298,24 @@ export function Sheet2Fleet({
                   type="monotone"
                   dataKey="utilized"
                   stackId="1"
-                  fill="hsl(var(--chart-2))"
-                  stroke="hsl(var(--chart-2))"
+                  fill="var(--chart-2)"
+                  stroke="var(--chart-2)"
                   name="Използвани"
                 />
                 <Area
                   type="monotone"
                   dataKey="idle"
                   stackId="1"
-                  fill="hsl(var(--chart-4))"
-                  stroke="hsl(var(--chart-4))"
+                  fill="var(--chart-4)"
+                  stroke="var(--chart-4)"
                   name="В покой"
                 />
                 <Area
                   type="monotone"
                   dataKey="maintenance"
                   stackId="1"
-                  fill="hsl(var(--chart-5))"
-                  stroke="hsl(var(--chart-5))"
+                  fill="var(--chart-5)"
+                  stroke="var(--chart-5)"
                   name="Поддръжка"
                 />
               </AreaChart>
@@ -376,7 +376,7 @@ export function Sheet2Fleet({
                       : equip.type === "excavator"
                         ? "Багер"
                         : equip.type === "drill"
-                          ? "Сондаж"
+                          ? "Сонда"
                           : "Поддръжка"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -410,7 +410,7 @@ export function Sheet2Fleet({
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {equip.operator || "--"}
+                    {equip.operator ?? "--"}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {equip.lastMaintenance}

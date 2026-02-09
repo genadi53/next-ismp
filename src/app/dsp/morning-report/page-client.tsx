@@ -1,29 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
 import { MorningReportForm } from "@/components/dsp/morning-report/MorningReportForm";
 import { MorningReportEdit } from "@/components/dsp/morning-report/MorningReportEdit";
+import { MorningReportsTable } from "@/components/dsp/morning-report/MorningReportsTable";
 
 export function MorningReportPageClient() {
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
@@ -34,24 +17,32 @@ export function MorningReportPageClient() {
   const [currentDispatcher] =
     api.dashboard.dispatcher.getCurrent.useSuspenseQuery();
 
+  // Find the most recent incomplete report (equivalent to startedMorningReport)
+  const startedMorningReport = useMemo(() => {
+    return (
+      morningReports?.find((report) => !report.CompletedOn) ?? null
+    );
+  }, [morningReports]);
+
   const { data: selectedReport } =
     api.dispatcher.morningReport.getById.useQuery(
       { id: selectedReportId! },
       { enabled: !!selectedReportId },
     );
 
+  // Determine which report to show in the form (selected report takes precedence)
+  const activeReport = selectedReport ?? startedMorningReport ?? null;
+
   useEffect(() => {
     // Get dispatcher username from current dispatcher query
-    if (currentDispatcher && currentDispatcher.length > 0) {
-      setDispatcher(currentDispatcher[0]?.DispatcherProfile || "");
+    if (currentDispatcher?.length > 0) {
+      setDispatcher(currentDispatcher[0]?.DispatcherProfile ?? "");
     }
   }, [currentDispatcher]);
 
   // Check if user is current dispatcher (read-only mode)
-  const isReadOnly =
-    currentDispatcher &&
-    currentDispatcher.length > 0 &&
-    dispatcher !== currentDispatcher[0]?.DispatcherProfile;
+  // Note: Original has isReadOnly = false hardcoded, but keeping the logic for future use
+  const isReadOnly = false;
 
   const handleContinue = (reportId: number) => {
     setSelectedReportId(reportId);
@@ -61,31 +52,33 @@ export function MorningReportPageClient() {
     setSelectedReportId(null);
   };
 
-  const handleFormSuccess = () => {
-    setSelectedReportId(null);
+  const handleFormSubmit = (success: boolean) => {
+    if (success) {
+      // Clear selected report after successful submit
+      setSelectedReportId(null);
+    }
   };
+
+  // Loading state
+  if (!currentDispatcher) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-gray-500">Зареждане...</div>
+      </div>
+    );
+  }
 
   return (
     <>
-      {/* Current Dispatcher Info */}
-      {currentDispatcher && currentDispatcher.length > 0 && (
-        <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-600">
-          <span className="text-gray-500">Текущ диспечер:</span>{" "}
-          <span className="font-semibold text-gray-800">
-            {currentDispatcher[0]?.Name}
-          </span>
-        </div>
-      )}
-
       {/* Permission Alert */}
       {isReadOnly && (
-        <Alert className="mb-6 border-red-200 bg-red-50 shadow-sm">
+        <Alert className="border-red-200 bg-red-50 shadow-sm">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
             <strong>Вие не сте текущ Диспечер!</strong> Само активният диспечер
             може да редактира сутрешните отчети.
-            {currentDispatcher && currentDispatcher.length > 0 && (
-              <span className="mt-1 block">
+            {currentDispatcher?.length > 0 && (
+              <span className="block mt-1">
                 Текущ диспечер: {currentDispatcher[0]?.Name} (
                 {currentDispatcher[0]?.DispatcherProfile})
               </span>
@@ -95,115 +88,52 @@ export function MorningReportPageClient() {
       )}
 
       {/* Form Section */}
-      <Card className="mb-6 shadow-lg">
-        <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-green-50">
-          <CardTitle className="text-lg font-semibold text-gray-800">
-            {selectedReport
-              ? "Редактиране на отчет"
-              : "Формуляр за отчет"}
-          </CardTitle>
-          <CardDescription>
-            {selectedReport
-              ? "Редактирайте съществуващ отчет"
-              : "Създайте нов сутрешен отчет"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {selectedReport ? (
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Формуляр за отчет
+          </h2>
+        </div>
+        <div className="p-6">
+          {activeReport ? (
             <MorningReportEdit
-              report={selectedReport}
+              report={activeReport}
               dispatcher={dispatcher}
-              onSuccess={handleFormSuccess}
+              onSuccess={() => handleFormSubmit(true)}
               onCancel={handleCancelEdit}
             />
           ) : (
             <MorningReportForm
               dispatcher={dispatcher}
-              onSuccess={handleFormSuccess}
+              onSuccess={() => handleFormSubmit(true)}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Data Table Section */}
-      <Card className="shadow-lg">
-        <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-          <CardTitle className="text-lg font-semibold text-gray-800">
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">
             Информация за отчет Диспечери
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {morningReports && morningReports.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Дата</TableHead>
-                    <TableHead>Започнат от</TableHead>
-                    <TableHead>Завършен от</TableHead>
-                    <TableHead>Завършен на</TableHead>
-                    <TableHead>Изпратен на</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Действия</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {morningReports.map((report) => (
-                    <TableRow key={report.ID} className="hover:bg-muted/50">
-                      <TableCell>{report.ID}</TableCell>
-                      <TableCell>{report.ReportDate}</TableCell>
-                      <TableCell>
-                        {report.StartedFromDispatcher || "-"}
-                      </TableCell>
-                      <TableCell>
-                        {report.CompletedFromDispatcher || "-"}
-                      </TableCell>
-                      <TableCell>
-                        {report.CompletedOn
-                          ? format(new Date(report.CompletedOn), "yyyy-MM-dd")
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {report.SentOn
-                          ? format(new Date(report.SentOn), "yyyy-MM-dd")
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {report.SentOn ? (
-                          <Badge variant="default">Изпратен</Badge>
-                        ) : report.CompletedOn ? (
-                          <Badge variant="secondary">Завършен</Badge>
-                        ) : (
-                          <Badge variant="outline">В процес</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {!report.CompletedOn && !isReadOnly && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleContinue(report.ID)}
-                          >
-                            Продължи
-                          </Button>
-                        )}
-                        {report.CompletedOn && !report.SentOn && (
-                          <Badge variant="secondary">Завършен</Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+          </h2>
+        </div>
+        <div className="p-6">
+          {morningReports?.length > 0 ? (
+            <MorningReportsTable
+              reports={morningReports}
+              isReadOnly={isReadOnly}
+              onContinue={handleContinue}
+            />
           ) : (
-            <div className="text-muted-foreground py-12 text-center">
-              Няма намерени отчети
+            <div className="flex justify-center items-center py-12">
+              <div className="text-gray-500 flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Зареждане...
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </>
   );
 }

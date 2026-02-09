@@ -42,7 +42,7 @@ export function PrestartStatus({ prestart }: PrestartStatusProps) {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground text-sm">Смяна:</span>
             <span className="text-sm font-medium">
-              {prestart.FullShiftName || `Смяна ${prestart.Shift}`}
+              {prestart.FullShiftName ?? `Смяна ${prestart.Shift}`}
             </span>
           </div>
         </div>

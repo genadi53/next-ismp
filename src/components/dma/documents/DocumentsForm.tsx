@@ -200,8 +200,6 @@ export function DocumentsForm({
     DocsDeptApprovalDuty: values.DocsDeptApprovalDuty ?? null,
     DocsSuplierName: values.DocsSuplierName ?? null,
     DocsSuplierDesc: values.DocsSuplierDesc ?? null,
-    CreatedFrom: "test@testov",
-    LastUpdatedFrom: "test@testov",
   });
 
   async function onSubmit(values: DmaDocumentFormData) {
