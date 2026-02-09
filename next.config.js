@@ -5,6 +5,9 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  basePath: "/ismp-next",
+  allowedDevOrigins: ['em-m-db4.ellatzite-med.com'],
+};
 
 export default config;
