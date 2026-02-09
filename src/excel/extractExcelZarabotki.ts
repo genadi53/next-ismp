@@ -4,7 +4,6 @@ import type {
   RawExcelDataZarabotki,
 } from "@/server/repositories/hermes";
 import XLSX from "xlsx";
-import { logError } from "@/lib/logger/logger";
 
 export const extractExcelZarabotki = (
   file: File,
@@ -33,9 +32,9 @@ export const extractExcelZarabotki = (
       let minCol = Infinity;
 
       for (const cellAddress in worksheet) {
-        if (cellAddress[0] === "!") continue;
+        if (cellAddress.startsWith("!")) continue;
 
-        const column = cellAddress.match(/[A-Z]+/)?.[0];
+        const column = /[A-Z]+/.exec(cellAddress)?.[0];
 
         if (column && column > "H") continue;
 
@@ -48,21 +47,30 @@ export const extractExcelZarabotki = (
 
       const headerRow1 = minRow + 1;
 
-      const headers = [];
+      const headers: string[] = [];
       for (let col = minCol; col <= maxCol; col++) {
-        const headerCell = XLSX.utils.encode_cell({ r: headerRow1, c: col });
-        const headerValue = worksheet[headerCell]?.v ?? `Column${col}`;
-        headers.push(headerValue);
+        const headerCell = worksheet[XLSX.utils.encode_cell({ r: headerRow1, c: col })] as { v?: unknown } | undefined;
+        const headerValue = headerCell?.v;
+        const headerString =
+          typeof headerValue === "string"
+            ? headerValue
+            : typeof headerValue === "number"
+              ? headerValue.toString()
+              : `Column${col}`;
+        headers.push(headerString);
       }
 
-      let array: RawExcelDataZarabotki[] = [];
+      const array: RawExcelDataZarabotki[] = [];
       for (let row = headerRow1 + 1; row <= maxRow; row++) {
         const rowData: RawExcelData = {};
         for (let col = minCol; col <= maxCol; col++) {
           const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-          const value = worksheet[cellAddress]?.v ?? null;
+          const cell = worksheet[cellAddress] as { v?: unknown } | undefined;
+          const value = cell?.v ?? null;
           const header = headers[col - minCol];
-          rowData[header] = value;
+          if (header) {
+            rowData[header] = value;
+          }
         }
         // console.log(rowData);
         array.push(rowData as RawExcelDataZarabotki);
@@ -72,10 +80,8 @@ export const extractExcelZarabotki = (
     };
 
     reader.onerror = (e) => {
-      reject(e);
-      logError("Error reading Excel file Zarabotki:", e, {
-        file: file.name,
-      });
+      const errorMessage = e instanceof Error ? e.message : "Unknown error";
+      reject(new Error(`Failed to read file: ${errorMessage}`));
     };
 
     reader.readAsArrayBuffer(file);

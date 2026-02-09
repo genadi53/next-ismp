@@ -26,7 +26,67 @@ type MonthPlanProps = {
 
 export default function MonthPlan({ type, data }: MonthPlanProps) {
   if (type === "Месечен ГР Проект") {
-    return <div></div>;
+    const filteredData = (data as NaturalIndicatorsPlanInsertArray).filter(
+      (row) =>
+        format(new Date(row.PlanMonthDay), "yyyy-MM-dd") ===
+        format(
+          lastDayOfMonth(new Date(data[0]?.PlanMonthDay ?? new Date())),
+          "yyyy-MM-dd",
+        ),
+    );
+
+    return (
+      <>
+        <Card className="">
+          <CardHeader className="flex flex-row justify-between">
+            <div>
+              <CardTitle>Информация за Месечен ГР Проект</CardTitle>
+              <span className="text-muted-foreground text-sm">
+                (Въведен за месец:{" "}
+                {format(
+                  new Date(data[0]?.PlanMonthDay ?? new Date()),
+                  "yyyy-MM",
+                )}{" "}
+                от: {data[0]?.userAdded ?? ""})
+              </span>
+            </div>
+            <div>
+              <Badge variant="outline" className="text-ell-primary text-sm">
+                {data.length} записа
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table className="w-full border-separate border-spacing-x-4">
+                <TableBody>
+                  {(filteredData as NaturalIndicatorsPlanInsertArray).map(
+                    (planRow) => (
+                      <React.Fragment
+                        key={`${planRow.PlanMonthDay}-${planRow.Object}`}
+                      >
+                        <TableRow className="">
+                          <TableCell className="text-left text-xs font-medium">
+                            <div className="flex w-full items-center justify-between gap-2 px-4 pr-6">
+                              <span className="text-left text-xs font-medium">
+                                Погасен запас руда от масив, m³
+                              </span>
+                              <span className="text-right text-xs">
+                                {formatNumber(planRow.PlanVolOreKet)}
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    ),
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </>
+    );
   }
 
   if (type === "Месечен оперативен план") {

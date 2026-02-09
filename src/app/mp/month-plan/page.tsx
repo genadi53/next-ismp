@@ -28,11 +28,31 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
-import type { MonthPlanType } from "@/server/repositories/mine-planning";
+import type {
+  MonthPlanType,
+  OperationalPlanInsertArray,
+  ShovelPlanInsertArray,
+  NaturalIndicatorsPlanInsertArray,
+  GRProjectPlanInsertArray,
+  PlanInsertTypes,
+} from "@/server/repositories/mine-planning";
 import MonthPlan from "@/components/mp/MonthPlan";
 import { MONTH_NAMES_BG } from "@/lib/constants";
+import {
+  processExcelMonthPlanShovels,
+  processExcelMonthPlanOperativen,
+  processExcelMonthPlanNaturalIndicators,
+  processExcelMonthPlanGRProject,
+} from "@/excel/processExcelMonthPlan";
+import {
+  monthPlanMapper,
+  naturalIndicatorsPlanMapper,
+  planShovelsMapper,
+  grProjectPlanMapper,
+} from "@/lib/planMappers";
+import { addWeeks, endOfYear } from "date-fns";
 
 export default function MonthPlanPage() {
   const [monthPlanType, setMonthPlanType] = useState<MonthPlanType | undefined>(
@@ -45,23 +65,28 @@ export default function MonthPlanPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
-  const [processedData, setProcessedData] = useState<any>(undefined);
+  const [processedData, setProcessedData] = useState<
+    PlanInsertTypes | undefined
+  >(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // tRPC mutations
   const createPlanOperativenMutation =
     api.minePlanning.operativenPlan.create.useMutation({
       onSuccess: () => {
-        toast.success("Успешно", {
+        toast({
+          title: "Успешно",
           description: "Месечният оперативен план е записан успешно.",
         });
         handleReset();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при записването на месечния оперативен план.",
+          variant: "destructive",
         });
       },
     });
@@ -69,16 +94,19 @@ export default function MonthPlanPage() {
   const createPlanShovelsMutation =
     api.minePlanning.planShovels.create.useMutation({
       onSuccess: () => {
-        toast.success("Успешно", {
+        toast({
+          title: "Успешно",
           description: "Месечният план добив багери е записан успешно.",
         });
         handleReset();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при записването на месечния план добив багери.",
+          variant: "destructive",
         });
       },
     });
@@ -86,17 +114,20 @@ export default function MonthPlanPage() {
   const createPlanNaturalMutation =
     api.minePlanning.naturalPlan.create.useMutation({
       onSuccess: () => {
-        toast.success("Успешно", {
+        toast({
+          title: "Успешно",
           description:
             "Месечният план по одобрени натурални показатели е записан успешно.",
         });
         handleReset();
       },
       onError: (error) => {
-        toast.error("Грешка", {
+        toast({
+          title: "Грешка",
           description:
             error.message ||
             "Възникна грешка при записването на месечния план по одобрени натурални показатели.",
+          variant: "destructive",
         });
       },
     });
@@ -116,16 +147,20 @@ export default function MonthPlanPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете файл.",
+        variant: "destructive",
       });
     }
 
     // Check if it's an Excel file
-    if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      return toast.error("Грешка при обработка", {
+    if (!/\.(xlsx|xls)$/i.exec(file.name)) {
+      return toast({
+        title: "Грешка при обработка",
         description:
           "Невалиден файл. Моля, изберете Excel файл (.xlsx или .xls)",
+        variant: "destructive",
       });
     }
 
@@ -137,72 +172,149 @@ export default function MonthPlanPage() {
     setIsProcessing(true);
     if (!monthPlanType) {
       setIsProcessing(false);
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете вид месечен план.",
+        variant: "destructive",
       });
     }
 
     if (!file) {
       handleReset();
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете файл.",
+        variant: "destructive",
       });
     }
 
     try {
-      // For now, we'll need to implement Excel processing
-      // This would require the XLSX library and processing functions
-      toast.info("Обработка на файла", {
-        description:
-          "Excel обработката изисква допълнителна имплементация с xlsx библиотека.",
+      const operationalDataInsert: OperationalPlanInsertArray = [];
+      const shovelsDataInsert: ShovelPlanInsertArray = [];
+      const naturalIndicatorsDataInsert: NaturalIndicatorsPlanInsertArray = [];
+      const grProjectDataInsert: GRProjectPlanInsertArray = [];
+
+      switch (monthPlanType) {
+        case "Месечен оперативен план":
+          const processedData = await processExcelMonthPlanOperativen(file);
+          for (const row of processedData) {
+            operationalDataInsert.push(monthPlanMapper(row));
+          }
+          break;
+        case "Месечен ГР Проект":
+          const grProjectData = await processExcelMonthPlanGRProject(file);
+          for (const row of grProjectData) {
+            grProjectDataInsert.push(grProjectPlanMapper(row));
+          }
+          break;
+        case "Месечен план добив багери":
+          const shovelsData = await processExcelMonthPlanShovels(file, date);
+          for (const row of shovelsData) {
+            shovelsDataInsert.push(planShovelsMapper(row));
+          }
+          break;
+        case "Месечен план по одобрени натурални показатели":
+          const results = await processExcelMonthPlanNaturalIndicators(file);
+          for (const row of results) {
+            naturalIndicatorsDataInsert.push(naturalIndicatorsPlanMapper(row));
+          }
+          break;
+        default:
+          throw new Error("handleMonthPlanData:Invalid month plan type");
+      }
+
+      if (
+        !operationalDataInsert &&
+        !shovelsDataInsert &&
+        !naturalIndicatorsDataInsert &&
+        !grProjectDataInsert
+      ) {
+        throw new Error("handleFileUpload:No processed data");
+      }
+
+      console.log(operationalDataInsert);
+      setProcessedData([
+        ...operationalDataInsert,
+        ...shovelsDataInsert,
+        ...naturalIndicatorsDataInsert,
+        ...grProjectDataInsert,
+      ] as PlanInsertTypes);
+
+      return toast({
+        title: "Успешно обработен файл",
+        description: `Файлът "${file.name}" е обработен успешно.`,
       });
-
-      // TODO: Implement Excel processing similar to old project
-      // const result = await processExcelFile(file, monthPlanType, date);
-      // setProcessedData(result);
-
-      setIsProcessing(false);
     } catch (error) {
       console.error("Error processing file:", error);
       handleReset();
-      return toast.error("Грешка при обработка", {
+      return toast({
+        title: "Грешка при обработка",
         description:
           "Възникна грешка при обработката на файла. Моля, проверете дали файлът е валиден и има правилната структура.",
+        variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const sendPlanData = async () => {
-    if (!monthPlanType || !processedData) {
-      return toast.error("Грешка при обработка", {
+  const sendPlanData = async (
+    planType: MonthPlanType | undefined,
+    planData: PlanInsertTypes | undefined
+  ) => {
+    setIsSending(true);
+    if (!planType || !planData) {
+      return toast({
+        title: "Грешка при обработка",
         description: "Моля, изберете вид месечен план и добавете файла.",
+        variant: "destructive",
       });
     }
 
-    setIsSending(true);
-
     try {
+      let res: { success: boolean; message: string } | undefined;
       switch (monthPlanType) {
         case "Месечен оперативен план":
-          await createPlanOperativenMutation.mutateAsync(processedData);
+          res = await createPlanOperativenMutation.mutateAsync(
+            planData as OperationalPlanInsertArray
+          );
+          console.log(res);
           break;
         case "Месечен ГР Проект":
-          // Not implemented
-          toast.info("Информация", {
-            description: "Месечен ГР Проект все още не е имплементиран.",
-          });
+          // res = await createPlanGRProjectMutation.mutateAsync(
+          //   planData as GRProjectPlanInsertArray
+          // );
+          // console.log(res);
           break;
         case "Месечен план добив багери":
-          await createPlanShovelsMutation.mutateAsync(processedData);
+          res = await createPlanShovelsMutation.mutateAsync(
+            planData as ShovelPlanInsertArray
+          );
+          console.log(res);
           break;
         case "Месечен план по одобрени натурални показатели":
-          await createPlanNaturalMutation.mutateAsync(processedData);
+          res = await createPlanNaturalMutation.mutateAsync(
+            planData as NaturalIndicatorsPlanInsertArray
+          );
+          console.log(res);
           break;
         default:
-          throw new Error("Невалиден тип на месечен план");
+          throw new Error("sendPlanData:Invalid month plan type");
       }
+
+      handleReset();
+      return toast({
+        title: "Успешно записан месечен план",
+        description: `${planType} е записан успешно.`,
+      });
     } catch (error) {
       console.error("Error sending plan data:", error);
+      return toast({
+        title: "Грешка при записване",
+        description:
+          "Възникна грешка при записването на месечен план. Опитайте отново, или се обадете на администратор.",
+        variant: "destructive",
+      });
     } finally {
       setIsSending(false);
     }
@@ -219,7 +331,7 @@ export default function MonthPlanPage() {
             <div className="flex max-w-xl flex-1 flex-col gap-4">
               <Select
                 onValueChange={(e) => setMonthPlanType(e as MonthPlanType)}
-                value={monthPlanType || ""}
+                value={monthPlanType ?? ""}
               >
                 <SelectTrigger className="w-full min-w-0">
                   <SelectValue placeholder="Изберете вид месечен план" />
@@ -267,6 +379,11 @@ export default function MonthPlanPage() {
                     selected={date}
                     onSelect={setDate}
                     disabled={(date) => date < new Date("1900-01-01")}
+                    hidden={{
+                      after: date
+                        ? endOfYear(addWeeks(date, 52))
+                        : endOfYear(addWeeks(new Date(), 52)),
+                    }}
                   />
                 </PopoverContent>
               </Popover>
@@ -312,7 +429,7 @@ export default function MonthPlanPage() {
               <div className="flex w-lg flex-row items-center gap-4">
                 <Button
                   className="w-24"
-                  variant="ell"
+                  variant="success"
                   type="submit"
                   disabled={!fileName || isProcessing}
                   onClick={async (e) => {
@@ -325,7 +442,7 @@ export default function MonthPlanPage() {
 
                 <Button
                   className="w-24"
-                  variant="outline"
+                  variant="warning"
                   type="reset"
                   disabled={isProcessing}
                   onClick={(e) => {
@@ -338,12 +455,12 @@ export default function MonthPlanPage() {
 
                 <Button
                   className="w-24"
-                  variant="default"
+                  variant="link"
                   type="button"
                   disabled={isProcessing || isSending || !processedData}
                   onClick={(e) => {
                     e.preventDefault();
-                    sendPlanData();
+                    void sendPlanData(monthPlanType, processedData);
                   }}
                 >
                   Изпрати
