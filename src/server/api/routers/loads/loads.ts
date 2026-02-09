@@ -12,7 +12,7 @@ import { loadsSchema } from "@/schemas/loads.schemas";
 import { nameInput } from "@/lib/username";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { buildLoadsReportHtml } from "@/lib/email/loadsEmailTemplate";
-import { env } from "@/env";
+import { getMailGroupsByName } from "@/server/repositories";
 
 export const loadsRouter = createTRPCRouter({
   /**
@@ -67,12 +67,23 @@ export const loadsRouter = createTRPCRouter({
         };
       }
 
+      const mailGroup = await getMailGroupsByName("Отчети"); // Проверка курсове
+
+      if (!mailGroup || !mailGroup.mail_group) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Няма такава имейл група (Проверка курсове).",
+        });
+      }
+      console.log(mailGroup.mail_group);
+
       const htmlTemplate = buildLoadsReportHtml(unsentLoads);
       const messageId = await sendEmail(
         "Отчет редакция курсове",
         htmlTemplate,
-        env.TEST_EMAIL_TO ??
-          "genadi.tsolov@ellatzite-med.com;p.penkov@ellatzite-med.com;",
+        mailGroup.mail_group,
+        // env.TEST_EMAIL_TO ??
+        //   "genadi.tsolov@ellatzite-med.com;p.penkov@ellatzite-med.com;",
       );
 
       if (!messageId) {

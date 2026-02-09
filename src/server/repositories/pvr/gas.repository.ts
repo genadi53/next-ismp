@@ -13,23 +13,18 @@ import type {
  */
 export async function getGasMeasurements(): Promise<GasMeasurement[]> {
   return mysqlQuery<GasMeasurement>(`
-    SELECT m.GasID,
-           g.gasName, g.gasType,
-           ROUND(m.GasValue, 2) AS GasValue,
-           m.MeasuredFrom,
-           m.MeasuredDuty, m.MeasuredOn,
-           m.Horizont, m.lrd,
-           m.lrdFrom, g.Dimension
-    FROM xcom_man_measure m
-    INNER JOIN xcom_l_gases g ON m.GasID = g.ID
-    INNER JOIN xcom_references AS xcRef ON xcRef.GasID = g.ID
-    INNER JOIN (
-      SELECT MeasuredOn, GasID, MeasuredFrom, Horizont, MAX(ID) AS MaxID
-      FROM xcom_man_measure
-      GROUP BY MeasuredOn, GasID, MeasuredFrom, Horizont
-    ) AS latest ON m.ID = latest.MaxID
-    ORDER BY m.MeasuredOn DESC
-    LIMIT 0, 100
+    select xcom_man_measure.GasID,
+      gasName,gasType,
+      round(GasValue,2) as GasValue,MeasuredFrom,
+      MeasuredDuty,MeasuredOn,
+      Horizont,xcom_man_measure.lrd,
+      xcom_man_measure.lrdFrom,Dimension
+      from (xcom_man_measure inner join xcom_l_gases
+          on xcom_man_measure.GasID=xcom_l_gases.ID)
+          inner join xcom_references as xcRef on xcRef.GasID=xcom_l_gases.ID
+          group by MeasuredOn,gasid,MeasuredFrom,Horizont
+      order by MeasuredOn desc
+      limit 0,100
   `);
 }
 
@@ -42,47 +37,29 @@ export async function getGasMeasurementsEdit(
 ): Promise<GasMeasurementEdit[]> {
   return mysqlQuery<GasMeasurementEdit>(
     `
-    SELECT MMrOW, growid, t1.GasId, t1.gasName, t1.gasType, t1.Dimension,
-           work8, work7, work6, work5, work2,
-           GasValue, MeasuredFrom, MeasuredDuty, MeasuredOn, Horizont
-    FROM (
-      SELECT growid, GasId, gasName, gasType, Dimension,
-             MAX(CASE WHEN WorkTime = 8 THEN refValue END) AS work8,
-             MAX(CASE WHEN WorkTime = 7 THEN refValue END) AS work7,
-             MAX(CASE WHEN WorkTime = 6 THEN refValue END) AS work6,
-             MAX(CASE WHEN WorkTime = 5 THEN refValue END) AS work5,
-             MAX(CASE WHEN WorkTime = 2 THEN refValue END) AS work2
-      FROM (
-        SELECT growid, GasId, WorkTime, gasType, gasName, Dimension,
-               CASE 
-                 WHEN ISNULL(refValueMin) THEN CONCAT('<', refValueMax)
-                 WHEN ISNULL(refValueMax) THEN refValueMin
-                 ELSE CONCAT('от ', refValueMin, ' до ', refValueMax)
-               END AS refValue
-        FROM (
-          SELECT xcom_references.id AS growid, GasId, gasType, gasName,
-                 WorkTime, Dimension, refValueMin, refValueMax
-          FROM xcom_references
-          INNER JOIN xcom_l_gases ON xcom_l_gases.id = xcom_references.GasID
-        ) AS g1
-      ) AS g2
-      GROUP BY gasType
-      ORDER BY growid, GasID
-    ) AS t1
-    INNER JOIN (
-      SELECT m.ID AS MMrOW, m.GasID, g.gasName, g.gasType,
-             m.GasValue, m.MeasuredFrom, m.MeasuredDuty, m.MeasuredOn, m.Horizont,
-             m.lrd, m.lrdFrom, g.Dimension
-      FROM xcom_man_measure m
-      INNER JOIN xcom_l_gases g ON m.GasID = g.ID
-      INNER JOIN xcom_references AS xcRef ON xcRef.GasID = g.ID
-      INNER JOIN (
-        SELECT MeasuredOn, GasID, MeasuredFrom, Horizont, MAX(ID) AS MaxID
-        FROM xcom_man_measure
-        WHERE MeasuredOn = ? AND Horizont = ?
-        GROUP BY MeasuredOn, GasID, MeasuredFrom, Horizont
-      ) AS latest ON m.ID = latest.MaxID
-    ) AS t2 ON t1.GasId = t2.GasID
+    select MMrOW,growid,t1.GasId,t1.gasName,t1.gasType,t1.Dimension,work8,work7,work6,work5,work2 
+                ,GasValue,MeasuredFrom,MeasuredDuty,MeasuredOn,Horizont 
+                    from (select growid,GasId,gasName,gasType,Dimension , 
+                                max(case when WorkTime=8 then refValue END ) as work8, 
+                                max(case when WorkTime=7 then refValue END) as work7, 
+                                max(case when WorkTime=6 then refValue END) as work6, 
+                                max(case when WorkTime=5 then refValue END) as work5, 
+                                max(case when WorkTime=2 then refValue END) as work2 
+                                    from ( SELECT growid,GasId, WorkTime,gasType,gasName, Dimension , 
+                                                        case when isnull(refValueMin) then concat('<',refValueMax) 
+                                                            when isnull(refValueMax) then refValueMin else concat('от ',refValueMin,' до ',refValueMax) end AS refValue 
+                                                    FROM ( SELECT xcom_references.id as growid, GasId, gasType, gasName,WorkTime,Dimension , refValueMin, refValueMax 
+                                                                    FROM xcom_references INNER JOIN xcom_l_gases ON xcom_l_gases.id = xcom_references.GasID 
+                                                            ) as g1 
+                                            ) AS g2 GROUP by gasType order by growid,GasID) AS t1
+                        inner JOIN (select xcom_man_measure.ID AS MMrOW,xcom_man_measure.GasID,gasName,gasType,GasValue,MeasuredFrom,MeasuredDuty,MeasuredOn,
+                                                Horizont,xcom_man_measure.lrd,xcom_man_measure.lrdFrom,Dimension 
+                                            from (xcom_man_measure inner join xcom_l_gases on xcom_man_measure.GasID=xcom_l_gases.ID) 
+                                                    inner join xcom_references as xcRef on xcRef.GasID=xcom_l_gases.ID 
+                                            where MeasuredOn = ?
+                                                and Horizont = ?
+                                    group by MeasuredOn,gasid,MeasuredFrom,Horizont) AS t2
+                        on t1.GasId=t2.GasId
   `,
     [date, elevation],
   );
@@ -98,15 +75,15 @@ export async function updateGasMeasurements(
     for (const measurement of measurements) {
       await connection.execute(
         `
-        UPDATE xcom_man_measure 
-        SET GasValue = ?,
-            MeasuredFrom = ?,
-            MeasuredDuty = ?,
-            MeasuredOn = ?,
-            Horizont = ?,
-            lrdFrom = ?
-        WHERE MeasuredOn = ? AND ID = ?
-      `,
+       Update xcom_man_measure set 
+                    GasValue = ?,
+                    MeasuredFrom = ?,
+                    MeasuredDuty = ?,
+                    MeasuredOn = ?,
+                    Horizont = ?,
+                    lrdFrom = ?
+    where MeasuredOn = ? and GasID = ?
+          `,
         [
           measurement.GasValue,
           measurement.MeasuredFrom,
@@ -127,28 +104,25 @@ export async function updateGasMeasurements(
  */
 export async function getGasReferences(): Promise<GasReference[]> {
   return mysqlQuery<GasReference>(`
-    SELECT growid, GasId, gasName, gasType, Dimension,
-           MAX(CASE WHEN WorkTime = 8 THEN refValue END) AS work8,
-           MAX(CASE WHEN WorkTime = 7 THEN refValue END) AS work7,
-           MAX(CASE WHEN WorkTime = 6 THEN refValue END) AS work6,
-           MAX(CASE WHEN WorkTime = 5 THEN refValue END) AS work5,
-           MAX(CASE WHEN WorkTime = 2 THEN refValue END) AS work2
-    FROM (
-      SELECT growid, GasId, WorkTime, gasType, gasName, Dimension,
-             CASE 
-               WHEN ISNULL(refValueMin) THEN CONCAT('<', refValueMax)
-               WHEN ISNULL(refValueMax) THEN refValueMin
-               ELSE CONCAT('от ', refValueMin, ' до ', refValueMax)
-             END AS refValue
-      FROM (
-        SELECT xcom_references.id AS growid, GasId, gasType, gasName,
-               WorkTime, Dimension, refValueMin, refValueMax
-        FROM xcom_references
-        INNER JOIN xcom_l_gases ON xcom_l_gases.id = xcom_references.GasID
-      ) AS g1
-    ) AS g2
-    GROUP BY gasType
-    ORDER BY growid, GasID
+     select growid,GasId,gasName,gasType,Dimension, 
+                max(case when WorkTime=8 then refValue END) as work8, 
+                max(case when WorkTime=7 then refValue END) as work7, 
+                max(case when WorkTime=6 then refValue END) as work6, 
+                max(case when WorkTime=5 then refValue END) as work5, 
+                max(case when WorkTime=2 then refValue END) as work2 
+            from (
+                SELECT growid,GasId, WorkTime,gasType,gasName,Dimension, 
+                    case when isnull(refValueMin) then concat('<',refValueMax) 
+                        when isnull(refValueMax) then refValueMin 
+                        else concat('от ',refValueMin,' до ',refValueMax) end AS refValue 
+                FROM (
+                    SELECT xcom_references.id as growid, GasId, gasType, gasName,
+                        WorkTime, Dimension , refValueMin, refValueMax 
+                    FROM xcom_references INNER JOIN xcom_l_gases ON xcom_l_gases.id = xcom_references.GasID 
+                    ) as g1 
+            ) AS g2 
+            GROUP by gasType 
+            order by growid,GasID
   `);
 }
 

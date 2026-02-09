@@ -1,4 +1,4 @@
-import { sqlQuery, sqlTransaction } from "@/server/database/db";
+import { sqlQuery, sqlQueryOne, sqlTransaction } from "@/server/database/db";
 import type {
   MailGroup,
   CreateMailGroupInput,
@@ -13,6 +13,22 @@ export async function getMailGroups(): Promise<MailGroup[]> {
     SELECT *
     FROM [ISMP].[ismp].[MailGroups]
   `);
+}
+
+/**
+ * Get all mail groups.
+ */
+export async function getMailGroupsByName(
+  name: string,
+): Promise<MailGroup | null> {
+  return sqlQueryOne<MailGroup>(
+    `
+    SELECT TOP 1 *
+    FROM [ISMP].[ismp].[MailGroups]
+    WHERE mail_group_name = @name
+  `,
+    { name },
+  );
 }
 
 /**

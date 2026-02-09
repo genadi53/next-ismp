@@ -9,6 +9,9 @@ import {
   markRepairRequestsSent,
 } from "@/server/repositories/dispatcher/repairs.repository";
 import { nameInput } from "@/lib/username";
+import { getMailGroupsByName } from "@/server/repositories";
+import { TRPCError } from "@trpc/server";
+import { sendEmail } from "@/lib/email/sendEmail";
 
 const createRequestRepairSchema = z.object({
   RequestDate: z.string(),
@@ -70,6 +73,32 @@ export const repairsRouter = createTRPCRouter({
   markSent: protectedProcedure
     .input(z.object({ date: z.string() }))
     .mutation(async ({ input }) => {
+      const mailGroup = await getMailGroupsByName("Отчети"); // Заявки за ремонт
+
+      if (!mailGroup || !mailGroup.mail_group) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Няма такава имейл група (Заявки за ремонт).",
+        });
+      }
+      console.log(mailGroup.mail_group);
+
+      const htmlTemplate = "null";
+      const messageId = await sendEmail(
+        "Заявка за ремонти",
+        htmlTemplate,
+        mailGroup.mail_group,
+        // env.TEST_EMAIL_TO ??
+        //   "genadi.tsolov@ellatzite-med.com;p.penkov@ellatzite-med.com;",
+      );
+
+      if (!messageId) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Неуспешно изпращане на имейл",
+        });
+      }
+
       await markRepairRequestsSent(input.date);
       return { success: true, message: "Repair requests marked as sent" };
     }),

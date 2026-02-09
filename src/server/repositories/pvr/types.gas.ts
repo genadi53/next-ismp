@@ -5,9 +5,9 @@ export type GasMeasurement = {
   GasValue: number | null;
   MeasuredFrom: string | null;
   MeasuredDuty: string | null;
-  MeasuredOn: string | null;
+  MeasuredOn: Date | null;
   Horizont: number | null;
-  lrd: string | null;
+  lrd: Date | null;
   lrdFrom: string | null;
   Dimension: string | null;
 };
