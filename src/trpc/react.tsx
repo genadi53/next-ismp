@@ -11,6 +11,9 @@ import { type AppRouter } from "@/server/api/root";
 import { createQueryClient } from "./query-client";
 import { createTrpcLoggerLink } from "@/lib/logger/trpc-logger-link";
 
+/** Must match basePath in next.config.js so Apache proxies tRPC to Next.js */
+const BASE_PATH = "/ismp-next";
+
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
   if (typeof window === "undefined") {
@@ -48,7 +51,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
         createTrpcLoggerLink(),
         httpBatchStreamLink({
           transformer: SuperJSON,
-          url: getBaseUrl() + "/api/trpc",
+          url: getBaseUrl() + BASE_PATH + "/api/trpc",
           headers: () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
