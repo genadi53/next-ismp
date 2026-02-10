@@ -89,6 +89,7 @@
 }
 
 @theme inline {
+  --breakpoint-xxl: 118.5625rem; /* 1897px */
   --color-ell-primary: var(--ell-primary);
   --color-background: var(--background);
   --color-foreground: var(--foreground);

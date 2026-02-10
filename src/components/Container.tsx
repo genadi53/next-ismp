@@ -20,7 +20,7 @@ export const Container = ({
     <div
       className={cn(
         "mx-auto space-y-6 py-6",
-        noMaxWidth ? "w-full" : "container"
+        noMaxWidth ? "w-full" : "container xxl:w-svw"
       )}
     >
       <div

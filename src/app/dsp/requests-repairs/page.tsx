@@ -1,5 +1,4 @@
 import AppLayout from "@/components/AppLayout";
-import { Container } from "@/components/Container";
 import { api, HydrateClient } from "@/trpc/server";
 import { RequestsRepairsPageClient } from "./page-client";
 import { Suspense } from "react";
@@ -12,24 +11,19 @@ export default async function RequestsRepairsPage() {
   return (
     <HydrateClient>
       <AppLayout>
-        <Container
-          title="Заявки за ремонти"
-          description="Управление на заявки за ремонти на оборудване"
+        <Suspense
+          fallback={
+            <div className="flex flex-col items-center justify-center py-12">
+              <LoadingSpinner
+                size="lg"
+                label="Зареждане на данни..."
+                showLabel
+              />
+            </div>
+          }
         >
-          <Suspense
-            fallback={
-              <div className="flex flex-col items-center justify-center py-12">
-                <LoadingSpinner
-                  size="lg"
-                  label="Зареждане на данни..."
-                  showLabel
-                />
-              </div>
-            }
-          >
-            <RequestsRepairsPageClient />
-          </Suspense>
-        </Container>
+          <RequestsRepairsPageClient />
+        </Suspense>
       </AppLayout>
     </HydrateClient>
   );

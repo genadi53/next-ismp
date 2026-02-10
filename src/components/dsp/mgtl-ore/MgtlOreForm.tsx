@@ -124,14 +124,14 @@ export function MgtlOreForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {/* Date Picker */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <FormField
             control={form.control}
             name="OperDate"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem className="flex flex-col w-full">
                 <FormLabel>
                   Дата <span className="text-red-500">*</span>
                 </FormLabel>
@@ -300,7 +300,7 @@ export function MgtlOreForm({
 
         {/* Buttons */}
         <div className="flex gap-4">
-          <Button type="submit" disabled={isReadOnly || isPending}>
+          <Button variant={"ell"} type="submit" disabled={isReadOnly || isPending}>
             <Save className="mr-2 h-4 w-4" />
             {isPending ? "Записване..." : "Запиши"}
           </Button>

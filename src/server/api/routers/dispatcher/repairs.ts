@@ -12,6 +12,7 @@ import { nameInput } from "@/lib/username";
 import { getMailGroupsByName } from "@/server/repositories";
 import { TRPCError } from "@trpc/server";
 import { sendEmail } from "@/lib/email/sendEmail";
+import { buildRepairRequestsEmailTemplate } from "@/lib/email/requestRepairsTemplate";
 
 const createRequestRepairSchema = z.object({
   RequestDate: z.string(),
@@ -83,7 +84,11 @@ export const repairsRouter = createTRPCRouter({
       }
       console.log(mailGroup.mail_group);
 
-      const htmlTemplate = "null";
+      const requests = await getRequestRepairs(input.date);
+      const htmlTemplate = buildRepairRequestsEmailTemplate(
+        requests,
+        input.date,
+      );
       const messageId = await sendEmail(
         "Заявка за ремонти",
         htmlTemplate,

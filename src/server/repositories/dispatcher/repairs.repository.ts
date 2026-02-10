@@ -104,9 +104,10 @@ export async function createRequestRepairs(
 
       await request.query(`
         INSERT INTO [ELLDBAdmins].[remonti].[RequestRemontiDate] (
-          [RequestDate], [Equipment], [EquipmentType], [RequestRemont], [addUser], [DrillHoles_type], [userAdded]
+          [RequestDate], [Equipment], [EquipmentType], [RequestRemont], [addUser], [DrillHoles_type]
         )
-        VALUES (@RequestDate${suffix}, @Equipment${suffix}, @EquipmentType${suffix}, @RequestRemont${suffix}, @userAdded${suffix}, @DrillHoles_type${suffix})
+        VALUES (@RequestDate${suffix}, @Equipment${suffix}, @EquipmentType${suffix}, @RequestRemont${suffix}, 
+        @userAdded${suffix}, @DrillHoles_type${suffix})
       `);
     }
   });

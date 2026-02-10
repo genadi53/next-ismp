@@ -20,6 +20,7 @@ import { Package } from "lucide-react";
 import { NoResults } from "@/components/NoResults";
 import { api } from "@/trpc/react";
 import { MgtlOreForm } from "@/components/dsp/mgtl-ore/MgtlOreForm";
+import { Container } from "@/components/Container";
 
 type MgtlOrePageClientProps = {
   isReadOnly?: boolean;
@@ -39,7 +40,10 @@ export function MgtlOrePageClient({
   };
 
   return (
-    <>
+    <Container
+      title="Извоз на Руда"
+      description="Въвеждане на данни за извоза на руда"
+    >
       {/* Form Section */}
       {!isReadOnly && (
         <Card className="mb-6 shadow-lg">
@@ -128,6 +132,6 @@ export function MgtlOrePageClient({
           )}
         </CardContent>
       </Card>
-    </>
+    </Container>
   );
 }

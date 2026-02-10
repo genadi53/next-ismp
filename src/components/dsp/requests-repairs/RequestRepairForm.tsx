@@ -211,7 +211,7 @@ export function RequestRepairForm() {
                   >
                     <Badge
                       variant="default"
-                      className="bg-primary p-2 text-white"
+                      className="bg-blue-600 p-2 text-white"
                     >
                       <Checkbox
                         className="bg-white"
@@ -245,7 +245,7 @@ export function RequestRepairForm() {
                           }
                         }}
                       />
-                      <Label htmlFor={shovel} className="cursor-pointer">
+                      <Label htmlFor={shovel} className="cursor-pointer ">
                         {shovel}
                       </Label>
                     </Badge>
@@ -260,7 +260,7 @@ export function RequestRepairForm() {
                   <div key={drill} className="flex flex-row items-center gap-2">
                     <Badge
                       variant="default"
-                      className="bg-emerald-600 p-2 text-white"
+                      className="bg-green-600 p-2 text-white"
                     >
                       <Checkbox
                         className="bg-white"
@@ -304,7 +304,7 @@ export function RequestRepairForm() {
                 <div className="flex flex-row items-center gap-2">
                   <Badge
                     variant="default"
-                    className="bg-gray-700 p-2 text-white"
+                    className="bg-stone-800 p-2 text-white"
                   >
                     <Checkbox
                       className="bg-white"
@@ -591,12 +591,10 @@ export function RequestRepairForm() {
                                   form.setValue(
                                     `repairRequests.${excav.id}.RequestRemont`,
                                     currentText
-                                      ? `${currentText};${
-                                          (e.target as HTMLDivElement).innerText
-                                        }`
-                                      : `${
-                                          (e.target as HTMLDivElement).innerText
-                                        }`,
+                                      ? `${currentText};${(e.target as HTMLDivElement).innerText
+                                      }`
+                                      : `${(e.target as HTMLDivElement).innerText
+                                      }`,
                                   );
                                 }}
                               >
@@ -650,12 +648,10 @@ export function RequestRepairForm() {
                                   form.setValue(
                                     `repairRequests.${drill.id}.RequestRemont`,
                                     currentText
-                                      ? `${currentText};${
-                                          (e.target as HTMLDivElement).innerText
-                                        }`
-                                      : `${
-                                          (e.target as HTMLDivElement).innerText
-                                        }`,
+                                      ? `${currentText};${(e.target as HTMLDivElement).innerText
+                                      }`
+                                      : `${(e.target as HTMLDivElement).innerText
+                                      }`,
                                   );
                                 }}
                               >
@@ -688,6 +684,7 @@ export function RequestRepairForm() {
               </Button>
 
               <Button
+                variant={"ell"}
                 className="w-24"
                 type="submit"
                 disabled={!form.formState.isValid || isPending}
