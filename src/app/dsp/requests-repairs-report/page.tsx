@@ -1,6 +1,6 @@
-"use client"
+"use client";
 import AppLayout from "@/components/AppLayout";
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { api } from "@/trpc/react";
 import { useSearchParams } from "next/navigation";
@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Container } from "@/components/Container";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
+import { buildRepairRequestsEmailTemplate } from "@/lib/email/requestRepairsTemplate";
 
 export default function RequestsRepairsPage() {
     const searchParams = useSearchParams();
@@ -30,10 +31,18 @@ export default function RequestsRepairsPage() {
                 description: error.message || "Възникна грешка при изпращането на имейла. Опитайте отново.",
                 variant: "destructive",
             });
-        }
-    })
+        },
+    });
 
+    const [showPreview, setShowPreview] = useState(false);
 
+    const previewHtml = useMemo(
+        () =>
+            requestRepairs
+                ? buildRepairRequestsEmailTemplate(requestRepairs, dateStr)
+                : "",
+        [requestRepairs, dateStr],
+    );
     return (
         <AppLayout>
             <Suspense
@@ -49,19 +58,32 @@ export default function RequestsRepairsPage() {
             >
                 <Container title={`Заявки за ремонти за дата ${dateStr}`}
                     headerChildren={
-                        <Button
-                            variant="ell"
-                            className="min-w-[120px]"
-                            onClick={() => sentRepairsEmail({ date: dateStr })} disabled={isSendingRepairsEmail}>
-                            {isSendingRepairsEmail ? (
-                                <>
-                                    <LoadingSpinner size="sm" className="mr-2" />
-                                    Изпращане...
-                                </>
-                            ) : (
-                                "Изпрати имейл"
-                            )}
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                className="min-w-[150px]"
+                                type="button"
+                                onClick={() => setShowPreview((prev) => !prev)}
+                                disabled={!requestRepairs || requestRepairs.length === 0}
+                            >
+                                {showPreview ? "Скрий шаблона" : "Преглед на шаблона"}
+                            </Button>
+                            <Button
+                                variant="ell"
+                                className="min-w-[120px]"
+                                onClick={() => sentRepairsEmail({ date: dateStr })}
+                                disabled={isSendingRepairsEmail}
+                            >
+                                {isSendingRepairsEmail ? (
+                                    <>
+                                        <LoadingSpinner size="sm" className="mr-2" />
+                                        Изпращане...
+                                    </>
+                                ) : (
+                                    "Изпрати имейл"
+                                )}
+                            </Button>
+                        </div>
                     }>
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse border border-gray-300">
@@ -119,6 +141,15 @@ export default function RequestsRepairsPage() {
                             </tbody>
                         </table>
                     </div>
+                    {showPreview && previewHtml && (
+                        <div className="mt-8 border rounded-md overflow-hidden">
+                            <iframe
+                                title="repair-email-preview"
+                                srcDoc={previewHtml}
+                                style={{ width: "100%", minHeight: "600px", border: "none" }}
+                            />
+                        </div>
+                    )}
                 </Container>
             </Suspense>
         </AppLayout>

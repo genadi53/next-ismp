@@ -1,5 +1,23 @@
 import type { RequestRepair } from "@/server/repositories/dispatcher/types.repairs";
 
+const colorHexs = {
+  title: "#008000",
+  border: "#1a252f",
+  excavMain: "#BDD6EE",
+  th: "#D5E0CC",
+  otherMain: "#B1B5AE",
+  drillMain: "#A8D08D",
+};
+
+const styles = {
+  tr: `border:1px solid ${colorHexs.border};padding:6px 8px;font-weight:bold;`,
+  text: "font-size:11px; padding-bottom: 0px; margin-bottom: 0px;",
+  td: `border-right:1px solid ${colorHexs.border};padding:6px 8px;`,
+  // Last column cell – keep only right border to avoid double vertical lines
+  tdLast: `border-right:1px solid ${colorHexs.border};padding:6px 8px;`,
+  borderY: `border-top:1px solid ${colorHexs.border}; border-bottom:1px solid ${colorHexs.border};`,
+};
+
 /**
  * Builds an HTML email for repair requests, matching the
  * standard report styling with dark headers and organized sections.
@@ -8,13 +26,22 @@ export function buildRepairRequestsEmailTemplate(
   requests: RequestRepair[],
   date: string,
 ): string {
+  const orderedRequests = requests.sort((a, b) => {
+    return (
+      new Date(a.RequestDate).getTime() - new Date(b.RequestDate).getTime()
+    );
+  });
+
   // Separate requests by equipment type
   const excavatorRequests = requests.filter(
     (r) => r.EquipmentType === "1" || r.EquipmentType === null,
   );
   const drillRequests = requests.filter((r) => r.EquipmentType === "2");
   const otherRequests = requests.filter(
-    (r) => r.EquipmentType !== "1" && r.EquipmentType !== "2" && r.EquipmentType !== null,
+    (r) =>
+      r.EquipmentType !== "1" &&
+      r.EquipmentType !== "2" &&
+      r.EquipmentType !== null,
   );
 
   const currentDate = new Date().toLocaleString("bg-BG", {
@@ -26,202 +53,165 @@ export function buildRepairRequestsEmailTemplate(
     second: "2-digit",
   });
 
-  const lastEdited = requests[0]?.lrd ?? currentDate;
-  const lastEditedBy = requests[0]?.addUser ?? "";
+  const firstEdited = orderedRequests[0]?.RequestDate ?? currentDate;
+  const firstEditedBy = orderedRequests[0]?.addUser ?? "";
+  const lastEdited =
+    orderedRequests[orderedRequests.length - 1]?.lrd ?? currentDate;
+  const lastEditedBy =
+    orderedRequests[orderedRequests.length - 1]?.addUser ?? "";
 
   // Excavators section
   const theadExcavators = `
-    <tr style="background-color:#2c3e50;color:#ffffff;">
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Багер</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Заявка</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Статус</th>
+    <tr style="${styles.tr}">
+      <th style="${styles.td}">Багер</th>
+      <th style="${styles.td}">Заявка</th>
+      <th style="${styles.tdLast}">Статус</th>
     </tr>`;
 
   const excavatorRows =
-    excavatorRequests.length > 0
-      ? excavatorRequests
-          .map((request, index) => {
-            const formattedRequest =
-              request.RequestRemont?.replace(/is\|\|mp/g, ";") ?? "";
-            const bgColor = index % 2 === 0 ? "#ffffff" : "#f8f9fa";
-            const status = request.SentReportOn ? "Изпратен" : "Чака";
+    excavatorRequests.length > 0 &&
+    excavatorRequests
+      .map((request) => {
+        const formattedRequest =
+          request.RequestRemont?.replace(/is\|\|mp/g, ";") ?? "";
 
-            return `
-    <tr style="background-color:${bgColor};">
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(request.Equipment)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(formattedRequest)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(status)}</td>
-    </tr>`;
-          })
-          .join("")
-      : `
-    <tr>
-      <td colspan="3" style="border:1px solid #dee2e6;padding:8px;text-align:center;color:#6c757d;">
-        Няма заявки
-      </td>
-    </tr>`;
+        return `
+            <tr>
+              <td style="${styles.td} ${styles.borderY}">${escapeHtml(request.Equipment)}</td>
+              <td style="${styles.td} ${styles.borderY}">${escapeHtml(formattedRequest)}</td>
+              <td style="${styles.tdLast} ${styles.borderY}"></td>
+            </tr>`;
+      })
+      .join("");
 
   // Drills section
   const theadDrills = `
-    <tr style="background-color:#2c3e50;color:#ffffff;">
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Сонда</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Бр.сондажи</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Заявка</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Статус</th>
+    <tr style="${styles.tr}">
+      <th style="${styles.td} ${styles.borderY}">Сонда</th>
+      <th style="${styles.td} ${styles.borderY}">Бр.сондажи</th>
+      <th style="${styles.td} ${styles.borderY}">Заявка</th>
+      <th style="${styles.tdLast} ${styles.borderY}">Статус</th>
     </tr>`;
 
   const drillRows =
-    drillRequests.length > 0
-      ? drillRequests
-          .map((request, index) => {
-            const formattedRequest =
-              request.RequestRemont?.replace(/is\|\|mp/g, ";") ?? "";
-            const bgColor = index % 2 === 0 ? "#ffffff" : "#f8f9fa";
-            const status = request.SentReportOn ? "Изпратен" : "Чака";
-            const drillHoles = request.DrillHoles_type ?? "-";
-
-            return `
-    <tr style="background-color:${bgColor};">
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(request.Equipment)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;text-align:center;">${escapeHtml(drillHoles)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(formattedRequest)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(status)}</td>
-    </tr>`;
-          })
-          .join("")
-      : `
-    <tr>
-      <td colspan="4" style="border:1px solid #dee2e6;padding:8px;text-align:center;color:#6c757d;">
-        Няма заявки
-      </td>
-    </tr>`;
+    drillRequests.length > 0 &&
+    drillRequests
+      .map((request) => {
+        const formattedRequest =
+          request.RequestRemont?.replace(/is\|\|mp/g, ";") ?? "";
+        const drillHoles = request.DrillHoles_type ?? "-";
+        return `
+            <tr>
+              <td style="${styles.td} ${styles.borderY}">${escapeHtml(request.Equipment)}</td>
+              <td style="${styles.td} ${styles.borderY};text-align:center;">${escapeHtml(drillHoles)}</td>
+              <td style="${styles.td} ${styles.borderY}">${escapeHtml(formattedRequest)}</td>
+              <td style="${styles.tdLast} ${styles.borderY}"></td>
+            </tr>`;
+      })
+      .join("");
 
   // Others section
   const theadOthers = `
-    <tr style="background-color:#2c3e50;color:#ffffff;">
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Заявка</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Секция</th>
-      <th style="border:1px solid #1a252f;padding:6px 8px;text-align:left;font-weight:bold;">Статус</th>
+    <tr style="${styles.tr}">
+      <th style="${styles.td} ${styles.borderY}">Секция</th>
+      <th style="${styles.td} ${styles.borderY}">Заявка</th>
+      <th style="${styles.tdLast} ${styles.borderY}">Статус</th>
     </tr>`;
 
   const otherRows =
-    otherRequests.length > 0
-      ? otherRequests
-          .map((request, index) => {
-            const formattedRequest =
-              request.RequestRemont?.replace(/is\|\|mp/g, ";") ?? "";
-            const bgColor = index % 2 === 0 ? "#ffffff" : "#f8f9fa";
-            const status = request.SentReportOn ? "Изпратен" : "Чака";
-
-            return `
-    <tr style="background-color:${bgColor};">
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(formattedRequest)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(request.Equipment)}</td>
-      <td style="border:1px solid #dee2e6;padding:6px 8px;">${escapeHtml(status)}</td>
-    </tr>`;
-          })
-          .join("")
-      : `
-    <tr>
-      <td colspan="3" style="border:1px solid #dee2e6;padding:8px;text-align:center;color:#6c757d;">
-        Няма заявки
-      </td>
-    </tr>`;
+    otherRequests.length > 0 &&
+    otherRequests
+      .map((request) => {
+        const formattedRequest =
+          request.RequestRemont?.replace(/is\|\|mp/g, ";") ?? "";
+        return `
+            <tr>
+              <td style="${styles.td} ${styles.borderY}">${escapeHtml(request.Equipment)}</td>
+              <td style="${styles.td} ${styles.borderY}">${escapeHtml(formattedRequest)}</td>
+              <td style="${styles.tdLast} ${styles.borderY}"></td>
+            </tr>`;
+      })
+      .join("");
 
   return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Заявки за ремонти</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-size: 13px;
-      line-height: 1.4;
-      color: #212529;
-      background-color: #ffffff;
-      margin: 0;
-      padding: 0;
-    }
-    .header-bar {
-      background-color: #1a252f;
-      color: #ffffff;
-      padding: 8px 12px;
-      font-size: 12px;
-    }
-    .content {
-      padding: 20px;
-    }
-    .section-title {
-      background-color: #34495e;
-      color: #ffffff;
-      padding: 8px 12px;
-      margin: 20px 0 10px 0;
-      font-weight: bold;
-      font-size: 14px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
-<body>
-  <div class="header-bar">
-    <strong>записана из:</strong> ${escapeHtml(currentDate)} | <strong>последна редакция в:</strong> ${escapeHtml(lastEdited)} ОТ: ${escapeHtml(lastEditedBy)}
-  </div>
-  
-  <div class="content">
-    <h2 style="color:#2c3e50;margin:0 0 16px 0;font-size:18px;font-weight:bold;">Заявки за ремонти за дата ${escapeHtml(date)}</h2>
-    
-    ${
-      excavatorRequests.length > 0
-        ? `
-    <div class="section-title">Багери</div>
-    <table>
-      <thead>${theadExcavators}</thead>
-      <tbody>${excavatorRows}</tbody>
-    </table>
-    `
-        : ""
-    }
-    
-    ${
-      drillRequests.length > 0
-        ? `
-    <div class="section-title">Сонди</div>
-    <table>
-      <thead>${theadDrills}</thead>
-      <tbody>${drillRows}</tbody>
-    </table>
-    `
-        : ""
-    }
-    
-    ${
-      otherRequests.length > 0
-        ? `
-    <div class="section-title">ДРУГИ</div>
-    <table>
-      <thead>${theadOthers}</thead>
-      <tbody>${otherRows}</tbody>
-    </table>
-    `
-        : ""
-    }
-    
-    ${
-      requests.length === 0
-        ? `
-    <p style="text-align:center;color:#6c757d;padding:20px;">Няма заявки за ремонти за тази дата.</p>
-    `
-        : ""
-    }
-  </div>
-</body>
-</html>`;
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Заявки за ремонти</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11px;
+            line-height: 1.2;
+            margin: 0;
+            padding: 20px;
+          }
+        </style>
+      </head>
+      <body>
+        <h2 style="color:${colorHexs.title};font-size:14px;font-weight:bold;">Заявки за ремонти за дата ${escapeHtml(date)}</h2>
+        <p style="${styles.text}">Записана в: <strong>${escapeHtml(firstEdited)}</strong> създадена от: <strong>${escapeHtml(firstEditedBy)}</strong></p>
+        <p style="${styles.text}">Последна редакция в: <strong>${escapeHtml(lastEdited)}</strong> от: <strong>${escapeHtml(lastEditedBy)}</strong></p>
+        <br></br>
+        ${
+          excavatorRequests.length > 0
+            ? `
+          <table style="min-width:200px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
+            <thead>
+              <tr style="background-color:${colorHexs.excavMain};font-size:12px;font-weight:bold;">
+                <th colspan="3" style="padding:4px 8px;border-bottom:1px solid ${colorHexs.border};">Багери</th>
+              </tr>
+              ${theadExcavators}
+            </thead>
+            <tbody>${excavatorRows}</tbody>
+          </table>
+          `
+            : ""
+        }
+        <br></br>
+        ${
+          drillRequests.length > 0
+            ? `
+          <table style="width:550px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
+            <thead>
+              <tr style="background-color:${colorHexs.drillMain};font-size:12px;font-weight:bold;">
+                <th colspan="4" style="padding:4px 8px;border-bottom:1px solid ${colorHexs.border};">Сонди</th>
+              </tr>
+              ${theadDrills}
+            </thead>
+            <tbody>${drillRows}</tbody>
+          </table>
+          `
+            : ""
+        }
+        <br></br>
+        ${
+          otherRequests.length > 0
+            ? `
+          <table style="width:550px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
+            <thead>
+              <tr style="background-color:${colorHexs.otherMain};font-size:12px;font-weight:bold;">
+                <th colspan="3" style="padding:4px 8px;border-bottom:1px solid ${colorHexs.border};">ДРУГИ</th>
+              </tr>
+              ${theadOthers}
+            </thead>
+            <tbody>${otherRows}</tbody>
+          </table>
+          `
+            : ""
+        }
+          
+          ${
+            requests.length === 0
+              ? `
+            <p style="text-align:center;color:#6c757d;padding:20px;">
+              Няма заявки за ремонти за тази дата.
+            </p>`
+              : ""
+          }
+      </body>
+      </html>`;
 }
 
 function escapeHtml(text: string | number): string {
