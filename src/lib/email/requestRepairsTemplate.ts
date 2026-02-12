@@ -10,11 +10,10 @@ const colorHexs = {
 };
 
 const styles = {
-  tr: `border:1px solid ${colorHexs.border};padding:6px 8px;font-weight:bold;`,
-  text: "font-size:11px; padding-bottom: 0px; margin-bottom: 0px;",
-  td: `border-right:1px solid ${colorHexs.border};padding:6px 8px;`,
-  // Last column cell – keep only right border to avoid double vertical lines
-  tdLast: `border-right:1px solid ${colorHexs.border};padding:6px 8px;`,
+  tr: `border:1px solid ${colorHexs.border};padding:2px 6px;font-weight:bold;text-align:center;margin:0;line-height:1.2;`,
+  text: "font-size:11px;padding:0;margin:0;line-height:1.2;",
+  td: `border-right:1px solid ${colorHexs.border};text-align:center;padding:2px 6px;margin:0;line-height:1.2;`,
+  tdLast: `border-right:1px solid ${colorHexs.border};text-align:center;padding:2px 6px;margin:0;line-height:1.2;`,
   borderY: `border-top:1px solid ${colorHexs.border}; border-bottom:1px solid ${colorHexs.border};`,
 };
 
@@ -140,27 +139,29 @@ export function buildRepairRequestsEmailTemplate(
         <meta charset="utf-8">
         <title>Заявки за ремонти</title>
         <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 11px;
-            line-height: 1.2;
-            margin: 0;
-            padding: 20px;
-          }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px; margin: 0; padding: 20px; }
+          table { border-collapse: collapse; }
+          table td, table th { padding: 2px 6px; margin: 0; line-height: 1.2; }
         </style>
       </head>
       <body>
+        ${
+          requests.length > 0 &&
+          `
         <h2 style="color:${colorHexs.title};font-size:14px;font-weight:bold;">Заявки за ремонти за дата ${escapeHtml(date)}</h2>
         <p style="${styles.text}">Записана в: <strong>${escapeHtml(firstEdited)}</strong> създадена от: <strong>${escapeHtml(firstEditedBy)}</strong></p>
         <p style="${styles.text}">Последна редакция в: <strong>${escapeHtml(lastEdited)}</strong> от: <strong>${escapeHtml(lastEditedBy)}</strong></p>
+        `
+        }
+        
         <br></br>
         ${
           excavatorRequests.length > 0
             ? `
-          <table style="min-width:200px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
+          <table cellpadding="0" cellspacing="0" style="min-width:200px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
             <thead>
               <tr style="background-color:${colorHexs.excavMain};font-size:12px;font-weight:bold;">
-                <th colspan="3" style="padding:4px 8px;border-bottom:1px solid ${colorHexs.border};">Багери</th>
+                <th colspan="3" style="padding:2px 6px;border-bottom:1px solid ${colorHexs.border};margin:0;line-height:1.2;">Багери</th>
               </tr>
               ${theadExcavators}
             </thead>
@@ -173,10 +174,10 @@ export function buildRepairRequestsEmailTemplate(
         ${
           drillRequests.length > 0
             ? `
-          <table style="width:550px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
+          <table cellpadding="0" cellspacing="0" style="width:550px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
             <thead>
               <tr style="background-color:${colorHexs.drillMain};font-size:12px;font-weight:bold;">
-                <th colspan="4" style="padding:4px 8px;border-bottom:1px solid ${colorHexs.border};">Сонди</th>
+                <th colspan="4" style="padding:2px 6px;border-bottom:1px solid ${colorHexs.border};margin:0;line-height:1.2;">Сонди</th>
               </tr>
               ${theadDrills}
             </thead>
@@ -189,10 +190,10 @@ export function buildRepairRequestsEmailTemplate(
         ${
           otherRequests.length > 0
             ? `
-          <table style="width:550px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
+          <table cellpadding="0" cellspacing="0" style="width:550px;border:1px solid ${colorHexs.border};margin-bottom:20px;border-collapse:collapse;">
             <thead>
               <tr style="background-color:${colorHexs.otherMain};font-size:12px;font-weight:bold;">
-                <th colspan="3" style="padding:4px 8px;border-bottom:1px solid ${colorHexs.border};">ДРУГИ</th>
+                <th colspan="3" style="padding:2px 6px;border-bottom:1px solid ${colorHexs.border};margin:0;line-height:1.2;">ДРУГИ</th>
               </tr>
               ${theadOthers}
             </thead>
@@ -205,7 +206,7 @@ export function buildRepairRequestsEmailTemplate(
           ${
             requests.length === 0
               ? `
-            <p style="text-align:center;color:#6c757d;padding:20px;">
+            <p style="${styles.text}text-align:center;font-size:14px;">
               Няма заявки за ремонти за тази дата.
             </p>`
               : ""

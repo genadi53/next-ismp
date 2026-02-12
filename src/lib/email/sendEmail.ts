@@ -1,5 +1,6 @@
 import * as nodemailer from "nodemailer";
 import { env } from "@/env";
+import type { Attachment } from "nodemailer/lib/mailer";
 
 const transporterServer = nodemailer.createTransport({
   host: "mail.ellatzite-med.com",
@@ -14,7 +15,12 @@ const transporterServer = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async (subject: string, html: string, to: string) => {
+export const sendEmail = async (
+  subject: string,
+  html: string,
+  to: string,
+  attachments: Attachment[] = [],
+) => {
   if (!transporterServer) {
     console.error("No transporterServer");
     return;
@@ -23,9 +29,10 @@ export const sendEmail = async (subject: string, html: string, to: string) => {
   try {
     const info = await transporterServer.sendMail({
       from: env.MAIN_EMAIL_USER,
-      to: to,
-      subject: subject,
-      html: html,
+      to: "genadi.tsolov@ellatzite-med.com",
+      subject,
+      html,
+      attachments,
     });
 
     // console.log("Message sent:", info.messageId);

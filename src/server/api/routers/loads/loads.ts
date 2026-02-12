@@ -13,6 +13,7 @@ import { nameInput } from "@/lib/username";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { buildLoadsReportHtml } from "@/lib/email/loadsEmailTemplate";
 import { getMailGroupsByName } from "@/server/repositories";
+import { saveAttachmentFile } from "@/lib/email/saveAttachmentFile";
 
 export const loadsRouter = createTRPCRouter({
   /**
@@ -78,10 +79,18 @@ export const loadsRouter = createTRPCRouter({
       console.log(mailGroup.mail_group);
 
       const htmlTemplate = buildLoadsReportHtml(unsentLoads);
+      const filePath = await saveAttachmentFile(htmlTemplate, "loads-report");
       const messageId = await sendEmail(
         "Отчет редакция курсове",
         htmlTemplate,
         mailGroup.mail_group,
+        [
+          {
+            filename: `Отчет редакция курсове.html`,
+            path: filePath,
+            contentType: "text/html",
+          },
+        ],
         // env.TEST_EMAIL_TO ??
         //   "genadi.tsolov@ellatzite-med.com;p.penkov@ellatzite-med.com;",
       );

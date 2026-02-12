@@ -13,6 +13,7 @@ import { getMailGroupsByName } from "@/server/repositories";
 import { TRPCError } from "@trpc/server";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { buildRepairRequestsEmailTemplate } from "@/lib/email/requestRepairsTemplate";
+import { saveAttachmentFile } from "@/lib/email/saveAttachmentFile";
 
 const createRequestRepairSchema = z.object({
   RequestDate: z.string(),
@@ -89,12 +90,22 @@ export const repairsRouter = createTRPCRouter({
         requests,
         input.date,
       );
+      const filePath = await saveAttachmentFile(htmlTemplate, "repairs-report");
+
       const messageId = await sendEmail(
         "Заявка за ремонти",
         htmlTemplate,
         mailGroup.mail_group,
         // env.TEST_EMAIL_TO ??
         //   "genadi.tsolov@ellatzite-med.com;p.penkov@ellatzite-med.com;",
+        [
+          {
+            filename: `Заявки за ремонт за дата ${input.date}.html`,
+            // content: htmlTemplate,
+            path: filePath,
+            contentType: "text/html",
+          },
+        ],
       );
 
       if (!messageId) {
