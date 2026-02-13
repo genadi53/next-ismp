@@ -1,4 +1,4 @@
-import { sqlQuery } from "@/server/database/db";
+import { sqlQuery, sqlQueryOne } from "@/server/database/db";
 import type {
   CurrentDispatcher,
   DispatchEquipmentName,
@@ -7,8 +7,8 @@ import type {
 /**
  * Get the current dispatcher information.
  */
-export async function getCurrentDispatcher(): Promise<CurrentDispatcher[]> {
-  return sqlQuery<CurrentDispatcher>(`
+export async function getCurrentDispatcher(): Promise<CurrentDispatcher | null> {
+  return sqlQueryOne<CurrentDispatcher>(`
     ;WITH Dispatchers AS (
       SELECT DISTINCT [Name], [LoginName]
       FROM [ELLDBAdmins].[dbo].[DispatchersGrafic]

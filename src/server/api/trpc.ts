@@ -25,7 +25,7 @@ import { fixEncoding } from "@/lib/utf-decoder";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const username = opts.headers.get("X-WEBAUTH-USER") ?? "";
+  const username = opts.headers.get("X-WEBAUTH-USER") ?? "genadi.tsolov";
   const fullName = (opts.headers.get("X-Authorize-Name") ?? "").trim() || "";
   const nameBg = (opts.headers.get("X-Authorize-Name-BG") ?? "").trim() || "";
   const email = username

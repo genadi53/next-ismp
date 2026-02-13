@@ -9,7 +9,9 @@ import type {
 /**
  * Get all morning reports.
  */
-export async function getMorningReports(): Promise<MorningReport[]> {
+export async function getMorningReports(
+  allTime: boolean = false,
+): Promise<MorningReport[]> {
   return sqlQuery<MorningReport>(`
     SELECT [ID],
            CONVERT(NVARCHAR, CAST([ReportDate] AS DATE), 120) AS [ReportDate],
@@ -21,6 +23,7 @@ export async function getMorningReports(): Promise<MorningReport[]> {
            [SentFrom]
     FROM [ELLDBAdmins].[dbo].[Dispatchers_MorningReport] 
     WHERE id > 4
+      		${allTime ? "" : "and ReportDate >= DATEADD(MONTH, -6, GETDATE())"}
     ORDER BY ID DESC
   `);
 }
@@ -123,4 +126,3 @@ export async function sendMorningReport(
     `);
   });
 }
-

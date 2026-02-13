@@ -11,29 +11,62 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/cn";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { toast } from "@/components/ui/toast";
 import { z } from "zod";
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Send } from "lucide-react";
+import { CalendarIcon, Lightbulb, Send } from "lucide-react";
+import { Editor } from "@tinymce/tinymce-react";
 import type { MorningReport } from "@/server/repositories/dispatcher";
 import { format } from "date-fns";
-
-const morningReportEditSchema = z.object({
-  ReportBody: z.string().min(1, "Моля, въведете съдържание на отчета"),
-});
-
-type MorningReportEditData = z.infer<typeof morningReportEditSchema>;
+import { decodeBase64, decodeHtmlEntities, encodeBase64UTF8 } from "@/lib/utf-decoder";
+import { env } from "@/env";
+import { defaultEditorConfig, ToolbarConfig } from "@/config/editor.config";
 
 type MorningReportEditProps = {
-  report: MorningReport;
+  report?: MorningReport | null;
   dispatcher: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 };
+
+const template: string = `&lt;p&gt;Добро утро. &lt;br&gt;&lt;br&gt;&lt;span style=&quot;color: rgb(224, 62, 45);&quot;&gt;&lt;strong&gt;Първа смяна:&lt;/strong&gt;&lt;/span&gt;&lt;br&gt;Багери &amp;ndash;&amp;nbsp;&lt;br&gt;Багери подаващи Руда:&amp;nbsp;&lt;br&gt;Руда се подава на:&amp;nbsp;&lt;br&gt;Багери подаващи Откривка :&amp;nbsp;&lt;br&gt;Коли &amp;ndash;&amp;nbsp;&lt;br&gt;Престой МГТЛ, часове &amp;ndash;&amp;nbsp;&lt;br&gt;Празен питател:&amp;nbsp;&lt;/p&gt;  &lt;p&gt;&lt;br&gt;&lt;span style=&quot;color: rgb(224, 62, 45);&quot;&gt;&lt;strong&gt;Втора смяна :&amp;nbsp;&lt;/strong&gt;&lt;/span&gt;&lt;br&gt;Багери &amp;ndash;&amp;nbsp;&lt;br&gt;Багери подаващи Руда:&amp;nbsp;&lt;br&gt;Руда се подава на:&amp;nbsp;&lt;br&gt;Багери подаващи Откривка :&amp;nbsp;&lt;br&gt;Коли &amp;ndash; &amp;nbsp;&lt;br&gt;Престой МГТЛ, часове &amp;ndash;&amp;nbsp;&lt;br&gt;Празен питател:&amp;nbsp;&lt;br&gt;&amp;nbsp;&lt;br&gt;&lt;span style=&quot;color: rgb(224, 62, 45);&quot;&gt;&lt;strong&gt;Трета смяна:&lt;/strong&gt;&lt;/span&gt;&lt;br&gt;Багери &amp;ndash;&amp;nbsp;&lt;br&gt;Багери подаващи Руда:&amp;nbsp;&lt;br&gt;Руда се подава на :&amp;nbsp;&lt;br&gt;Багери подаващи Откривка :&amp;nbsp;&lt;br&gt;Коли &amp;ndash; &amp;nbsp;&lt;br&gt;Престой МГТЛ, часове &amp;ndash;&amp;nbsp;&lt;br&gt;Празен питател:&amp;nbsp;&lt;/p&gt;  &lt;p&gt;&lt;br&gt;&lt;strong&gt;Проблеми и Аварии:&lt;/strong&gt;&lt;/p&gt;  &lt;p&gt;&amp;nbsp;&lt;/p&gt;`;
+
+const morningReportCreateSchema = z.object({
+  ReportDate: z.date({ required_error: "Моля, изберете дата" }),
+  StartedFromDispatcher: z.string().min(1, "Моля, въведете диспечер"),
+  ReportBody: z.string().min(1, "Моля, въведете съдържание на отчета"),
+});
+
+type MorningReportFormData = z.infer<typeof morningReportCreateSchema>;
+
+const getDefaultValues = (report?: MorningReport | null, currentDispatcher?: string): MorningReportFormData => {
+  if (report) {
+    const base64Decoded = decodeBase64(report.ReportBody ?? "");
+    const reportBody = base64Decoded ? decodeHtmlEntities(base64Decoded) : "";
+    return {
+      ReportDate: new Date(report.ReportDate),
+      StartedFromDispatcher: report.StartedFromDispatcher ?? "",
+      ReportBody: reportBody,
+    };
+  }
+  return {
+    ReportDate: new Date(),
+    StartedFromDispatcher: currentDispatcher ?? "",
+    ReportBody: "",
+  };
+};
+
+
 
 export function MorningReportEdit({
   report,
@@ -41,24 +74,43 @@ export function MorningReportEdit({
   onSuccess,
   onCancel,
 }: MorningReportEditProps) {
-  const [sendReport, setSendReport] = useState(false);
+  const isEditMode = !!report;
+  const sendReportRef = useRef(false);
+  const [, setTemplateLoaded] = useState(false);
   const utils = api.useUtils();
+
+  // const { data: template } = api.dispatcher.morningReport.getTemplate.useQuery(
+  //   undefined,
+  //   { enabled: !isEditMode },
+  // );
+
+
+  const form = useForm<MorningReportFormData>({
+    resolver: zodResolver(morningReportCreateSchema),
+    defaultValues: getDefaultValues(report, dispatcher),
+  });
+
+  useEffect(() => {
+    form.reset(getDefaultValues(report, dispatcher));
+  }, [report, dispatcher]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      form.setValue("StartedFromDispatcher", dispatcher);
+    }
+  }, [dispatcher, isEditMode, form]);
 
   const { mutateAsync: updateReport, isPending: isUpdating } =
     api.dispatcher.morningReport.update.useMutation({
       onSuccess: async () => {
-        if (sendReport) {
-          // Send the report
+        if (report && sendReportRef.current) {
+          sendReportRef.current = false;
           try {
             await sendReportMutation({
               id: report.ID,
-              data: {
-                SentOn: new Date().toISOString(),
-                SentFrom: dispatcher,
-              },
+              data: { SentOn: new Date().toISOString() },
             });
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (_error) {
+          } catch {
             toast({
               title: "Грешка",
               description:
@@ -106,75 +158,99 @@ export function MorningReportEdit({
       },
     });
 
-  // UTF-8 base64 decode helper
-  const decodeBase64UTF8 = (str: string): string => {
-    try {
-      // Decode base64
-      const binaryString = atob(str);
-      // Convert binary string to UTF-8
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+  const { mutateAsync: createReport, isPending: isCreating } =
+    api.dispatcher.morningReport.create.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Успех",
+          description: "Отчетът е създаден успешно.",
+        });
+        void utils.dispatcher.morningReport.getAll.invalidate();
+        form.reset({
+          ReportDate: new Date(),
+          StartedFromDispatcher: dispatcher,
+          ReportBody: "",
+        });
+        setTemplateLoaded(false);
+        onSuccess?.();
+      },
+      onError: (error) => {
+        toast({
+          title: "Грешка",
+          description:
+            error.message ||
+            "Възникна грешка при създаването на отчета. Опитайте отново.",
+          variant: "destructive",
+        });
+      },
+    });
+
+  const loadTemplate = () => {
+    if (template) {
+      try {
+        const base64Decoded = decodeBase64(template);
+        const decodedTemplate = decodeHtmlEntities(base64Decoded);
+        form.setValue("ReportBody", decodedTemplate);
+        setTemplateLoaded(true);
+      } catch {
+        form.setValue("ReportBody", template);
+        setTemplateLoaded(true);
+        toast({
+          title: "Грешка",
+          description: "Възникна грешка при зареждането на темплейта.",
+          variant: "destructive",
+        });
       }
-      // Decode UTF-8
-      return new TextDecoder("utf-8").decode(bytes);
-    } catch {
-      return str;
+    } else {
+      toast({
+        title: "Грешка",
+        description: "Темплейтът не е наличен.",
+        variant: "destructive",
+      });
     }
   };
 
-  // Decode report body from base64
-  const getDecodedReportBody = () => {
-    if (!report.ReportBody) return "";
-    return decodeBase64UTF8(report.ReportBody);
+  const handleClear = () => {
+    form.reset({
+      ReportDate: new Date(),
+      StartedFromDispatcher: dispatcher,
+      ReportBody: "",
+    });
+    setTemplateLoaded(false);
   };
 
-  const form = useForm<MorningReportEditData>({
-    resolver: zodResolver(morningReportEditSchema),
-    defaultValues: {
-      ReportBody: getDecodedReportBody(),
-    },
-  });
-
-  // UTF-8 base64 encode helper
-  const encodeBase64UTF8 = (str: string): string => {
-    try {
-      // Encode UTF-8 to bytes
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(str);
-      // Convert bytes to binary string
-      let binaryString = "";
-      for (const byte of bytes) {
-        binaryString += String.fromCharCode(byte);
-      }
-      // Encode to base64
-      return btoa(binaryString);
-    } catch {
-      return str;
-    }
-  };
-
-  const onSubmit = async (data: MorningReportEditData) => {
-    // Encode report body to base64 with UTF-8 support
+  const onSubmitEdit = async (data: MorningReportFormData) => {
+    if (!report) return;
     const encodedBody = encodeBase64UTF8(data.ReportBody);
 
     await updateReport({
       id: report.ID,
       data: {
-        CompletedFromDispatcher: dispatcher,
         CompletedOn: new Date().toISOString(),
         ReportBody: encodedBody,
       },
     });
   };
 
-  const handleSaveAndSend = () => {
-    setSendReport(true);
-    void form.handleSubmit(onSubmit)();
+  const onSubmitCreate = async (data: MorningReportFormData) => {
+    const encodedBody = encodeBase64UTF8(data.ReportBody);
+
+    await createReport({
+      ReportDate: format(data.ReportDate, "yyyy-MM-dd"),
+      ReportBody: encodedBody,
+    });
   };
 
-  const isLoading = isUpdating || isSending;
-  const isSent = !!report.SentOn;
+  const onSubmit = isEditMode ? onSubmitEdit : onSubmitCreate;
+
+  const handleSaveAndSend = () => {
+    if (!report) return;
+    sendReportRef.current = true;
+    void form.handleSubmit(onSubmitEdit)();
+  };
+
+  const isLoading = isUpdating || isSending || isCreating;
+  const isSent = !!report?.SentOn;
 
   return (
     <Form {...form}>
@@ -182,32 +258,72 @@ export function MorningReportEdit({
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* Left Column */}
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">За Дата</label>
-              <Input
-                value={report.ReportDate}
-                disabled
-                className="bg-muted mt-1"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="ReportDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>
+                    За Дата <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          disabled={isEditMode}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "yyyy-MM-dd")
+                          ) : (
+                            <span>Изберете дата</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div>
-              <label className="text-sm font-medium">
-                Започната от Диспечер
-              </label>
-              <Input
-                value={report.StartedFromDispatcher ?? ""}
-                disabled
-                className="bg-muted mt-1"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="StartedFromDispatcher"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Започната от Диспечер</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div>
               <label className="text-sm font-medium">
                 Приключен от Диспечер
               </label>
               <Input
-                value={report.CompletedFromDispatcher ?? ""}
+                value={report?.CompletedFromDispatcher ?? ""}
                 disabled
                 className="bg-muted mt-1"
               />
@@ -217,7 +333,7 @@ export function MorningReportEdit({
               <label className="text-sm font-medium">Приключен на</label>
               <Input
                 value={
-                  report.CompletedOn
+                  report?.CompletedOn
                     ? format(new Date(report.CompletedOn), "yyyy-MM-dd")
                     : ""
                 }
@@ -229,7 +345,7 @@ export function MorningReportEdit({
             <div>
               <label className="text-sm font-medium">Изпратен от</label>
               <Input
-                value={report.SentFrom ?? ""}
+                value={report?.SentFrom ?? ""}
                 disabled
                 className="bg-muted mt-1"
               />
@@ -239,7 +355,7 @@ export function MorningReportEdit({
               <label className="text-sm font-medium">Изпратен на</label>
               <Input
                 value={
-                  report.SentOn
+                  report?.SentOn
                     ? format(new Date(report.SentOn), "yyyy-MM-dd")
                     : ""
                 }
@@ -249,34 +365,68 @@ export function MorningReportEdit({
             </div>
 
             <div className="flex flex-col gap-2 pt-4">
-              <Button type="submit" disabled={isLoading || isSent}>
-                Запиши
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleSaveAndSend}
-                disabled={isLoading || isSent}
-                className="gap-2"
-              >
-                <Send className="h-4 w-4" />
-                Запиши и Изпрати
-              </Button>
-              {onCancel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  disabled={isLoading}
-                >
-                  Изход
-                </Button>
+
+              {isEditMode ? (
+                <>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading || (isEditMode && isSent)}
+                  >
+                    Запиши
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleSaveAndSend}
+                    disabled={isLoading || isSent}
+                    className="gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    Запиши и Изпрати
+                  </Button>
+                  {onCancel && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={onCancel}
+                      disabled={isLoading}
+                    >
+                      Отказ от редакция
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Button
+                    type="reset"
+                    variant="outline"
+                    onClick={handleClear}
+                  >
+                    Изчисти
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={loadTemplate}
+                    disabled={!template}
+                  >
+                    Покажи темплейт &gt;&gt;
+                  </Button>
+                  <Button
+                    variant={"ell"}
+                    type="submit"
+                    disabled={isLoading || (isEditMode && isSent)}
+                  >
+                    Запиши
+                  </Button>
+                </>
               )}
             </div>
           </div>
 
           {/* Right Column - Report Body */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 space-y-2">
             <FormField
               control={form.control}
               name="ReportBody"
@@ -286,23 +436,26 @@ export function MorningReportEdit({
                     Отчет <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea
-                      {...field}
-                      rows={20}
-                      className="font-mono text-sm"
-                      disabled={isSent}
-                      placeholder="Въведете съдържанието на отчета..."
-                    />
+                    <div className="border-2 border-gray-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors">
+                      <Editor
+                        apiKey={env.NEXT_PUBLIC_TINYMCE_API_KEY}
+                        value={field.value}
+                        onEditorChange={(content) => field.onChange(content)}
+                        disabled={isSent}
+                        init={{
+                          ...defaultEditorConfig,
+                          toolbar: ToolbarConfig(isSent),
+                        }}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>
-                        * За нов ред използвайте бутоните SHIFT+ENTER
-                      </strong>
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <Lightbulb className="size-6 text-blue-600" />
+                    <AlertDescription className="text-blue-800 text-sm flex flex-col gap-1">
+                      <strong>Съвет:</strong> За нов ред използвайте SHIFT+ENTER
                       {isSent && (
-                        <span className="mt-1 block text-red-600">
+                        <span className="mt-1 text-red-600">
                           Отчетът вече е изпратен и не може да бъде редактиран.
                         </span>
                       )}

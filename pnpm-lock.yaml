@@ -74,6 +74,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@tinymce/tinymce-react':
+        specifier: ^6.3.0
+        version: 6.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@trpc/client':
         specifier: ^11.0.0
         version: 11.7.2(@trpc/server@11.7.2(typescript@5.9.3))(typescript@5.9.3)
@@ -1317,6 +1320,16 @@ packages:
 
   '@tediousjs/connection-string@0.6.0':
     resolution: {integrity: sha512-GxlsW354Vi6QqbUgdPyQVcQjI7cZBdGV5vOYVYuCVDTylx2wl3WHR2HlhcxxHTrMigbelpXsdcZso+66uxPfow==}
+
+  '@tinymce/tinymce-react@6.3.0':
+    resolution: {integrity: sha512-E++xnn0XzDzpKr40jno2Kj7umfAE6XfINZULEBBeNjTMvbACWzA6CjiR6V8eTDc9yVmdVhIPqVzV4PqD5TZ/4g==}
+    peerDependencies:
+      react: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+      react-dom: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+      tinymce: ^8.0.0 || ^7.0.0 || ^6.0.0 || ^5.5.1
+    peerDependenciesMeta:
+      tinymce:
+        optional: true
 
   '@trpc/client@11.7.2':
     resolution: {integrity: sha512-OQxqUMfpDvjcszo9dbnqWQXnW2L5IbrKSz2H7l8s+mVM3EvYw7ztQ/gjFIN3iy0NcamiQfd4eE6qjcb9Lm+63A==}
@@ -4464,6 +4477,12 @@ snapshots:
   '@tanstack/table-core@8.21.3': {}
 
   '@tediousjs/connection-string@0.6.0': {}
+
+  '@tinymce/tinymce-react@6.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      prop-types: 15.8.1
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   '@trpc/client@11.7.2(@trpc/server@11.7.2(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:

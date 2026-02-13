@@ -44,6 +44,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_TINYMCE_API_KEY: z.string(),
   },
 
   /**
@@ -71,7 +72,6 @@ export const env = createEnv({
     MYSQL_USER: process.env.MYSQL_USER,
     MYSQL_PASSWORD: process.env.MYSQL_PASSWORD,
     MYSQL_PORT: process.env.MYSQL_PORT,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 
     TEST_EMAIL_USER: process.env.TEST_EMAIL_USER,
     TEST_EMAIL_PASS: process.env.TEST_EMAIL_PASS,
@@ -79,6 +79,9 @@ export const env = createEnv({
 
     MAIN_EMAIL_USER: process.env.MAIN_EMAIL_USER,
     MAIN_EMAIL_PASS: process.env.MAIN_EMAIL_PASS,
+
+    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    NEXT_PUBLIC_TINYMCE_API_KEY: process.env.NEXT_PUBLIC_TINYMCE_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

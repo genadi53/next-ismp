@@ -46,8 +46,8 @@ export const Common_Problems = [] as const;
 export const DispatcherSystemNames = {
   20034: "k.y.krastev",
   22041: "d.p.dimitrov",
-  20043: "i.ts.marinov",
-  20046: "i.peev",
+  // 20043: "i.ts.marinov",
+  // 20046: "i.peev",
   20068: "g.katsarov",
   20210: "ts.angelov",
   29301: "e.todorov",
@@ -58,6 +58,8 @@ export const DispatcherSystemNames = {
   22177: "i.enkov",
   22388: "e.evtimov",
   29305: "s.stamenov",
+  20112: "p.penkov",
+  200008: "genadi.tsolov",
 };
 
 export const DRILLS_TYPES: DrillType[] = [

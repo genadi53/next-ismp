@@ -80,6 +80,9 @@ export function RequestsRepairsPageClient() {
                     Машина
                   </th>
                   <th className="border border-gray-300 px-2.5 py-1 text-left">
+                    Бр. Сондажи
+                  </th>
+                  <th className="border border-gray-300 px-2.5 py-1 text-left">
                     Заявка
                   </th>
                   <th className="border border-gray-300 px-2.5 py-1 text-left">
@@ -109,6 +112,9 @@ export function RequestsRepairsPageClient() {
                     </td>
                     <td className="border border-gray-300 px-2.5 py-1">
                       {request.Equipment}
+                    </td>
+                    <td className="border border-gray-300 px-2.5 py-1">
+                      {request.DrillHoles_type ?? "-"}
                     </td>
                     <td className="border border-gray-300 px-2.5 py-1">
                       {request.RequestRemont?.replace(/is\|\|mp/g, ";")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Table,
   TableBody,
@@ -23,6 +23,9 @@ import {
 } from "@tanstack/react-table";
 import { DataTablePagination } from "@/components/table/tablePagination";
 import { NoResults } from "@/components/NoResults";
+import { formatName } from "@/lib/username";
+import { decodeBase64 } from "@/lib/utf-decoder";
+import { cn } from "@/lib/cn";
 
 interface MorningReportsTableProps {
   reports: MorningReport[];
@@ -38,39 +41,10 @@ const decodeHtmlEntities = (text: string): string => {
   return textarea.value;
 };
 
-// Function to decode base64 with UTF-8 support
-const decodeBase64 = (str: string): string => {
-  try {
-    if (typeof window === "undefined") return str;
-    // Decode base64
-    const binaryString = atob(str);
-    // Convert binary string to UTF-8
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    // Decode UTF-8
-    return new TextDecoder("utf-8").decode(bytes);
-  } catch {
-    return str;
-  }
-};
-
-// Helper function to format dispatcher names
-const formatName = (dispName: string | null) => {
-  if (!dispName) return { fullName: "-", sysName: "" };
-  const parts = dispName.split("(");
-  const fullName = parts[0]?.trim() ?? "-";
-  const sysName = parts[1] ? parts[1].replaceAll(")", "").trim() : "";
-  return {
-    fullName,
-    sysName,
-  };
-};
 
 export function MorningReportsTable({
   reports,
-  isReadOnly = false,
+  isReadOnly = true,
   onContinue,
 }: MorningReportsTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -168,7 +142,7 @@ export function MorningReportsTable({
       id: "actions",
       header: "Действия",
       cell: ({ row }) => (
-        <div className="flex gap-2">
+        <div className={cn("flex gap-2 justify-center", isReadOnly && "pr-4")} >
           <Button
             variant="ghost"
             size="sm"
@@ -178,18 +152,20 @@ export function MorningReportsTable({
           >
             <Eye className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onContinue?.(row.original.ID);
-            }}
-            disabled={isReadOnly}
-            title="Продължи редактиране"
-            className="hover:bg-green-50 hover:text-green-700"
-          >
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          {!isReadOnly && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onContinue?.(row.original.ID);
+              }}
+              disabled={isReadOnly}
+              title="Продължи редактиране"
+              className="hover:bg-green-50 hover:text-green-700"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -220,16 +196,15 @@ export function MorningReportsTable({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={`font-semibold text-gray-700 ${
-                      header.id === "ID" ? "w-[80px]" : ""
-                    } ${header.id === "actions" ? "w-[100px]" : ""}`}
+                    className={`font-semibold text-gray-700 ${header.id === "ID" ? "w-[80px]" : ""
+                      } ${header.id === "actions" ? "w-[100px]" : ""}`}
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -237,15 +212,14 @@ export function MorningReportsTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
+              table.getRowModel().rows.map((row, idx) => {
                 const report = row.original;
                 return (
-                  <>
+                  <Fragment key={`${report.ID}_${idx}`}>
                     <TableRow
                       key={row.id}
-                      className={`transition-colors hover:bg-gray-50 ${
-                        isIncomplete(report) ? "bg-red-50/50" : ""
-                      }`}
+                      className={`transition-colors hover:bg-gray-50 ${isIncomplete(report) ? "bg-red-50/50" : ""
+                        }`}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
@@ -271,8 +245,8 @@ export function MorningReportsTable({
                               dangerouslySetInnerHTML={{
                                 __html: report.ReportBody
                                   ? decodeHtmlEntities(
-                                      decodeBase64(report.ReportBody),
-                                    )
+                                    decodeBase64(report.ReportBody),
+                                  )
                                   : "Няма съдържание",
                               }}
                             />
@@ -280,7 +254,7 @@ export function MorningReportsTable({
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 );
               })
             ) : (
